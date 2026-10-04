@@ -3,16 +3,10 @@
 import { useRef } from "react";
 import { Check, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/i18n";
 import type { LensReadiness } from "../hooks/useLensReadiness";
 import { LensIntroduction } from "./LensIntroduction";
 import { OnboardingSetup } from "./OnboardingSetup";
-
-const PREREQUISITES = [
-  { title: "LiteLLM gateway", detail: "Access to its configuration" },
-  { title: "ClickHouse", detail: "Self-hosted or managed trace storage" },
-  { title: "A server with Docker", detail: "To run the analysis worker" },
-  { title: "An analysis model", detail: "Available through your gateway" },
-] as const;
 
 export interface LensGettingStartedProps {
   readonly state: LensReadiness;
@@ -23,6 +17,7 @@ export interface LensGettingStartedProps {
 
 export function LensGettingStarted({ state, onStart, onExit, onDemo }: LensGettingStartedProps) {
   const setupRef = useRef<HTMLElement>(null);
+  const { t } = useTranslation();
   const exitTo = state.tracesReady ? "traces" : "investigations";
   const start = () => {
     onStart();
@@ -41,7 +36,9 @@ export function LensGettingStarted({ state, onStart, onExit, onDemo }: LensGetti
           action={
             (state.activityReady || state.hasInvestigations) && (
               <Button variant="outline" size="sm" onClick={() => onExit(exitTo)}>
-                {exitTo === "traces" ? "View traces" : "View investigations"}
+                {exitTo === "traces"
+                  ? t("lens.investigations.welcomeViewTraces")
+                  : t("lens.onboarding.viewInvestigations")}
               </Button>
             )
           }
@@ -53,14 +50,25 @@ export function LensGettingStarted({ state, onStart, onExit, onDemo }: LensGetti
 }
 
 function Prerequisites() {
+  const { t } = useTranslation();
+  const items: readonly { readonly id: string; readonly title: string; readonly detail: string }[] = [
+    {
+      id: "gateway",
+      title: t("lens.onboarding.flow.gateway"),
+      detail: t("lens.onboarding.prereq.gatewayDetail"),
+    },
+    { id: "storage", title: t("lens.onboarding.prereq.storage"), detail: t("lens.onboarding.prereq.storageDetail") },
+    { id: "server", title: t("lens.onboarding.prereq.server"), detail: t("lens.onboarding.prereq.serverDetail") },
+    { id: "model", title: t("lens.onboarding.prereq.model"), detail: t("lens.onboarding.prereq.modelDetail") },
+  ];
   return (
     <aside className="rounded-2xl border bg-card p-6" aria-labelledby="lens-prerequisites">
       <h2 id="lens-prerequisites" className="text-base font-semibold">
-        Before you start
+        {t("lens.onboarding.prereq.title")}
       </h2>
       <ul className="mt-5 space-y-5 text-sm">
-        {PREREQUISITES.map((item) => (
-          <li key={item.title} className="flex gap-3">
+        {items.map((item) => (
+          <li key={item.id} className="flex gap-3">
             <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
             <div>
               <p className="font-medium">{item.title}</p>
@@ -71,10 +79,7 @@ function Prerequisites() {
       </ul>
       <div className="mt-5 flex gap-2 border-t pt-5 text-xs leading-5 text-muted-foreground">
         <ShieldCheck aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
-        <p>
-          Your infrastructure stores the traces. Investigation content is sent to your selected model provider through
-          the gateway.
-        </p>
+        <p>{t("lens.onboarding.prereq.privacy")}</p>
       </div>
     </aside>
   );

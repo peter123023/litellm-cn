@@ -3,6 +3,7 @@
 import { Tabs as TabsPrimitive } from "@base-ui/react/tabs";
 import { Activity, ScanSearch, Settings } from "lucide-react";
 import { StatusDot } from "@/components/shared/StatusDot";
+import { useTranslation } from "@/i18n";
 import { cn } from "@/lib/cva.config";
 import type { InvestigationActivity } from "./model/status";
 import { useWorkerConnected } from "./hooks/useWorkerConnected";
@@ -12,9 +13,9 @@ import { frameCorner, frameTab } from "./ui/frame";
 
 const MODE_ICONS = { traces: Activity, investigations: ScanSearch, settings: Settings } as const;
 
-const ACTIVITY_DOT: Record<Exclude<InvestigationActivity, "idle">, { className: string; label: string }> = {
-  running: { className: "bg-info motion-safe:animate-pulse", label: "An investigation is running" },
-  queued: { className: "bg-muted-foreground/60", label: "An investigation is queued" },
+const ACTIVITY_DOT: Record<Exclude<InvestigationActivity, "idle">, { className: string; labelKey: string }> = {
+  running: { className: "bg-info motion-safe:animate-pulse", labelKey: "lens.common.activityRunning" },
+  queued: { className: "bg-muted-foreground/60", labelKey: "lens.common.activityQueued" },
 };
 
 function ActivityDot({ activity }: { activity: InvestigationActivity }) {
@@ -56,8 +57,9 @@ export function LensModeSwitch({
   workers: LensList["workers"] | null;
   setup?: string;
 }) {
+  const { t } = useTranslation();
   const connected = useWorkerConnected(workers);
-  const settingsTitle = connected ? "Worker connected" : "Connect worker";
+  const settingsTitle = connected ? t("lens.investigations.workerConnected") : t("lens.investigations.connectWorker");
   const tabs = Object.entries(LENS_TABS).filter(([view]) => view !== "settings" || workers);
   return (
     <div className={frameTab({ session: demo ? "demo" : "live" })}>
@@ -65,7 +67,7 @@ export function LensModeSwitch({
       <NotchCorner side="right" demo={demo} />
       <TabsPrimitive.List aria-label="Lens" className="relative inline-flex h-9 items-center p-1">
         <TabsPrimitive.Indicator className="absolute top-1 bottom-1 left-(--active-tab-left) w-(--active-tab-width) rounded-full bg-muted transition-[left,width] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none" />
-        {tabs.map(([view, label]) => {
+        {tabs.map(([view, labelKey]) => {
           const Icon = MODE_ICONS[view as LensTab];
           const workerDisconnected = view === "settings" && workers !== null && !connected;
           return (
@@ -74,7 +76,7 @@ export function LensModeSwitch({
               value={view}
               title={view === "settings" ? settingsTitle : undefined}
               aria-description={
-                view === "investigations" && activity !== "idle" ? ACTIVITY_DOT[activity].label : undefined
+                view === "investigations" && activity !== "idle" ? t(ACTIVITY_DOT[activity].labelKey) : undefined
               }
               className={cn(
                 "relative z-raised inline-flex h-full items-center gap-2 rounded-full text-sm font-medium text-muted-foreground outline-none transition-colors duration-200 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 data-active:text-foreground",
@@ -85,7 +87,7 @@ export function LensModeSwitch({
                 <Icon aria-hidden="true" className="size-4" />
                 {workerDisconnected && <StatusDot state="error" className="absolute -top-0.5 -right-0.5 size-1.5" />}
               </span>
-              <span className={cn(view === "settings" && "sr-only")}>{label}</span>
+              <span className={cn(view === "settings" && "sr-only")}>{t(labelKey)}</span>
               {view === "investigations" && setup && (
                 <span className="rounded-full bg-muted px-1.5 py-0.5 text-xs leading-none font-medium text-muted-foreground animate-in fade-in-0 duration-200">
                   {setup}

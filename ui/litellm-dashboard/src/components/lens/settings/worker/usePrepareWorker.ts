@@ -6,6 +6,9 @@ import type { LensApi } from "../../data/service";
 import { useLensApi } from "../../data/LensServices";
 import type { WorkerCreated } from "../../model/types";
 import { validateWorkerAddress, analysisAccessSchema, type AnalysisAccess } from "./workerSchema";
+import { DEFAULT_LANGUAGE, translate, useTranslation, type Translate } from "@/i18n";
+
+const englishT: Translate = (key, params) => translate(DEFAULT_LANGUAGE, key, params);
 
 export interface WorkerRegistration {
   readonly address: string;
@@ -15,11 +18,15 @@ export interface WorkerRegistration {
   readonly editingWorker: string | null;
 }
 
-export async function createAnalysisKey(api: LensApi, access: AnalysisAccess): Promise<string> {
+export async function createAnalysisKey(
+  api: LensApi,
+  access: AnalysisAccess,
+  t: Translate = englishT,
+): Promise<string> {
   const parsed = analysisAccessSchema.safeParse(access);
   if (!parsed.success) throw new Error(parsed.error.issues[0].message);
   const result = await api.generateAnalysisKey(parsed.data);
-  if (!result.token_id) throw new Error("The proxy did not return the new key's ID");
+  if (!result.token_id) throw new Error(t("lens.worker.missingKeyId"));
   return result.token_id;
 }
 
@@ -29,10 +36,14 @@ async function releaseUnusedKey(api: LensApi, keyId: string): Promise<void> {
   await api.deleteKeys([keyId]);
 }
 
-async function prepareWorker(api: LensApi, registration: WorkerRegistration): Promise<WorkerCreated | null> {
+async function prepareWorker(
+  api: LensApi,
+  registration: WorkerRegistration,
+  t: Translate,
+): Promise<WorkerCreated | null> {
   const { address, useExisting, analysisKey, access, editingWorker } = registration;
   validateWorkerAddress(address);
-  const keyId = useExisting ? analysisKey : await createAnalysisKey(api, access);
+  const keyId = useExisting ? analysisKey : await createAnalysisKey(api, access, t);
   const newKey = useExisting ? null : keyId;
   try {
     if (editingWorker) {
@@ -41,14 +52,12 @@ async function prepareWorker(api: LensApi, registration: WorkerRegistration): Pr
     }
     return await api.registerWorker(keyId);
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Could not create credential";
+    const message = e instanceof Error ? e.message : t("lens.worker.createCredentialFailed");
     if (!newKey) throw new Error(message);
     try {
       await releaseUnusedKey(api, newKey);
     } catch {
-      throw new Error(
-        `${message}. Could not confirm cleanup. Check the Lens analysis key in Virtual Keys before retrying.`,
-      );
+      throw new Error(t("lens.worker.cleanupUnconfirmed", { message }));
     }
     throw new Error(message);
   }
@@ -58,9 +67,10 @@ async function prepareWorker(api: LensApi, registration: WorkerRegistration): Pr
 export function usePrepareWorker() {
   const api = useLensApi();
   const client = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     retry: false,
-    mutationFn: (registration: WorkerRegistration) => prepareWorker(api, registration),
+    mutationFn: (registration: WorkerRegistration) => prepareWorker(api, registration, t),
     onSettled: () => client.invalidateQueries({ queryKey: lensKeys.list(api.scope) }),
   });
 }

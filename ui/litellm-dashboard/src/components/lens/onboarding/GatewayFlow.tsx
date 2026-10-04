@@ -1,5 +1,6 @@
 import { useId } from "react";
 import { cn } from "@/lib/cva.config";
+import { useTranslation } from "@/i18n";
 import styles from "./LensIntroduction.module.css";
 
 const dotColors = [
@@ -27,20 +28,21 @@ const organizedColumns = Array.from({ length: 58 }, (_, column) => column - 8);
 
 export function GatewayFlow() {
   const id = useId();
+  const { t } = useTranslation();
   return (
     <div className="mt-5 sm:mt-6">
       <div className="grid grid-cols-3 gap-3 text-xs">
         <div>
-          <p className="font-semibold">Agent swarms</p>
-          <p className="mt-0.5 leading-4 text-muted-foreground">Every run, every recorded step</p>
+          <p className="font-semibold">{t("lens.onboarding.flow.swarm")}</p>
+          <p className="mt-0.5 leading-4 text-muted-foreground">{t("lens.onboarding.flow.swarmHint")}</p>
         </div>
         <div className="text-center">
-          <p className="font-semibold">LiteLLM gateway</p>
-          <p className="mt-0.5 leading-4 text-muted-foreground">One place, your infrastructure</p>
+          <p className="font-semibold">{t("lens.onboarding.flow.gateway")}</p>
+          <p className="mt-0.5 leading-4 text-muted-foreground">{t("lens.onboarding.flow.gatewayHint")}</p>
         </div>
         <div className="text-right">
-          <p className="font-semibold">Lens</p>
-          <p className="mt-0.5 leading-4 text-muted-foreground">Findings to improve your agents</p>
+          <p className="font-semibold">{t("lens.onboarding.flow.lens")}</p>
+          <p className="mt-0.5 leading-4 text-muted-foreground">{t("lens.onboarding.flow.lensHint")}</p>
         </div>
       </div>
       <svg

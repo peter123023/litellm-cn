@@ -9,11 +9,15 @@ import { workerConnected } from "../../model/status";
 import { agoLabel } from "../../model/format";
 import { AnalysisKeySummary } from "./AnalysisKeyDetails";
 import type { LensList, Worker } from "../../model/types";
+import { useTranslation, type Translate } from "@/i18n";
 
-function workerStatus(worker: Worker, now: number): { state: StatusDotProps["state"]; label: string } {
-  if (!worker.analysis_key_id) return { state: "warn", label: "Billing key required" };
-  if (workerConnected(worker, now)) return { state: "ok", label: "Connected" };
-  return { state: "off", label: `Not connected · last seen ${agoLabel(Date.parse(worker.last_seen), now)}` };
+function workerStatus(worker: Worker, now: number, t: Translate): { state: StatusDotProps["state"]; label: string } {
+  if (!worker.analysis_key_id) return { state: "warn", label: t("lens.worker.billingKeyRequired") };
+  if (workerConnected(worker, now)) return { state: "ok", label: t("lens.worker.connected") };
+  return {
+    state: "off",
+    label: t("lens.worker.notConnectedLastSeen", { ago: agoLabel(Date.parse(worker.last_seen), now) }),
+  };
 }
 
 export type WorkerListProps = ComponentProps<"ul"> & {
@@ -24,6 +28,7 @@ export type WorkerListProps = ComponentProps<"ul"> & {
 
 export function WorkerList({ workers, onEditBilling, onRevoke, className, ...props }: WorkerListProps) {
   const now = useNow(5000);
+  const { t } = useTranslation();
   return (
     <ul
       {...props}
@@ -33,7 +38,7 @@ export function WorkerList({ workers, onEditBilling, onRevoke, className, ...pro
       {workers
         .filter((w) => !w.revoked)
         .map((worker) => {
-          const status = workerStatus(worker, now);
+          const status = workerStatus(worker, now, t);
           return (
             <li key={worker.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 text-sm">
               <StatusDot state={status.state} className="shrink-0" />
@@ -46,7 +51,7 @@ export function WorkerList({ workers, onEditBilling, onRevoke, className, ...pro
               </div>
               <div className="flex items-center gap-1">
                 <Button variant="outline" size="sm" onClick={() => onEditBilling(worker)}>
-                  Edit access
+                  {t("lens.worker.editAccess")}
                 </Button>
                 <Button
                   variant="ghost"
@@ -54,7 +59,7 @@ export function WorkerList({ workers, onEditBilling, onRevoke, className, ...pro
                   className="text-muted-foreground hover:text-destructive"
                   onClick={() => onRevoke(worker.id)}
                 >
-                  Revoke access
+                  {t("lens.worker.revokeAccess")}
                 </Button>
               </div>
             </li>

@@ -4,7 +4,11 @@ import { parseAsBoolean, parseAsString, parseAsStringLiteral, useQueryStates } f
 import { useCallback } from "react";
 import { OPEN_TRACE_PARSERS, RUN_FILTER_PARSERS } from "@/components/view_logs/TraceView/traceRouting";
 
-export const LENS_TABS = { traces: "Traces", investigations: "Investigations", settings: "Settings" } as const;
+export const LENS_TABS = {
+  traces: "lens.common.tabTraces",
+  investigations: "lens.common.tabInvestigations",
+  settings: "lens.common.tabSettings",
+} as const;
 export type LensTab = keyof typeof LENS_TABS;
 const lensTabs = Object.keys(LENS_TABS) as LensTab[];
 

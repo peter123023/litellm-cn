@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { watches } from "./watches";
-import { useTranslation } from "@/i18n";
+import { watches } from "../model/watches";
 import { cn } from "@/lib/cva.config";
+import { useTranslation } from "@/i18n";
 
 const dotColors = ["#8b5cf6", "#22b3e8", "#e3a32b", "#eb6b93", "#22b3e8", "#8b5cf6", "#e3a32b", "#eb6b93"];
 const lensBlue = { light: "#0011b3", dark: "#8b9bff" };
@@ -126,7 +126,6 @@ export function WatchPicker({
       >
         {watches.map((watch, index) => {
           const on = selected.has(watch.id);
-          const summary = t(watch.summaryKey);
           return (
             <button
               key={watch.id}
@@ -135,7 +134,7 @@ export function WatchPicker({
               }}
               type="button"
               aria-pressed={on}
-              title={summary}
+              title={t(watch.summaryKey)}
               tabIndex={index === cursor ? 0 : -1}
               data-state={on ? "active" : "inactive"}
               onFocus={() => setCursor(index)}
@@ -164,7 +163,7 @@ export function WatchPicker({
                   />
                 </svg>
               </span>
-              <span className="line-clamp-2 text-xs leading-snug text-muted-foreground">{summary}</span>
+              <span className="line-clamp-2 text-xs leading-snug text-muted-foreground">{t(watch.summaryKey)}</span>
             </button>
           );
         })}

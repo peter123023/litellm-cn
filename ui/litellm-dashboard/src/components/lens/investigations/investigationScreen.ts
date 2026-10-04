@@ -1,5 +1,9 @@
+import { DEFAULT_LANGUAGE, translate, type Translate } from "@/i18n";
+
 import type { Lens, LensList, Settings } from "../model/types";
 import type { LensDialog } from "../route";
+
+const englishT: Translate = (key, params) => translate(DEFAULT_LANGUAGE, key, params);
 
 export type SetupMode = "new" | "edit" | "duplicate";
 
@@ -25,19 +29,21 @@ export type Screen =
 const isSetupMode = (dialog: LensDialog | null): dialog is SetupMode =>
   dialog === "new" || dialog === "edit" || dialog === "duplicate";
 
-function setupScreen(mode: SetupMode, lens: Lens | undefined): SetupScreen | undefined {
+function setupScreen(mode: SetupMode, lens: Lens | undefined, t: Translate): SetupScreen | undefined {
   if (mode === "new") return { kind: "setup", mode };
   if (!lens) return undefined;
   const initial =
-    mode === "duplicate" ? { ...lens.settings, name: `${lens.settings.name} copy`, enabled: false } : lens.settings;
+    mode === "duplicate"
+      ? { ...lens.settings, name: t("lens.investigations.nameCopy", { name: lens.settings.name }), enabled: false }
+      : lens.settings;
   return { kind: "setup", mode, lens, initial };
 }
 
-export function investigationScreen({ list, lensId, dialog, target }: ScreenInput): Screen {
+export function investigationScreen({ list, lensId, dialog, target }: ScreenInput, t: Translate = englishT): Screen {
   const lenses = list.data?.lenses ?? [];
   const selected = lenses.find((lens) => lens.id === lensId);
   const setup = isSetupMode(dialog)
-    ? setupScreen(dialog, target ? lenses.find((lens) => lens.id === target) : selected)
+    ? setupScreen(dialog, target ? lenses.find((lens) => lens.id === target) : selected, t)
     : undefined;
   if (setup) return setup;
   if (!list.data) return list.error ? { kind: "failed", error: list.error } : { kind: "loading" };

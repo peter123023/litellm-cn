@@ -7,6 +7,7 @@ import { Inspector } from "@/components/shared/Inspector";
 import { Button } from "@/components/ui/button";
 import { RunView } from "@/components/view_logs/TraceView/TraceDrawer";
 import { useLocalRunSelection } from "@/components/view_logs/TraceView/traceRouting";
+import { useTranslation } from "@/i18n";
 
 import { lensQueries } from "../data/queries";
 import { useLensAccessToken, useLensApi } from "../data/LensServices";
@@ -55,6 +56,7 @@ function EvidenceBody({
   evidence: EvidenceRef;
   onBack?: () => void;
 }) {
+  const { t } = useTranslation();
   if (target?.source === "traces")
     return (
       <TraceEvidence
@@ -65,7 +67,7 @@ function EvidenceBody({
       />
     );
   if (target?.source === "requests") return <RequestEvidence lensId={lensId} evidenceId={evidence.id} />;
-  return <p className="p-4 text-sm text-muted-foreground">This evidence is no longer available.</p>;
+  return <p className="p-4 text-sm text-muted-foreground">{t("lens.evidence.unavailable")}</p>;
 }
 
 export function TraceEvidence({
@@ -94,6 +96,7 @@ export function TraceEvidence({
 }
 
 function RequestEvidence({ lensId, evidenceId }: { lensId: string; evidenceId: string }) {
+  const { t } = useTranslation();
   const api = useLensApi();
   const [offset, setOffset] = useState(0);
   const request = { lensId, evidenceId, requestOffset: offset, source: "requests" };
@@ -101,27 +104,27 @@ function RequestEvidence({ lensId, evidenceId }: { lensId: string; evidenceId: s
   return (
     <div className="min-h-0 flex-1 overflow-y-auto">
       <header className="border-b px-4 py-4">
-        <h2 className="text-sm font-semibold">Request evidence</h2>
-        <p className="text-xs text-muted-foreground">Original logged input and output</p>
+        <h2 className="text-sm font-semibold">{t("lens.investigations.requestEvidence")}</h2>
+        <p className="text-xs text-muted-foreground">{t("lens.investigations.requestEvidenceBody")}</p>
       </header>
       <div className="space-y-3 p-4">
-        {evidence.isLoading && <p role="status">Loading request…</p>}
+        {evidence.isLoading && <p role="status">{t("lens.evidence.loading")}</p>}
         {evidence.error && <p role="alert">{evidence.error.message}</p>}
         {evidence.data?.parts.map((p) => (
           <pre className="text-xs break-words whitespace-pre-wrap" key={p.span_id}>
             {p.content}
           </pre>
         ))}
-        {evidence.data?.parts.length === 0 && <p>Request was not found or is past retention</p>}
+        {evidence.data?.parts.length === 0 && <p>{t("lens.evidence.notFound")}</p>}
         <div className="flex flex-wrap gap-2">
           {offset > 0 && (
             <Button variant="outline" onClick={() => setOffset(Math.max(0, offset - SECTION))}>
-              Previous section
+              {t("lens.evidence.previousSection")}
             </Button>
           )}
           {evidence.data?.parts.some((p) => p.truncated) && (
             <Button variant="outline" onClick={() => setOffset(offset === 0 ? 1 : offset + SECTION)}>
-              Next section
+              {t("lens.evidence.nextSection")}
             </Button>
           )}
         </div>

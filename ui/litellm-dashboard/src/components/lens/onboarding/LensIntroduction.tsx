@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ArrowRight, ArrowUpRight, ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cva.config";
+import { useTranslation } from "@/i18n";
 import styles from "./LensIntroduction.module.css";
 import { GatewayFlow } from "./GatewayFlow";
 
@@ -14,11 +15,10 @@ const traceSteps = [
   { name: "answer", start: 9.7, duration: 4.5, failed: false },
 ];
 
-const sampleAnswer = "The column store is 40% faster than the row store for your workload.";
-
 type EvidenceProps = { highlighted: boolean; onHighlight: () => void };
 
 function TraceExample({ highlighted, onHighlight }: EvidenceProps) {
+  const { t } = useTranslation();
   return (
     <section
       aria-labelledby="lens-sample-trace"
@@ -26,11 +26,14 @@ function TraceExample({ highlighted, onHighlight }: EvidenceProps) {
     >
       <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
         <h3 id="lens-sample-trace" className="font-semibold">
-          Tracing
+          {t("lens.onboarding.sample.tracing")}
         </h3>
-        <p className="text-xs text-muted-foreground">Sample trace · 14.2s</p>
+        <p className="text-xs text-muted-foreground">{t("lens.onboarding.sample.traceMeta")}</p>
       </div>
-      <ol className="mt-3 space-y-1.5 text-xs leading-5 sm:text-sm" aria-label="Sample trace timeline">
+      <ol
+        className="mt-3 space-y-1.5 text-xs leading-5 sm:text-sm"
+        aria-label={t("lens.onboarding.sample.timelineLabel")}
+      >
         {traceSteps.map((item, index) => {
           const linked = item.failed || item.name === "answer";
           const rowClass =
@@ -46,7 +49,7 @@ function TraceExample({ highlighted, onHighlight }: EvidenceProps) {
                 <span className="truncate" title={item.name}>
                   {item.name}
                 </span>
-                {item.failed && <span className="sr-only">Failed</span>}
+                {item.failed && <span className="sr-only">{t("lens.onboarding.sample.failed")}</span>}
               </span>
               <span aria-hidden="true" className="relative h-2.5 overflow-hidden rounded-sm bg-muted/70">
                 <span
@@ -68,7 +71,10 @@ function TraceExample({ highlighted, onHighlight }: EvidenceProps) {
                   type="button"
                   className={cn(rowClass, styles.evidenceLink)}
                   data-evidence-link=""
-                  aria-label={`${item.name}, ${item.duration} seconds${item.failed ? ", failed" : ""}. Highlight related finding`}
+                  aria-label={t(
+                    item.failed ? "lens.onboarding.sample.highlightFailed" : "lens.onboarding.sample.highlight",
+                    { name: item.name, duration: item.duration },
+                  )}
                   aria-controls="lens-linked-finding"
                   aria-pressed={highlighted}
                   onClick={onHighlight}
@@ -84,12 +90,12 @@ function TraceExample({ highlighted, onHighlight }: EvidenceProps) {
       </ol>
       <div className="mt-3 grid gap-3 border-t pt-3 sm:grid-cols-2">
         <div id="lens-benchmark-output" className={cn(styles.evidenceOutput, "rounded-lg bg-muted/60 p-2.5")}>
-          <p className="text-xs text-muted-foreground">run_benchmark · output</p>
-          <p className="mt-1.5 text-sm leading-4.5">Error: benchmark runner unavailable (503)</p>
+          <p className="text-xs text-muted-foreground">{t("lens.onboarding.sample.benchmarkOutput")}</p>
+          <p className="mt-1.5 text-sm leading-4.5">{t("lens.onboarding.sample.benchmarkError")}</p>
         </div>
         <div id="lens-answer-output" className={cn(styles.evidenceOutput, "rounded-lg bg-muted/60 p-2.5")}>
-          <p className="text-xs text-muted-foreground">answer · output</p>
-          <p className="mt-1.5 text-sm leading-4.5">“{sampleAnswer}”</p>
+          <p className="text-xs text-muted-foreground">{t("lens.onboarding.sample.answerOutput")}</p>
+          <p className="mt-1.5 text-sm leading-4.5">“{t("lens.onboarding.sample.answer")}”</p>
         </div>
       </div>
     </section>
@@ -97,6 +103,7 @@ function TraceExample({ highlighted, onHighlight }: EvidenceProps) {
 }
 
 function FindingExamples({ highlighted, onHighlight }: EvidenceProps) {
+  const { t } = useTranslation();
   return (
     <section
       aria-labelledby="lens-sample-findings"
@@ -104,9 +111,9 @@ function FindingExamples({ highlighted, onHighlight }: EvidenceProps) {
     >
       <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
         <h3 id="lens-sample-findings" className="font-semibold">
-          Lens findings
+          {t("lens.onboarding.findings.heading")}
         </h3>
-        <p className="text-xs text-muted-foreground">500 sample runs reviewed</p>
+        <p className="text-xs text-muted-foreground">{t("lens.onboarding.findings.sampleRuns")}</p>
       </div>
       <div className="mt-3 divide-y border-t">
         <article id="lens-linked-finding" className={cn(styles.evidenceFinding, "py-3")}>
@@ -120,29 +127,27 @@ function FindingExamples({ highlighted, onHighlight }: EvidenceProps) {
               onClick={onHighlight}
             >
               <span aria-hidden="true" className="mt-1.5 size-2 shrink-0 rounded-full bg-rose-500" />
-              Claims numbers it never measured
+              {t("lens.onboarding.findings.first")}
             </button>
           </h4>
           <div className="ml-4 mt-1.5 space-y-1.5 text-sm leading-4.5">
-            <p className="text-muted-foreground">Reports a speedup even though the benchmark failed.</p>
-            <blockquote className="border-l-2 pl-3 italic">
-              “…40% faster than the row store for your workload.”
-            </blockquote>
+            <p className="text-muted-foreground">{t("lens.onboarding.findings.firstBody")}</p>
+            <blockquote className="border-l-2 pl-3 italic">“{t("lens.onboarding.findings.quote")}”</blockquote>
             <p>
-              <span className="text-muted-foreground">Next step: </span>Report the failed benchmark instead of
-              estimating.
+              <span className="text-muted-foreground">{t("lens.onboarding.findings.nextStep")}</span>
+              {t("lens.onboarding.findings.nextStepBody")}
             </p>
-            <p className="text-xs text-muted-foreground">38 linked runs · High priority</p>
+            <p className="text-xs text-muted-foreground">{t("lens.onboarding.findings.firstMeta")}</p>
           </div>
         </article>
         <article className="pt-3">
           <h4 className="flex items-start gap-2 text-sm font-semibold">
             <span aria-hidden="true" className="mt-1.5 size-2 shrink-0 rounded-full bg-amber-500" />
-            Promises to follow up, then stops
+            {t("lens.onboarding.findings.second")}
           </h4>
           <div className="ml-4 mt-1.5 space-y-1.5 text-sm leading-4.5 text-muted-foreground">
-            <p>After an order lookup times out, the agent promises to check and ends the run.</p>
-            <p className="text-xs">12 linked runs · Medium priority</p>
+            <p>{t("lens.onboarding.findings.secondBody")}</p>
+            <p className="text-xs">{t("lens.onboarding.findings.secondMeta")}</p>
           </div>
         </article>
       </div>
@@ -152,6 +157,7 @@ function FindingExamples({ highlighted, onHighlight }: EvidenceProps) {
 
 export function LensIntroduction({ onStart, onDemo }: { onStart: () => void; onDemo?: () => void }) {
   const [highlighted, setHighlighted] = useState(false);
+  const { t } = useTranslation();
   const toggleEvidence = () => setHighlighted((current) => !current);
   return (
     <section
@@ -159,19 +165,17 @@ export function LensIntroduction({ onStart, onDemo }: { onStart: () => void; onD
       className="rounded-2xl border bg-card p-5 sm:px-6 sm:py-5 xl:px-7 xl:py-6"
     >
       <h2 id="lens-introduction" className="text-2xl leading-tight font-semibold tracking-tight sm:text-3xl">
-        The gateway that helps your agents improve
+        {t("lens.onboarding.intro.heading")}
       </h2>
-      <p className="mt-3 max-w-[780px] text-sm leading-6 text-muted-foreground">
-        Turn recorded agent runs into findings linked to the exact steps, so you know what happened and what to change.
-      </p>
+      <p className="mt-3 max-w-[780px] text-sm leading-6 text-muted-foreground">{t("lens.onboarding.intro.body")}</p>
       <div className="mt-4 flex flex-wrap items-center gap-3">
         {onDemo && (
           <Button className="rounded-lg px-4" onClick={onDemo}>
-            Explore with sample data <ArrowRight aria-hidden="true" className="size-4" />
+            {t("lens.onboarding.intro.exploreDemo")} <ArrowRight aria-hidden="true" className="size-4" />
           </Button>
         )}
         <Button variant={onDemo ? "outline" : "default"} className="rounded-lg px-4" onClick={onStart}>
-          Set up Lens
+          {t("lens.onboarding.intro.setup")}
         </Button>
         <a
           href="https://docs.litellm.ai/docs/proxy/lens"
@@ -179,7 +183,7 @@ export function LensIntroduction({ onStart, onDemo }: { onStart: () => void; onD
           rel="noreferrer"
           className="inline-flex items-center gap-1 px-3 text-sm font-medium text-muted-foreground underline-offset-4 hover:underline"
         >
-          Docs <ArrowUpRight aria-hidden="true" className="size-4" />
+          {t("lens.settings.docs")} <ArrowUpRight aria-hidden="true" className="size-4" />
         </a>
       </div>
       <GatewayFlow />

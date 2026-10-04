@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import {
   Combobox,
@@ -11,31 +11,15 @@ import {
   ComboboxEmpty,
 } from "@/components/ui/combobox";
 import { Input } from "@/components/ui/input";
-import { useTranslation } from "@/i18n";
-import type { Sample } from "../../model/types";
 import type { InvestigationInput } from "../investigationSchema";
+import type { ScopeOptions } from "../useMatchingActivity";
+import { useTranslation } from "@/i18n";
 
 import { MetadataFilters } from "./MetadataFilters";
+
 const selectClass = "h-9 w-full rounded-md border border-input bg-background px-3 text-sm";
-export function ScopeFields({
-  nameField,
-  names,
-  agentsLoading,
-  agentsError,
-  retryAgents,
-  attributes,
-  keys,
-  id,
-}: {
-  nameField?: ReactNode;
-  names: string[];
-  agentsLoading: boolean;
-  agentsError: boolean;
-  retryAgents: () => void;
-  attributes: NonNullable<Sample["executions"][number]["metadata"]>;
-  keys: string[];
-  id: string;
-}) {
+
+export function ScopeFields({ names, agentsLoading, agentsError, retryAgents, attributes, keys }: ScopeOptions) {
   const { control, register, setValue } = useFormContext<InvestigationInput>();
   const { t } = useTranslation();
   const selection = useWatch({ control, name: "selection" });
@@ -45,11 +29,9 @@ export function ScopeFields({
   const [advanced, setAdvanced] = useState(showAdvancedByDefault);
   const nameFieldName = selection.source === "requests" ? "selection.service" : "selection.agent_name";
   const selectedName = selection.source === "requests" ? selection.service : selection.agent_name;
-  const requestsScope = selection.source === "requests";
-  const nameLabel = requestsScope ? t("lens.setup.scope.modelGroup") : t("lens.setup.scope.agent");
+  const nameLabel = selection.source === "requests" ? t("lens.setup.scope.modelGroup") : t("lens.setup.scope.agent");
   return (
     <>
-      {nameField}
       <label className="grid gap-2 text-sm font-medium">
         {nameLabel}
         <Controller
@@ -65,7 +47,11 @@ export function ScopeFields({
             >
               <ComboboxInput
                 aria-label={nameLabel}
-                placeholder={requestsScope ? t("lens.setup.scope.allModelGroups") : t("lens.setup.scope.allAgents")}
+                placeholder={
+                  selection.source === "requests"
+                    ? t("lens.setup.scope.allModelGroups")
+                    : t("lens.setup.scope.allAgents")
+                }
                 showClear={!!selectedName}
                 className="w-full h-9"
               />
@@ -85,7 +71,7 @@ export function ScopeFields({
           )}
         />
       </label>
-      {!requestsScope && agentsError && (
+      {selection.source !== "requests" && agentsError && (
         <p role="alert" className="text-sm text-destructive">
           {t("lens.setup.scope.loadAgentsFailed")}{" "}
           <button type="button" className="underline" onClick={retryAgents}>
@@ -100,7 +86,7 @@ export function ScopeFields({
             : t("lens.setup.scope.advancedFilters")}
         </summary>
         <div className="mt-4 space-y-4">
-          {!requestsScope && (
+          {selection.source !== "requests" && (
             <label className="grid gap-2 text-sm">
               {t("lens.setup.scope.application")}
               <Input {...register("selection.service")} placeholder={t("lens.setup.scope.allApplications")} />
@@ -124,7 +110,7 @@ export function ScopeFields({
             </select>
           </label>
           <p className="text-xs leading-5 text-muted-foreground">{t("lens.setup.scope.metadataHint")}</p>
-          <MetadataFilters attributes={attributes} keys={keys} id={id} />
+          <MetadataFilters attributes={attributes} keys={keys} />
           <label className="grid gap-2 text-sm">
             {t("lens.setup.scope.teamId")}
             <Input {...register("selection.team_id")} placeholder={t("lens.setup.scope.allTeams")} />

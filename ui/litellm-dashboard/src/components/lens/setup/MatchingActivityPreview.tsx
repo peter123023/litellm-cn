@@ -1,111 +1,143 @@
 "use client";
 
+import { useEffect, useState, type ComponentProps } from "react";
 import { ChevronRight, RotateCw } from "lucide-react";
+import { useInView } from "react-intersection-observer";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/cva.config";
 
-import { type Sample } from "../model/types";
 import { runTime } from "../model/format";
+import type { Execution, MatchingPreview } from "./useMatchingActivity";
 import { useTranslation } from "@/i18n";
 
-export function RunList({ executions }: { executions: Sample["executions"] }) {
+const PREFETCH_MARGIN = "0px 0px 240px 0px";
+
+type RunRowProps = ComponentProps<"div"> & { run: Execution };
+
+function RunRow({ run, className, ...props }: RunRowProps) {
   const { t } = useTranslation();
+  const steps = t(run.span_count === 1 ? "lens.setup.run.stepOne" : "lens.setup.run.stepMany", {
+    count: run.span_count,
+  });
   return (
-    <div className="divide-y">
-      {executions.map((run) => (
-        <div key={run.id} className="py-3">
-          <p className="text-sm font-medium">{run.name}</p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {runTime(run.start_time)} ·{" "}
-            {run.source === "traces"
-              ? t(run.span_count === 1 ? "lens.setup.run.stepOne" : "lens.setup.run.stepMany", {
-                  count: run.span_count,
-                })
-              : t("lens.setup.run.llmRequest")}
-          </p>
-        </div>
-      ))}
+    <div data-slot="run-row" className={cn("min-w-0 py-3", className)} {...props}>
+      <p className="text-sm font-medium">{run.name}</p>
+      <p className="mt-1 text-xs text-muted-foreground">
+        {runTime(run.start_time)} · {run.source === "traces" ? steps : t("lens.setup.run.llmRequest")}
+      </p>
     </div>
   );
 }
 
-export function MatchingActivityPreview({
-  offset,
-  onPage,
-  onSelect,
-  selectedIds,
-  manualSelection,
-  selectedCount,
-  title,
-  windowLabel,
-  ready,
-  error,
-  data,
-  onOpen,
-  onRetry,
-}: {
-  offset: number;
-  onPage: (offset: number) => void;
-  onSelect: (id: string, checked: boolean) => void;
-  selectedIds: string[];
-  manualSelection: boolean;
-  selectedCount: number;
-  title: string;
-  windowLabel: string;
-  ready: boolean;
-  error: Error | null;
-  data: Sample | undefined;
-  onRetry: () => void;
-  onOpen: (run: Sample["executions"][number]) => void;
-}) {
-  const paginated = data?.next_offset != null || offset > 0;
+type PreviewFooterProps = ComponentProps<"div"> & Pick<MatchingPreview, "page" | "selection">;
+
+/** Selection count and a way to undo manual picks; hidden while every match is simply going to be analyzed. */
+function PreviewFooter({ page, selection, className, ...props }: PreviewFooterProps) {
   const { t } = useTranslation();
-  const showSelection = selectedCount !== data?.eligible || paginated;
-  const selectionData = ready && showSelection ? data : undefined;
+  const partial = page.eligible != null && page.executions.length < page.eligible;
+  const count = selection?.count ?? page.selected;
+  const picked = selection?.ids.length ?? 0;
+  const everything = count === page.eligible && !partial && picked === 0;
+  if (page.eligible == null || everything) return null;
   return (
-    <section aria-label={t("lens.setup.preview.sectionLabel")} className="self-start rounded-lg border">
+    <div
+      data-slot="preview-footer"
+      className={cn("flex flex-wrap items-center justify-between gap-3 border-t px-4 py-3", className)}
+      {...props}
+    >
+      <p className="text-xs text-muted-foreground">
+        {t("lens.setup.preview.selectedForAnalysis", { count })}
+        {partial && (
+          <>
+            {" "}
+            ·{" "}
+            {t("lens.setup.preview.showingCount", {
+              count: page.executions.length,
+              total: page.eligible,
+            })}
+          </>
+        )}
+      </p>
+      {selection && picked > 0 && (
+        <Button variant="outline" size="sm" onClick={selection.clear}>
+          {t("lens.setup.preview.clearSelected", { count: picked })}
+        </Button>
+      )}
+    </div>
+  );
+}
+
+export type MatchingActivityPreviewProps = ComponentProps<"section"> &
+  MatchingPreview & {
+    onOpen: (run: Execution) => void;
+  };
+
+export function MatchingActivityPreview({
+  status,
+  page,
+  selection,
+  onOpen,
+  className,
+  ...props
+}: MatchingActivityPreviewProps) {
+  const [scroller, setScroller] = useState<HTMLDivElement | null>(null);
+  const { t } = useTranslation();
+  const { ref: tailRef, inView: nearTail } = useInView({ root: scroller, rootMargin: PREFETCH_MARGIN });
+  const { loadMore, loadingMore } = page;
+  const canContinue = status.ready && page.hasMore && page.executions.length > 0;
+  useEffect(() => {
+    if (nearTail && canContinue && !loadingMore) loadMore();
+  }, [nearTail, canContinue, loadingMore, loadMore]);
+  return (
+    <section
+      aria-label={t("lens.setup.preview.sectionLabel")}
+      data-slot="matching-activity-preview"
+      className={cn("self-start rounded-lg border", className)}
+      {...props}
+    >
       <div className="border-b px-4 py-3">
         <div className="flex items-center justify-between gap-2">
           <p className="text-sm font-medium" role="status">
-            {title}
+            {status.title}
           </p>
           <Button
             variant="ghost"
             size="icon-xs"
             aria-label={t("lens.setup.preview.refresh")}
-            onClick={onRetry}
-            disabled={!ready}
+            onClick={status.refresh}
+            disabled={!status.ready}
           >
             <RotateCw className="size-3" />
           </Button>
         </div>
-        <p className="mt-1 text-xs text-muted-foreground">{t("lens.setup.preview.noCost", { window: windowLabel })}</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {t("lens.setup.preview.noCost", { window: status.windowLabel })}
+        </p>
       </div>
-      <div className="max-h-64 overflow-y-auto px-4">
-        {ready && error && (
+      <div ref={setScroller} aria-busy={loadingMore} className="max-h-[60dvh] overflow-y-auto px-4">
+        {status.ready && status.error && (
           <p role="alert" className="py-3 text-sm text-destructive">
-            {error.message}{" "}
-            <Button variant="link" onClick={onRetry}>
+            {status.error.message}{" "}
+            <Button variant="link" onClick={status.refresh}>
               {t("lens.setup.preview.retry")}
             </Button>
           </p>
         )}
-        {ready && data?.eligible === 0 && (
+        {status.ready && page.eligible === 0 && (
           <p className="py-4 text-sm text-muted-foreground">{t("lens.setup.preview.noMatches")}</p>
         )}
-        {ready &&
-          data?.executions.map((run) => (
+        {status.ready &&
+          page.executions.map((run) => (
             <div key={run.id} className="flex items-center justify-between gap-3 border-b last:border-0">
-              {manualSelection && (
+              {selection && (
                 <input
                   type="checkbox"
                   aria-label={t("lens.setup.preview.selectRun", { name: run.name })}
-                  checked={selectedIds.includes(run.id)}
-                  onChange={(e) => onSelect(run.id, e.target.checked)}
+                  checked={selection.ids.includes(run.id)}
+                  onChange={(e) => selection.toggle(run.id, e.target.checked)}
                 />
               )}
-              <div className="min-w-0">
-                <RunList executions={[run]} />
-              </div>
+              <RunRow run={run} />
               {run.source === "traces" && (
                 <Button
                   variant="ghost"
@@ -118,45 +150,13 @@ export function MatchingActivityPreview({
               )}
             </div>
           ))}
-      </div>
-      {selectionData && (
-        <div className="border-t px-4 py-3 space-y-2">
-          <p className="text-xs text-muted-foreground">
-            {t("lens.setup.preview.selectedForAnalysis", { count: selectedCount })}
-            {paginated && (
-              <>
-                {" "}
-                ·{" "}
-                {t("lens.setup.preview.showingRange", {
-                  start: offset + (selectionData.executions.length ? 1 : 0),
-                  end: offset + selectionData.executions.length,
-                  total: selectionData.eligible,
-                })}
-              </>
-            )}
+        {canContinue && (
+          <p ref={tailRef} data-testid="preview-placeholder" className="py-3 text-xs text-muted-foreground">
+            {t("lens.setup.preview.loadingMore")}
           </p>
-          {paginated && (
-            <div className="flex justify-between">
-              <Button
-                size="sm"
-                variant="ghost"
-                disabled={offset === 0}
-                onClick={() => onPage(Math.max(0, offset - 100))}
-              >
-                {t("common.previous")}
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                disabled={selectionData.next_offset == null}
-                onClick={() => onPage(selectionData.next_offset ?? offset)}
-              >
-                {t("common.next")}
-              </Button>
-            </div>
-          )}
-        </div>
-      )}
+        )}
+      </div>
+      {status.ready && <PreviewFooter page={page} selection={selection} />}
     </section>
   );
 }

@@ -15,6 +15,7 @@ import { WorkerInstall } from "./WorkerInstall";
 import { WorkerList } from "./WorkerList";
 import { workerFormSchema, type WorkerFormInput } from "./workerSchema";
 import { workerScreen } from "./workerScreen";
+import { useTranslation, type Translate } from "@/i18n";
 
 function defaultWorkerFormValues(): WorkerFormInput {
   return {
@@ -34,9 +35,9 @@ function ErrorText({ message }: { message: string | undefined }) {
   );
 }
 
-function submitLabel(editing: Worker | null, busy: boolean): string {
-  if (busy) return "Preparing…";
-  return editing ? "Save analysis access" : "Get install command";
+function submitLabel(editing: Worker | null, busy: boolean, t: Translate): string {
+  if (busy) return t("lens.worker.preparing");
+  return editing ? t("lens.worker.saveAccess") : t("lens.worker.getInstallCommand");
 }
 
 function WorkerFormCard({
@@ -54,23 +55,26 @@ function WorkerFormCard({
   onSubmit: () => void;
   children: ReactNode;
 }) {
+  const { t } = useTranslation();
   return (
     <SettingsCard className="flex flex-col gap-5">
       <header className="space-y-1">
-        <h3 className="text-base font-semibold">{editing ? "Analysis access" : "Connect a worker"}</h3>
+        <h3 className="text-base font-semibold">
+          {editing ? t("lens.worker.analysisAccessTitle") : t("lens.worker.connectTitle")}
+        </h3>
         <p className="text-sm text-muted-foreground">
-          {editing ? "Choose which key pays for analysis." : "Deploy the worker on your server to run investigations."}
+          {editing ? t("lens.worker.analysisAccessDescription") : t("lens.worker.setupDescription")}
         </p>
       </header>
       <WorkerForm editingWorker={editing?.id ?? null} />
       <div className="flex justify-end gap-2">
         {editing && (
           <Button variant="outline" disabled={busy} onClick={onCancel}>
-            Cancel
+            {t("common.cancel")}
           </Button>
         )}
         <Button disabled={!valid || busy} onClick={onSubmit}>
-          {submitLabel(editing, busy)}
+          {submitLabel(editing, busy, t)}
         </Button>
       </div>
       {children}
@@ -88,6 +92,7 @@ export function WorkerSettings({
 }) {
   const revokeWorker = useRevokeWorker();
   const prepareWorker = usePrepareWorker();
+  const { t } = useTranslation();
   const form = useZodForm(workerFormSchema, {
     defaultValues: defaultWorkerFormValues(),
     mode: "onChange",
@@ -159,7 +164,7 @@ export function WorkerSettings({
         <WorkerInstall address={form.getValues("address")} created={screen.created} connected={screen.connected}>
           {readyAction ?? (
             <Button className="w-full" onClick={() => prepareWorker.reset()}>
-              Done
+              {t("lens.worker.done")}
             </Button>
           )}
         </WorkerInstall>

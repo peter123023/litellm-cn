@@ -12,8 +12,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { DurationInput } from "@/components/shared/DurationInput";
-import { useTranslation } from "@/i18n";
 import { type Settings } from "../model/types";
+import { useTranslation } from "@/i18n";
 
 const monitoringSchema = z.object({
   interval_minutes: z.number().int().min(1),
@@ -77,7 +77,7 @@ export function MonitoringDialog({
         )}
         <p className="text-xs leading-5 text-muted-foreground">{t("lens.setup.monitoring.hint")}</p>
         {!ready && (
-          <p role="status" className="text-sm text-amber-700">
+          <p role="status" className="text-sm text-warning">
             {t("lens.setup.monitoring.reconnect")}
           </p>
         )}

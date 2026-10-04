@@ -1,13 +1,10 @@
 import { z } from "zod";
-import type { FieldPath } from "react-hook-form";
-import { DEFAULT_LANGUAGE, translate, type Translate } from "@/i18n";
 import type { Settings } from "../model/types";
 import { normalizeFilters } from "./filters";
-import { initialWatches, isWatch, watchChecks } from "./watches";
+import { initialWatches, isWatch, watchChecks } from "../model/watches";
+import { DEFAULT_LANGUAGE, translate, type Translate } from "@/i18n";
 
-// Zod builds its messages when validation runs, outside React, so they resolve against English
-// rather than the active UI language.
-const message = (key: string) => translate(DEFAULT_LANGUAGE, key);
+const englishT: Translate = (key, params) => translate(DEFAULT_LANGUAGE, key, params);
 
 const selectionFields = {
   source: z.enum(["traces", "requests", "both"]),
@@ -37,42 +34,42 @@ const draftSchema = z.object(draftFields);
 
 type InvestigationDraft = z.infer<typeof draftSchema>;
 
-function validateFilters(draft: InvestigationDraft, ctx: z.RefinementCtx) {
+function validateFilters(draft: InvestigationDraft, ctx: z.RefinementCtx, t: Translate) {
   draft.selection.filters.forEach((filter, index) => {
     if (!filter.key.trim()) {
       ctx.addIssue({
         code: "custom",
-        message: message("lens.setup.validation.filterIncomplete"),
+        message: t("lens.setup.validation.filterIncomplete"),
         path: ["selection", "filters", index, "key"],
       });
     }
     if (!filter.value.trim()) {
       ctx.addIssue({
         code: "custom",
-        message: message("lens.setup.validation.filterIncomplete"),
+        message: t("lens.setup.validation.filterIncomplete"),
         path: ["selection", "filters", index, "value"],
       });
     }
   });
 }
 
-function validateManualSelection(draft: InvestigationDraft, ctx: z.RefinementCtx) {
+function validateManualSelection(draft: InvestigationDraft, ctx: z.RefinementCtx, t: Translate) {
   if (draft.manualSelection && !draft.selection.execution_ids.length) {
     ctx.addIssue({
       code: "custom",
-      message: message("lens.setup.validation.manualSelection"),
+      message: t("lens.setup.validation.manualSelection"),
       path: ["selection", "execution_ids"],
     });
   }
 }
 
-function validateSampleWindow(draft: InvestigationDraft, ctx: z.RefinementCtx) {
+function validateSampleWindow(draft: InvestigationDraft, ctx: z.RefinementCtx, t: Translate) {
   const selection = draft.selection;
   const hours = selection.lookback_hours ?? 24;
   if (!Number.isInteger(hours) || hours < 1) {
     ctx.addIssue({
       code: "custom",
-      message: message("lens.setup.validation.lookback"),
+      message: t("lens.setup.validation.lookback"),
       path: ["selection", "lookback_hours"],
     });
   }
@@ -80,24 +77,24 @@ function validateSampleWindow(draft: InvestigationDraft, ctx: z.RefinementCtx) {
   if (!Number.isFinite(percent) || percent <= 0 || percent > 100) {
     ctx.addIssue({
       code: "custom",
-      message: message("lens.setup.validation.samplePercent"),
+      message: t("lens.setup.validation.samplePercent"),
       path: ["selection", "sample_percent"],
     });
   }
   if (selection.sample_size != null && (!Number.isInteger(selection.sample_size) || selection.sample_size < 1)) {
     ctx.addIssue({
       code: "custom",
-      message: message("lens.setup.validation.sampleSize"),
+      message: t("lens.setup.validation.sampleSize"),
       path: ["selection", "sample_size"],
     });
   }
 }
 
-function validateBudgetAndSchedule(draft: InvestigationDraft, ctx: z.RefinementCtx) {
+function validateBudgetAndSchedule(draft: InvestigationDraft, ctx: z.RefinementCtx, t: Translate) {
   if (!Number.isFinite(draft.budget) || draft.budget <= 0) {
     ctx.addIssue({
       code: "custom",
-      message: message("lens.setup.validation.budget"),
+      message: t("lens.setup.validation.budget"),
       path: ["budget"],
     });
   }
@@ -106,18 +103,18 @@ function validateBudgetAndSchedule(draft: InvestigationDraft, ctx: z.RefinementC
   if (draft.repeat && intervalInvalid) {
     ctx.addIssue({
       code: "custom",
-      message: message("lens.setup.validation.interval"),
+      message: t("lens.setup.validation.interval"),
       path: ["interval"],
     });
   }
 }
 
-function validateExpectations(draft: InvestigationDraft, ctx: z.RefinementCtx) {
+function validateExpectations(draft: InvestigationDraft, ctx: z.RefinementCtx, t: Translate) {
   const checks = draft.questions.filter((check) => check.instruction.trim());
   if (!draft.context.trim() && !checks.length && !draft.watching.length) {
     ctx.addIssue({
       code: "custom",
-      message: message("lens.setup.validation.expectations"),
+      message: t("lens.setup.validation.expectations"),
       path: ["context"],
     });
   }
@@ -125,20 +122,21 @@ function validateExpectations(draft: InvestigationDraft, ctx: z.RefinementCtx) {
     if (check.instruction.trim() && check.instruction.trim().length < 3) {
       ctx.addIssue({
         code: "custom",
-        message: message("lens.setup.validation.checkLength"),
+        message: t("lens.setup.validation.checkLength"),
         path: ["questions", index, "instruction"],
       });
     }
   });
 }
 
+// Zod builds these messages outside React, so they resolve against the default language.
 export const investigationSchema = draftSchema
   .superRefine((draft, ctx) => {
-    validateFilters(draft, ctx);
-    validateManualSelection(draft, ctx);
-    validateSampleWindow(draft, ctx);
-    validateBudgetAndSchedule(draft, ctx);
-    validateExpectations(draft, ctx);
+    validateFilters(draft, ctx, englishT);
+    validateManualSelection(draft, ctx, englishT);
+    validateSampleWindow(draft, ctx, englishT);
+    validateBudgetAndSchedule(draft, ctx, englishT);
+    validateExpectations(draft, ctx, englishT);
   })
   .transform((draft) => ({
     ...draft,
@@ -152,21 +150,41 @@ export const investigationSchema = draftSchema
 export type InvestigationInput = z.input<typeof investigationSchema>;
 export type InvestigationOutput = z.output<typeof investigationSchema>;
 
-export const investigationStepFields: readonly FieldPath<InvestigationInput>[][] = [
-  ["name", "selection.source", "selection.service", "selection.agent_name", "selection.filters", "selection.team_id"],
-  ["context", "questions", "watching"],
-  [
-    "selection.execution_ids",
-    "selection.lookback_hours",
-    "selection.sample_size",
-    "selection.sample_percent",
-    "selectedModel",
-    "budget",
-    "interval",
-    "repeat",
-    "manualSelection",
-  ],
-];
+export const SETUP_STEPS = ["activity", "criteria", "run"] as const;
+export type SetupStep = (typeof SETUP_STEPS)[number];
+
+type SelectionField = `selection.${keyof InvestigationInput["selection"]}`;
+export type InvestigationField = Exclude<keyof InvestigationInput, "selection"> | SelectionField;
+
+/** Every form field belongs to exactly one setup step; adding a schema field without a step fails to type-check. */
+const stepOfField = {
+  name: "activity",
+  "selection.source": "activity",
+  "selection.service": "activity",
+  "selection.agent_name": "activity",
+  "selection.filters": "activity",
+  "selection.team_id": "activity",
+  "selection.lookback_hours": "activity",
+  "selection.sample_percent": "activity",
+  context: "criteria",
+  questions: "criteria",
+  watching: "criteria",
+  "selection.execution_ids": "run",
+  "selection.sample_size": "run",
+  selectedModel: "run",
+  budget: "run",
+  interval: "run",
+  repeat: "run",
+  manualSelection: "run",
+} as const satisfies Record<InvestigationField, SetupStep>;
+
+const fields = Object.keys(stepOfField) as readonly InvestigationField[];
+
+export const investigationStepFields: Readonly<Record<SetupStep, readonly InvestigationField[]>> = {
+  activity: fields.filter((field) => stepOfField[field] === "activity"),
+  criteria: fields.filter((field) => stepOfField[field] === "criteria"),
+  run: fields.filter((field) => stepOfField[field] === "run"),
+};
 
 function activitySelectionDefaults(
   initial: Settings | undefined,
@@ -208,7 +226,7 @@ export function investigationSettings(
   draft: InvestigationOutput,
   initial: Settings | undefined,
   model: string,
-  t: Translate = (key, params) => translate(DEFAULT_LANGUAGE, key, params),
+  t: Translate = englishT,
 ): Settings {
   const suggestedName = draft.questions[0]?.instruction || draft.context.split("\n")[0] || t("lens.setup.defaultName");
   return {

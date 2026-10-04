@@ -1,31 +1,13 @@
 "use client";
+
 import { Controller, useFormContext, useWatch } from "react-hook-form";
-import type { InvestigationInput } from "../investigationSchema";
-
 import { Input } from "@/components/ui/input";
-
 import { DurationInput } from "@/components/shared/DurationInput";
-import { type AnalysisModelInfo } from "../fields/analysisModels";
+import type { InvestigationInput } from "../investigationSchema";
+import { AnalysisModelField, type AnalysisModelFieldProps } from "./AnalysisModelField";
 import { useTranslation } from "@/i18n";
 
-import { AnalysisModelField } from "../fields/AnalysisModelField";
-export function RunStep({
-  modelValid,
-  models,
-  modelDetails,
-  modelsLoading,
-  modelsError,
-  unavailable,
-  unsupported,
-}: {
-  modelValid: boolean;
-  models: string[];
-  modelDetails: AnalysisModelInfo[];
-  modelsLoading: boolean;
-  modelsError?: string;
-  unavailable: boolean;
-  unsupported: boolean;
-}) {
+export function RunFields({ models, gate }: AnalysisModelFieldProps) {
   const {
     control,
     register,
@@ -61,17 +43,10 @@ export function RunStep({
           </p>
         )}
       </div>
-      <details open={!modelValid || undefined}>
+      <details open={!gate.modelValid || undefined}>
         <summary className="cursor-pointer text-sm font-medium">{t("lens.setup.advancedOptions")}</summary>
         <div className="mt-4 space-y-5">
-          <AnalysisModelField
-            models={models}
-            modelDetails={modelDetails}
-            modelsLoading={modelsLoading}
-            modelsError={modelsError}
-            unavailable={unavailable}
-            unsupported={unsupported}
-          />
+          <AnalysisModelField models={models} gate={gate} />
           <div className="grid gap-5 sm:grid-cols-2">
             <label className="grid content-start gap-2 text-sm font-medium">
               {t("lens.setup.run.maximumRuns")}

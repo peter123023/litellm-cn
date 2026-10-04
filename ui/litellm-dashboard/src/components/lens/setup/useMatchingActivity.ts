@@ -9,6 +9,7 @@ import { durationLabel } from "../model/format";
 import type { Sample } from "../model/types";
 import { useDebouncedValue } from "./useDebouncedValue";
 import type { InvestigationInput } from "./investigationSchema";
+import { useTranslation, type Translate } from "@/i18n";
 
 const PREVIEW_DEBOUNCE_MS = 350;
 const EMPTY_PREVIEW_POLL_MS = 15000;
@@ -83,13 +84,15 @@ function previewTitle(
   state: { pending: boolean; validWindow: boolean; valid: boolean },
   source: Selection["source"],
   data: PreviewPageData | undefined,
+  t: Translate,
 ): string {
-  if (!state.validWindow) return "Choose a history window between 1 hour and 365 days";
-  if (!state.valid) return "Complete your condition to preview matches";
-  if (state.pending) return "Finding matching activity…";
-  if (!data) return "Preview unavailable";
-  const noun = source === "requests" ? "request" : "run";
-  return `${data.eligible} matching ${noun}${data.eligible === 1 ? "" : "s"}`;
+  if (!state.validWindow) return t("lens.setup.preview.windowRange");
+  if (!state.valid) return t("lens.setup.preview.completeCondition");
+  if (state.pending) return t("lens.setup.preview.finding");
+  if (!data) return t("lens.setup.preview.unavailable");
+  const singular = source === "requests" ? "lens.setup.noun.request" : "lens.setup.noun.run";
+  const noun = data.eligible === 1 ? t(singular) : t(`${singular}Plural`);
+  return t("lens.setup.preview.matchingCount", { count: data.eligible, noun });
 }
 
 function manualSelectedCount(selection: Selection): number {
@@ -107,9 +110,9 @@ function manualPicks(selection: Selection, setExecutionIds: (ids: readonly strin
   };
 }
 
-function windowLabel(selection: Selection): string {
-  if (!validWindow(selection)) return "Choose a valid history window";
-  return `Last ${durationLabel(selection.lookback_hours ?? 24, "hours")}`;
+function windowLabel(selection: Selection, t: Translate): string {
+  if (!validWindow(selection)) return t("lens.setup.preview.invalidWindow");
+  return t("lens.setup.preview.lastDuration", { duration: durationLabel(selection.lookback_hours ?? 24, "hours") });
 }
 
 function useScopeFieldOptions(api: ReturnType<typeof useLensApi>, selection: Selection): ScopeOptions {
@@ -131,6 +134,7 @@ function useScopeFieldOptions(api: ReturnType<typeof useLensApi>, selection: Sel
 /** Live preview of the activity a draft selection matches, debounced so typing a filter does not spam the API. */
 export function useMatchingActivity(): MatchingActivity {
   const { control, setValue } = useFormContext<InvestigationInput>();
+  const { t } = useTranslation();
   const [selection, manualSelection] = useWatch({ control, name: ["selection", "manualSelection"] });
   const api = useLensApi();
   const client = useQueryClient();
@@ -169,8 +173,8 @@ export function useMatchingActivity(): MatchingActivity {
     scope: scopeFields,
     preview: {
       status: {
-        title: previewTitle({ pending, validWindow: windowValid, valid }, selection.source, firstPage),
-        windowLabel: windowLabel(selection),
+        title: previewTitle({ pending, validWindow: windowValid, valid }, selection.source, firstPage, t),
+        windowLabel: windowLabel(selection, t),
         ready,
         error: preview.error,
         refresh,

@@ -4,11 +4,20 @@ import { useState } from "react";
 
 import { DotFieldCanvas, DotFieldRoot } from "@/components/shared/dotField/DotField";
 import type { DotColumn } from "@/components/shared/dotField/dots";
+import { useTranslation } from "@/i18n";
 
 import { when } from "../../model/format";
 import type { Job } from "../../model/types";
 
 const UNSUCCESSFUL_OPACITY = 0.35;
+
+const JOB_STATUS_LABEL: Record<Job["status"], string> = {
+  queued: "lens.common.statusQueued",
+  running: "lens.common.statusRunning",
+  completed: "lens.common.statusCompleted",
+  failed: "lens.common.statusFailed",
+  cancelled: "lens.common.statusCancelled",
+};
 
 export interface CheckColumn extends DotColumn {
   job: Job | null;
@@ -50,6 +59,7 @@ export interface HistoryTimelineProps {
 
 /** Every check as a dot column: reviewed traces in grey, affected traces in red, failed checks faded. */
 export function HistoryTimeline({ jobs, slots, onOpen }: HistoryTimelineProps) {
+  const { t } = useTranslation();
   const columns = checkColumns(jobs, slots);
   const [hover, setHover] = useState<number | null>(null);
   const hovered = hover === null ? null : columns[hover];
@@ -62,7 +72,7 @@ export function HistoryTimeline({ jobs, slots, onOpen }: HistoryTimelineProps) {
             <button
               key={job.id}
               type="button"
-              aria-label={`Check at ${when(job.created_at)}`}
+              aria-label={t("lens.history.checkAt", { time: when(job.created_at) })}
               className="relative h-full flex-1 focus-visible:outline-2 focus-visible:outline-ring"
               onPointerEnter={() => setHover(i)}
               onFocus={() => setHover(i)}
@@ -81,10 +91,8 @@ export function HistoryTimeline({ jobs, slots, onOpen }: HistoryTimelineProps) {
           style={{ left: pct(Math.min(0.75, hover / slots)) }}
         >
           <div>{when(hovered.job.created_at)}</div>
-          <div>
-            {hovered.total} reviewed, {hovered.failed} affected
-          </div>
-          {hovered.job.status !== "completed" && <div className="capitalize">{hovered.job.status}</div>}
+          <div>{t("lens.history.reviewedAffected", { total: hovered.total, failed: hovered.failed })}</div>
+          {hovered.job.status !== "completed" && <div>{t(JOB_STATUS_LABEL[hovered.job.status])}</div>}
         </div>
       )}
     </div>

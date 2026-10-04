@@ -2,7 +2,6 @@
 
 import { useNow } from "@/hooks/useNow";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   analysisElapsed,
@@ -12,11 +11,10 @@ import {
   analysisStages,
   remainingLabel,
   stageDurations,
-  type ProgressSample,
 } from "../model/progress";
+import { useProgressSamples } from "./useProgressSamples";
 import { durationText } from "../model/format";
-import { nextCheckStatus } from "../model/status";
-import { type Lens, type Job } from "../model/types";
+import { type Job } from "../model/types";
 import { cn } from "@/lib/cva.config";
 import { useTranslation } from "@/i18n";
 
@@ -38,11 +36,7 @@ export function InvestigationProgress({ job, onCancel }: { job: Job; onCancel?: 
   const now = useNow(1000);
   const progress = analysisProgress(job, t);
   const fraction = analysisFraction(progress);
-  const [samples, setSamples] = useState<ProgressSample[]>([]);
-  const latest = samples.at(-1);
-  if (!latest || latest.step !== progress.step || latest.done !== progress.done) {
-    setSamples([...samples, { at: now, step: progress.step, done: progress.done, fraction }].slice(-120));
-  }
+  const samples = useProgressSamples(progress);
   const pace = analysisPace(samples, now);
   const percent = Math.round(fraction * 100);
   const queued = progress.step < 0;
@@ -140,23 +134,5 @@ export function InvestigationProgress({ job, onCancel }: { job: Job; onCancel?: 
         </div>
       </div>
     </section>
-  );
-}
-
-export function NextCheck({ lens }: { lens: Lens }) {
-  const { t } = useTranslation();
-  const now = useNow(15000);
-  const label = nextCheckStatus(lens, now, t);
-  if (!label) return null;
-  return <p className="mt-1 text-xs text-muted-foreground">{label}</p>;
-}
-
-export function ScanDuration({ job }: { job: Job }) {
-  const { t } = useTranslation();
-  if (!job.finished_at) return null;
-  return (
-    <span title={t("lens.investigations.tookTitle")}>
-      {t("lens.investigations.tookPrefix")} {analysisElapsed(job.created_at, Date.parse(job.finished_at), t)}
-    </span>
   );
 }

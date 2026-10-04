@@ -7,8 +7,9 @@ import { ThemeProvider } from "next-themes";
 
 import { AuthProvider } from "@/contexts/AuthContext";
 import ReactQueryProvider from "@/contexts/ReactQueryProvider";
+import HotkeysProvider from "@/contexts/HotkeysProvider";
+import { I18nProvider } from "@/i18n/I18nProvider";
 import { Toaster } from "@/components/ui/sonner";
-import { I18nProvider } from "@/i18n";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,14 +30,16 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          <NuqsAdapter>
-            <I18nProvider>
+          <I18nProvider>
+            <NuqsAdapter>
               <ReactQueryProvider>
-                <AuthProvider>{children}</AuthProvider>
+                <HotkeysProvider>
+                  <AuthProvider>{children}</AuthProvider>
+                </HotkeysProvider>
                 <Toaster />
               </ReactQueryProvider>
-            </I18nProvider>
-          </NuqsAdapter>
+            </NuqsAdapter>
+          </I18nProvider>
         </ThemeProvider>
       </body>
     </html>

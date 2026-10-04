@@ -2,25 +2,17 @@
 
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { SearchSelect } from "@/components/shared/SearchSelect";
-import { analysisModelOptions, type AnalysisModelInfo } from "./analysisModels";
-import { useTranslation } from "@/i18n";
+import { analysisModelOptions, type ModelGate } from "./analysisModels";
+import type { AnalysisModels } from "./useAnalysisModels";
 import type { InvestigationInput } from "../investigationSchema";
+import { useTranslation } from "@/i18n";
 
-export function AnalysisModelField({
-  models,
-  modelDetails,
-  modelsLoading,
-  modelsError,
-  unavailable,
-  unsupported,
-}: {
-  models: string[];
-  modelDetails: AnalysisModelInfo[];
-  modelsLoading: boolean;
-  modelsError?: string;
-  unavailable: boolean;
-  unsupported: boolean;
-}) {
+export interface AnalysisModelFieldProps {
+  readonly models: AnalysisModels;
+  readonly gate: ModelGate;
+}
+
+export function AnalysisModelField({ models, gate }: AnalysisModelFieldProps) {
   const { control } = useFormContext<InvestigationInput>();
   const { t } = useTranslation();
   const model = useWatch({ control, name: "selectedModel" });
@@ -33,26 +25,26 @@ export function AnalysisModelField({
         render={({ field }) => (
           <SearchSelect
             aria-label={t("lens.setup.model.label")}
-            options={analysisModelOptions(models, modelDetails, t)}
+            options={analysisModelOptions(models.models, models.modelDetails, t)}
             value={field.value ?? ""}
             onValueChange={(value) => field.onChange(value ?? "")}
-            placeholder={modelsLoading ? t("lens.setup.model.loading") : t("lens.setup.model.choose")}
-            disabled={modelsLoading}
+            placeholder={models.modelsLoading ? t("lens.setup.model.loading") : t("lens.setup.model.choose")}
+            disabled={models.modelsLoading}
             emptyText={t("lens.setup.model.none")}
           />
         )}
       />
-      {modelsError && (
+      {models.modelsError && (
         <p role="alert" className="text-sm text-destructive">
-          {t("lens.setup.model.loadFailed", { error: modelsError })}
+          {t("lens.setup.model.loadFailed", { error: models.modelsError })}
         </p>
       )}
-      {unavailable && (
+      {gate.unavailable && (
         <p role="alert" className="text-sm text-destructive">
           {t("lens.setup.model.unavailable", { model: model ?? "" })}
         </p>
       )}
-      {unsupported && (
+      {gate.unsupported && (
         <p role="alert" className="text-sm text-destructive">
           {t("lens.setup.model.unsupported")}
         </p>

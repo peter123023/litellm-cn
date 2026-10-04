@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { translate } from "@/i18n";
-import { runRequest } from "./RunNowDialog";
+import { runRequest } from "./runRequest";
 
 const base = { agent: "support", saved: "support", start: "", end: "" };
 

@@ -1,23 +1,23 @@
 "use client";
 
 import { Controller, useFormContext } from "react-hook-form";
-import { lensQueries } from "../../api/queries";
+import { lensQueries } from "../../data/queries";
 
 import { useQuery } from "@tanstack/react-query";
-import { useLensApi } from "../../services";
+import { useLensApi } from "../../data/LensServices";
 import { SearchSelect } from "@/components/shared/SearchSelect";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/i18n";
 import type { WorkerFormInput } from "./workerSchema";
 
-export function AnalysisAccessFields({ accessToken }: { accessToken: string }) {
+export function AnalysisAccessFields() {
   const {
     control,
     register,
     formState: { errors },
   } = useFormContext<WorkerFormInput>();
   const { t } = useTranslation();
-  const api = useLensApi(accessToken);
+  const api = useLensApi();
   const models = useQuery(lensQueries.models(api));
   return (
     <div className="space-y-5">

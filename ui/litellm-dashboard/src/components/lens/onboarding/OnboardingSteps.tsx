@@ -5,6 +5,7 @@ import { ArrowRight, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TracingSetupFields } from "@/components/view_logs/TraceView/TracingSetupCard";
 import { cn } from "@/lib/cva.config";
+import { useTranslation, type Translate } from "@/i18n";
 import { useLensAccessToken } from "../data/LensServices";
 import type { LensReadiness } from "../hooks/useLensReadiness";
 import { initialSetupStep } from "../model/readiness";
@@ -20,12 +21,13 @@ function useLocked() {
 
 function StorageStep({ state, goTo }: StepProps) {
   const { readOnly, openTrace } = useOnboarding();
+  const { t } = useTranslation();
   const accessToken = useLensAccessToken();
   if (!state.tracingEnabled)
     return (
       <>
         <TracingSetupFields
-          detail="Tracing is not enabled"
+          detail={t("lens.settings.tracing.notEnabled")}
           accessToken={accessToken}
           onOpenTrace={openTrace}
           onCheck={state.refresh}
@@ -38,35 +40,34 @@ function StorageStep({ state, goTo }: StepProps) {
   return (
     <div className="space-y-4">
       <p role="status" className="text-sm text-success">
-        Trace storage is connected
+        {t("lens.onboarding.storage.connected")}
       </p>
       <Button onClick={() => goTo(1)}>
-        Continue to your agent <ArrowRight aria-hidden="true" className="size-4" />
+        {t("lens.onboarding.storage.continueToAgent")} <ArrowRight aria-hidden="true" className="size-4" />
       </Button>
       <ActivityContinuation state={state} />
     </div>
   );
 }
 
-function continuationLabel(state: LensReadiness) {
-  if (state.connected) return "Continue to investigation";
-  return state.tracesReady ? "Continue to worker" : "Continue with request logs";
+function continuationLabel(state: LensReadiness, t: Translate): string {
+  if (state.connected) return t("lens.onboarding.continuation.toInvestigation");
+  return state.tracesReady ? t("lens.onboarding.continuation.toWorker") : t("lens.onboarding.continuation.withLogs");
 }
 
 function ActivityContinuation({ state }: { state: LensReadiness }) {
   const { connect, create } = useOnboarding();
+  const { t } = useTranslation();
   const locked = useLocked();
   if (!state.activityReady) return null;
   return (
     <div className="mt-4">
       <Button onClick={state.connected ? create : connect} disabled={locked}>
-        {continuationLabel(state)}
+        {continuationLabel(state, t)}
         <ArrowRight aria-hidden="true" className="size-4" />
       </Button>
       {state.requestsReady && !state.tracesReady && (
-        <p className="mt-2 text-xs text-muted-foreground">
-          Request logs are already available. You can investigate them now and add agent traces later.
-        </p>
+        <p className="mt-2 text-xs text-muted-foreground">{t("lens.onboarding.continuation.logsHint")}</p>
       )}
     </div>
   );
@@ -74,11 +75,12 @@ function ActivityContinuation({ state }: { state: LensReadiness }) {
 
 function AgentStep({ state }: StepProps) {
   const { readOnly, canMintTracingKey, openTrace } = useOnboarding();
+  const { t } = useTranslation();
   const accessToken = useLensAccessToken();
   if (!state.tracingEnabled)
     return (
       <>
-        <p className="text-sm text-muted-foreground">Connect trace storage in step 1 before sending a trace.</p>
+        <p className="text-sm text-muted-foreground">{t("lens.onboarding.agent.connectStorageFirst")}</p>
         <ActivityContinuation state={state} />
       </>
     );
@@ -100,7 +102,7 @@ function AgentStep({ state }: StepProps) {
       </div>
       {state.tracesReady && (
         <p role="status" className="text-sm text-success">
-          Your first trace is ready. Continue setup so Lens can investigate your agent’s behavior.
+          {t("lens.onboarding.agent.firstTraceReady")}
         </p>
       )}
       <ActivityContinuation state={state} />
@@ -110,19 +112,18 @@ function AgentStep({ state }: StepProps) {
 
 function WorkerStep({ state }: StepProps) {
   const { connect, create } = useOnboarding();
+  const { t } = useTranslation();
   const locked = useLocked();
   return (
     <div className="space-y-4">
       <p role="status" className="text-sm text-muted-foreground">
-        {state.connected
-          ? "Worker connected. You’re ready to create an investigation."
-          : "The worker reviews recorded activity using a model on your gateway. You choose its analysis model and spending limit."}
+        {state.connected ? t("lens.onboarding.worker.connectedBody") : t("lens.onboarding.worker.explainer")}
       </p>
       {!state.activityReady && (
-        <p className="text-sm text-muted-foreground">Record activity in step 2 before connecting a worker.</p>
+        <p className="text-sm text-muted-foreground">{t("lens.onboarding.worker.recordActivityFirst")}</p>
       )}
       <Button onClick={state.connected ? create : connect} disabled={!state.activityReady || locked}>
-        {state.connected ? "Continue to investigation" : "Connect worker"}
+        {state.connected ? t("lens.onboarding.continuation.toInvestigation") : t("lens.onboarding.worker.connect")}
         <ArrowRight aria-hidden="true" className="size-4" />
       </Button>
     </div>
@@ -131,58 +132,61 @@ function WorkerStep({ state }: StepProps) {
 
 function InvestigationStep({ state }: StepProps) {
   const { create } = useOnboarding();
+  const { t } = useTranslation();
   const locked = useLocked();
   return (
     <div className="space-y-4">
-      <p className="text-sm leading-6 text-muted-foreground">
-        Choose the activity to review and describe how your agent should behave. Lens will show findings with evidence
-        and suggested changes.
-      </p>
+      <p className="text-sm leading-6 text-muted-foreground">{t("lens.onboarding.investigation.body")}</p>
       {!state.ready && (
-        <p className="text-sm text-muted-foreground">
-          Recorded activity and a connected worker are required before you can run an investigation.
-        </p>
+        <p className="text-sm text-muted-foreground">{t("lens.onboarding.investigation.requirements")}</p>
       )}
       <Button onClick={create} disabled={!state.ready || locked}>
-        New investigation <ArrowRight aria-hidden="true" className="size-4" />
+        {t("lens.investigations.newInvestigation")} <ArrowRight aria-hidden="true" className="size-4" />
       </Button>
     </div>
   );
 }
 
 interface StepDefinition {
+  readonly id: string;
   readonly title: string;
   readonly description: string;
   readonly complete: (state: LensReadiness) => boolean;
   readonly Content: (props: StepProps) => ReactNode;
 }
 
-const STEPS: readonly StepDefinition[] = [
-  {
-    title: "Enable tracing on the gateway",
-    description: "Connect ClickHouse and restart the gateway.",
-    complete: (state) => state.tracingEnabled,
-    Content: StorageStep,
-  },
-  {
-    title: "Send your first trace",
-    description: "Capture your agent’s inputs, outputs, and tool calls.",
-    complete: (state) => state.tracesReady,
-    Content: AgentStep,
-  },
-  {
-    title: "Connect a worker",
-    description: "Choose a model and run the worker on your infrastructure.",
-    complete: (state) => state.connected,
-    Content: WorkerStep,
-  },
-  {
-    title: "Run your first investigation",
-    description: "Describe the expected behavior and review a sample of activity.",
-    complete: (state) => state.hasInvestigations,
-    Content: InvestigationStep,
-  },
-];
+function stepsFor(t: Translate): readonly StepDefinition[] {
+  return [
+    {
+      id: "storage",
+      title: t("lens.onboarding.step.storage.title"),
+      description: t("lens.onboarding.step.storage.description"),
+      complete: (state) => state.tracingEnabled,
+      Content: StorageStep,
+    },
+    {
+      id: "agent",
+      title: t("lens.onboarding.step.agent.title"),
+      description: t("lens.onboarding.step.agent.description"),
+      complete: (state) => state.tracesReady,
+      Content: AgentStep,
+    },
+    {
+      id: "worker",
+      title: t("lens.onboarding.step.worker.title"),
+      description: t("lens.onboarding.step.worker.description"),
+      complete: (state) => state.connected,
+      Content: WorkerStep,
+    },
+    {
+      id: "investigation",
+      title: t("lens.onboarding.step.investigation.title"),
+      description: t("lens.onboarding.step.investigation.description"),
+      complete: (state) => state.hasInvestigations,
+      Content: InvestigationStep,
+    },
+  ];
+}
 
 function stepState(complete: boolean, open: boolean): StepState {
   if (complete) return "complete";
@@ -192,6 +196,7 @@ function stepState(complete: boolean, open: boolean): StepState {
 export function OnboardingSteps({ state, className }: { state: LensReadiness; className?: string }) {
   const id = useId();
   const listRef = useRef<HTMLOListElement>(null);
+  const { t } = useTranslation();
   const [step, setStep] = useState(() => initialSetupStep(state));
   const goTo = (index: number) => {
     setStep(index);
@@ -203,10 +208,10 @@ export function OnboardingSteps({ state, className }: { state: LensReadiness; cl
       data-slot="onboarding-steps"
       className={cn("divide-y overflow-hidden rounded-2xl border bg-card", className)}
     >
-      {STEPS.map(({ title, description, complete, Content }, index) => {
+      {stepsFor(t).map(({ id: stepId, title, description, complete, Content }, index) => {
         const open = step === index;
         return (
-          <li key={title}>
+          <li key={stepId}>
             <h3>
               <button
                 type="button"

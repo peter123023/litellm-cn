@@ -5,7 +5,11 @@ export const en: Record<string, string> = {
   // -------------------------------------------------- route.tsx / LensWorkspace.tsx / LensPreviewButton.tsx
   "lens.common.tabTraces": "Traces",
   "lens.common.tabInvestigations": "Investigations",
+  "lens.common.tabSettings": "Settings",
   "lens.common.demoData": "Demo data",
+  "lens.common.setupNew": "New",
+  "lens.common.setupEditing": "Editing",
+  "lens.common.setupDuplicate": "Duplicate",
   "lens.common.activityRunning": "An investigation is running",
   "lens.common.activityQueued": "An investigation is queued",
   "lens.common.tagline": "Trace your agents and investigate what goes wrong.",
@@ -51,6 +55,7 @@ export const en: Record<string, string> = {
   "lens.common.statusFailed": "Failed",
   "lens.common.statusCancelled": "Cancelled",
   "lens.common.statusCompleted": "Completed",
+  "lens.common.statusRunning": "Running",
   "lens.common.statusReady": "Ready",
   "lens.common.nextCheckAfterScan": "Next check scheduled after this scan finishes",
   "lens.common.dueNowWaiting": "Due now · waiting for an analyzer",
@@ -179,6 +184,9 @@ export const en: Record<string, string> = {
   "lens.investigations.counterexample": "Counterexample",
   "lens.investigations.openOriginalStep": "Open original step",
   "lens.investigations.openRequest": "Open request",
+  "lens.investigations.findingPanelLabel": "Finding details",
+  "lens.investigations.panelInvestigationDetails": "Investigation details",
+  "lens.investigations.backToFinding": "Back to finding",
   "lens.investigations.rememberPrompt": "What should Lens remember?",
   "lens.investigations.rememberPlaceholder": "What should Lens know about this finding?",
   "lens.investigations.rememberHint": "Your explanation informs future scans of this Lens.",
@@ -214,6 +222,15 @@ export const en: Record<string, string> = {
   // -------------------------------------------------- investigations/RequestEvidenceSheet.tsx
   "lens.investigations.requestEvidence": "Request evidence",
   "lens.investigations.requestEvidenceBody": "Original logged input and output",
+  // -------------------------------------------------- investigations/Evidence.tsx
+  "lens.evidence.unavailable": "This evidence is no longer available.",
+  "lens.evidence.loading": "Loading request…",
+  "lens.evidence.notFound": "Request was not found or is past retention",
+  "lens.evidence.previousSection": "Previous section",
+  "lens.evidence.nextSection": "Next section",
+  // -------------------------------------------------- investigations/detail/HistoryTimeline.tsx
+  "lens.history.checkAt": "Check at {time}",
+  "lens.history.reviewedAffected": "{total} reviewed, {failed} affected",
   "lens.investigations.loadingRequest": "Loading request…",
   "lens.investigations.requestMissing": "Request was not found or is past retention",
   "lens.investigations.previousSection": "Previous section",
@@ -352,13 +369,24 @@ export const en: Record<string, string> = {
   "lens.runSearch.groupRunAttributes": "Run attributes",
   "lens.runSearch.groupContent": "Content",
   "lens.runSearch.groupIdentity": "Identity",
+
+  // -------------------------------------------------- investigations/InvestigationList.tsx, investigations/detail/CriteriaTab.tsx
+  "lens.investigations.searchPlaceholder": "Search investigations, or filter like status:failed schedule:watching",
+  "lens.investigations.criteriaPurposeTitle": "What should the agent be doing?",
+  "lens.investigations.criteriaPurposeHint": "The purpose and expected outcome of the agent.",
+  "lens.investigations.changesApplyToFutureScans":
+    "Changes apply to future scans. Rechecking history uses your analysis budget.",
 };
 
 export const zh: Record<string, string> = {
   // -------------------------------------------------- route.tsx / LensWorkspace.tsx / LensPreviewButton.tsx
   "lens.common.tabTraces": "链路追踪",
   "lens.common.tabInvestigations": "调查",
+  "lens.common.tabSettings": "设置",
   "lens.common.demoData": "示例数据",
+  "lens.common.setupNew": "新建",
+  "lens.common.setupEditing": "编辑中",
+  "lens.common.setupDuplicate": "复制",
   "lens.common.activityRunning": "有一条调查正在运行",
   "lens.common.activityQueued": "有一条调查正在排队",
   "lens.common.tagline": "追踪你的 Agent，并排查出了什么的问题。",
@@ -403,6 +431,7 @@ export const zh: Record<string, string> = {
   "lens.common.statusFailed": "失败",
   "lens.common.statusCancelled": "已取消",
   "lens.common.statusCompleted": "已完成",
+  "lens.common.statusRunning": "运行中",
   "lens.common.statusReady": "就绪",
   "lens.common.nextCheckAfterScan": "本次扫描结束后才会安排下一次检查",
   "lens.common.dueNowWaiting": "即将执行 · 正在等待分析器",
@@ -528,6 +557,9 @@ export const zh: Record<string, string> = {
   "lens.investigations.counterexample": "反例",
   "lens.investigations.openOriginalStep": "打开原始步骤",
   "lens.investigations.openRequest": "打开请求",
+  "lens.investigations.findingPanelLabel": "发现项详情",
+  "lens.investigations.panelInvestigationDetails": "调查详情",
+  "lens.investigations.backToFinding": "返回发现项",
   "lens.investigations.rememberPrompt": "希望 Lens 记住什么？",
   "lens.investigations.rememberPlaceholder": "希望 Lens 如何理解这个发现项？",
   "lens.investigations.rememberHint": "你的说明会影响今后对这个 Lens 的扫描。",
@@ -562,6 +594,15 @@ export const zh: Record<string, string> = {
   // -------------------------------------------------- investigations/RequestEvidenceSheet.tsx
   "lens.investigations.requestEvidence": "请求证据",
   "lens.investigations.requestEvidenceBody": "原始记录的输入与输出",
+  // -------------------------------------------------- investigations/Evidence.tsx
+  "lens.evidence.unavailable": "这份证据已不可用。",
+  "lens.evidence.loading": "正在加载请求…",
+  "lens.evidence.notFound": "未找到该请求，或已超出保留期限",
+  "lens.evidence.previousSection": "上一段",
+  "lens.evidence.nextSection": "下一段",
+  // -------------------------------------------------- investigations/detail/HistoryTimeline.tsx
+  "lens.history.checkAt": "检查于 {time}",
+  "lens.history.reviewedAffected": "已复查 {total}，受影响 {failed}",
   "lens.investigations.loadingRequest": "正在加载请求…",
   "lens.investigations.requestMissing": "未找到该请求，或它已超出保留期限",
   "lens.investigations.previousSection": "上一段",
@@ -699,4 +740,10 @@ export const zh: Record<string, string> = {
   "lens.runSearch.groupRunAttributes": "运行属性",
   "lens.runSearch.groupContent": "内容",
   "lens.runSearch.groupIdentity": "标识",
+
+  // -------------------------------------------------- investigations/InvestigationList.tsx, investigations/detail/CriteriaTab.tsx
+  "lens.investigations.searchPlaceholder": "搜索调查，或使用 status:failed schedule:watching 这样的过滤条件",
+  "lens.investigations.criteriaPurposeTitle": "Agent 应该在做些什么？",
+  "lens.investigations.criteriaPurposeHint": "Agent 的目标与预期结果。",
+  "lens.investigations.changesApplyToFutureScans": "改动仅对后续扫描生效。重新检查历史会消耗分析预算。",
 };
