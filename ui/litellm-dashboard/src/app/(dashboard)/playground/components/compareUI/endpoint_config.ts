@@ -30,6 +30,8 @@ export interface EndpointConfig {
   validationMessage: string;
 }
 
+export type Translate = (key: string, params?: Record<string, string | number>) => string;
+
 // Endpoint configurations
 export const ENDPOINT_CONFIGS: Record<EndpointIdType, EndpointConfig> = {
   [EndpointId.CHAT_COMPLETIONS]: {
@@ -61,8 +63,37 @@ export const getAvailableEndpoints = () =>
     label: config.label,
   }));
 
+const ENDPOINT_I18N_PREFIX = {
+  [EndpointId.CHAT_COMPLETIONS]: "playground.endpoint.chat",
+  [EndpointId.A2A_AGENTS]: "playground.endpoint.a2a",
+} as const;
+
+const A2A_LABEL_I18N_KEY = "playground.endpoint.a2aLabel";
+
+export const endpointI18nPrefix = (endpointId: EndpointIdType) => ENDPOINT_I18N_PREFIX[endpointId];
+
 // Helper to get config for an endpoint
 export const getEndpointConfig = (endpointId: EndpointIdType): EndpointConfig => ENDPOINT_CONFIGS[endpointId];
+
+export const getLocalizedEndpointConfig = (endpointId: EndpointIdType, t: Translate): EndpointConfig => {
+  const config = ENDPOINT_CONFIGS[endpointId];
+  const prefix = ENDPOINT_I18N_PREFIX[endpointId];
+  return {
+    ...config,
+    label: endpointId === EndpointId.A2A_AGENTS ? t(A2A_LABEL_I18N_KEY) : config.label,
+    selectorLabel: t(`${prefix}.selectorLabel`),
+    selectorPlaceholder: t(`${prefix}.selectorPlaceholder`),
+    inputPlaceholder: t(`${prefix}.inputPlaceholder`),
+    loadingMessage: t(`${prefix}.loadingMessage`),
+    validationMessage: t(`${prefix}.validationMessage`),
+  };
+};
+
+export const getLocalizedAvailableEndpoints = (t: Translate) =>
+  Object.values(ENDPOINT_CONFIGS).map((config) => ({
+    value: config.id,
+    label: getLocalizedEndpointConfig(config.id, t).label,
+  }));
 
 // Helper to check if endpoint uses agents
 export const isAgentEndpoint = (endpointId: EndpointIdType): boolean =>

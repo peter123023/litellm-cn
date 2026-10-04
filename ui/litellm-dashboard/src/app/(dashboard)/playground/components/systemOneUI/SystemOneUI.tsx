@@ -14,6 +14,7 @@ import JsonEditor from "./JsonEditor";
 import QuestionBreakdown from "./QuestionBreakdown";
 import ResponseView from "./ResponseView";
 import { validateSystemOnePayload } from "./lib/validatePayload";
+import { useTranslation } from "@/i18n";
 
 interface SystemOneUIProps {
   accessToken: string | null;
@@ -36,11 +37,12 @@ function getCustomProxyBaseUrl(): string | undefined {
 }
 
 export default function SystemOneUI({ accessToken, disabledPersonalKeyCreation = false }: SystemOneUIProps) {
+  const { t } = useTranslation();
   const [apiKeySource, setApiKeySource] = useState<ApiKeySource>(disabledPersonalKeyCreation ? "custom" : "session");
   const [customApiKey, setCustomApiKey] = useState("");
   const [rawPayload, setRawPayload] = useState(EXAMPLE_PAYLOAD);
   const activeController = useRef<AbortController | null>(null);
-  const validation = useMemo(() => validateSystemOnePayload(rawPayload), [rawPayload]);
+  const validation = useMemo(() => validateSystemOnePayload(rawPayload, t), [rawPayload, t]);
   const effectiveApiKey = apiKeySource === "session" ? accessToken || "" : customApiKey.trim();
   const hasSyntaxError = validation.issues.some((issue) => issue.path === "syntax");
 
@@ -93,7 +95,9 @@ export default function SystemOneUI({ accessToken, disabledPersonalKeyCreation =
       <section className="grid gap-3">
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-medium text-muted-foreground">Virtual Key Source</span>
+            <span className="text-sm font-medium text-muted-foreground">
+              {t("playground.systemOne.virtualKeySource")}
+            </span>
             <Select
               value={apiKeySource}
               onValueChange={(value) => {
@@ -103,23 +107,27 @@ export default function SystemOneUI({ accessToken, disabledPersonalKeyCreation =
               }}
               disabled={disabledPersonalKeyCreation}
             >
-              <SelectTrigger className="w-48" aria-label="Virtual Key Source">
-                <SelectValue>{apiKeySource === "custom" ? "Virtual Key" : "Current UI Session"}</SelectValue>
+              <SelectTrigger className="w-48" aria-label={t("playground.systemOne.virtualKeySource")}>
+                <SelectValue>
+                  {apiKeySource === "custom"
+                    ? t("playground.systemOne.virtualKey")
+                    : t("playground.systemOne.currentUiSession")}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="session" disabled={!accessToken}>
-                  Current UI Session
+                  {t("playground.systemOne.currentUiSession")}
                 </SelectItem>
-                <SelectItem value="custom">Virtual Key</SelectItem>
+                <SelectItem value="custom">{t("playground.systemOne.virtualKey")}</SelectItem>
               </SelectContent>
             </Select>
             {apiKeySource === "custom" && (
               <Input
                 type="password"
-                aria-label="Virtual Key"
+                aria-label={t("playground.systemOne.virtualKey")}
                 value={customApiKey}
                 onChange={(event) => setCustomApiKey(event.target.value)}
-                placeholder="Enter Virtual Key"
+                placeholder={t("playground.systemOne.enterVirtualKey")}
                 className="w-56"
               />
             )}
@@ -131,41 +139,43 @@ export default function SystemOneUI({ accessToken, disabledPersonalKeyCreation =
               disabled={rawPayload === EXAMPLE_PAYLOAD}
             >
               <RotateCcw />
-              Reset example
+              {t("playground.systemOne.resetExample")}
             </Button>
             <Button variant="outline" onClick={handleFormatJson} disabled={!rawPayload.trim() || hasSyntaxError}>
               <Code />
-              Format JSON
+              {t("playground.systemOne.formatJson")}
             </Button>
             {isLoading && (
               <Button variant="outline" onClick={clearRequestState}>
-                Cancel request
+                {t("playground.systemOne.cancelRequest")}
               </Button>
             )}
             <Button onClick={handleSend} disabled={!validation.isValid || isLoading || !effectiveApiKey}>
               {isLoading ? <LoaderCircle className="animate-spin" /> : <Send />}
-              Send
+              {t("playground.systemOne.send")}
             </Button>
           </div>
         </div>
-        <Alert role="note" aria-label="System One beta notice">
+        <Alert role="note" aria-label={t("playground.systemOne.betaNoticeAria")}>
           <Info />
-          <AlertTitle>Beta: TypeSafe Jev only for now</AlertTitle>
+          <AlertTitle>{t("playground.systemOne.betaTitle")}</AlertTitle>
           <AlertDescription>
-            Sends System One requests (choice, noul, score) through /typesafe/v1/systemone and requires TYPESAFE_API_KEY
-            on the proxy. Support for more System One-compatible models is in progress.{" "}
+            {t("playground.systemOne.betaBodyBefore")}{" "}
             <a href={DECISION_MODELS_DISCUSSION_URL} target="_blank" rel="noopener noreferrer" className="underline">
-              Give us feedback on what you want for decision models
+              {t("playground.systemOne.feedbackLink")}
             </a>
           </AlertDescription>
         </Alert>
       </section>
 
       <div className="grid gap-4 xl:min-h-0 xl:flex-1 xl:grid-cols-2">
-        <section className="flex min-h-96 flex-col xl:min-h-0" aria-label="System One request editor">
+        <section className="flex min-h-96 flex-col xl:min-h-0" aria-label={t("playground.systemOne.requestEditorAria")}>
           <JsonEditor value={rawPayload} onChange={handlePayloadChange} validation={validation} />
         </section>
-        <section className="grid content-start gap-4 xl:min-h-0 xl:overflow-auto" aria-label="System One results">
+        <section
+          className="grid content-start gap-4 xl:min-h-0 xl:overflow-auto"
+          aria-label={t("playground.systemOne.resultsAria")}
+        >
           <ResponseView
             response={systemOne.data?.response}
             fallbackModel={validation.payload?.model}

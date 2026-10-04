@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/cva.config";
+import { useTranslation } from "@/i18n";
 import { CircleAlert, CircleCheck, TriangleAlert } from "lucide-react";
 import { useId, useMemo, useRef } from "react";
 import { createElement, PrismLight as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -32,6 +33,7 @@ interface JsonEditorProps {
 }
 
 function ValidationStatus({ validation }: { validation: SystemOnePayloadValidation }) {
+  const { t } = useTranslation();
   const errorCount = validation.issues.filter((issue) => issue.severity === "error").length;
   if (errorCount > 0) {
     return (
@@ -40,10 +42,11 @@ function ValidationStatus({ validation }: { validation: SystemOnePayloadValidati
       </Badge>
     );
   }
-  return <Badge variant="secondary">Valid payload</Badge>;
+  return <Badge variant="secondary">{t("playground.systemOne.validPayload")}</Badge>;
 }
 
 function IssueList({ id, validation }: { id: string; validation: SystemOnePayloadValidation }) {
+  const { t } = useTranslation();
   if (validation.issues.length === 0) {
     return (
       <p id={id} role="status" className="flex items-center gap-1.5 border-t px-3 py-2 text-xs text-muted-foreground">
@@ -53,7 +56,11 @@ function IssueList({ id, validation }: { id: string; validation: SystemOnePayloa
     );
   }
   return (
-    <ul id={id} aria-label="Payload validation issues" className="grid max-h-36 gap-1 overflow-auto border-t px-3 py-2">
+    <ul
+      id={id}
+      aria-label={t("playground.systemOne.validationIssuesAria")}
+      className="grid max-h-36 gap-1 overflow-auto border-t px-3 py-2"
+    >
       {validation.issues.map((issue, index) => (
         <li key={`${issue.path}-${index}`} className="flex items-start gap-1.5 text-xs">
           {issue.severity === "error" ? (
@@ -99,6 +106,7 @@ function renderLines(rootBlocks: readonly RootBlock[]) {
 }
 
 export default function JsonEditor({ value, onChange, validation }: JsonEditorProps) {
+  const { t } = useTranslation();
   const issuesId = useId();
   const highlightRef = useRef<HTMLDivElement>(null);
   const renderer = useMemo(() => renderLines(findRootBlocks(value)), [value]);
@@ -114,11 +122,13 @@ export default function JsonEditor({ value, onChange, validation }: JsonEditorPr
     >
       <div className="flex items-center justify-between gap-2 border-b px-3 py-2">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">Request JSON</span>
+          <span className="text-sm font-medium">{t("playground.systemOne.requestJson")}</span>
           <ValidationStatus validation={validation} />
         </div>
         <span className="text-xs text-muted-foreground tabular-nums">
-          {lineCount} {lineCount === 1 ? "line" : "lines"}
+          {t(lineCount === 1 ? "playground.systemOne.lineCountOne" : "playground.systemOne.lineCount", {
+            count: lineCount,
+          })}
         </span>
       </div>
       <div className="relative min-h-80 flex-1">
@@ -140,7 +150,7 @@ export default function JsonEditor({ value, onChange, validation }: JsonEditorPr
           </SyntaxHighlighter>
         </div>
         <textarea
-          aria-label="System One JSON payload"
+          aria-label={t("playground.systemOne.payloadAria")}
           aria-invalid={hasErrors}
           aria-describedby={issuesId}
           value={value}
@@ -153,7 +163,7 @@ export default function JsonEditor({ value, onChange, validation }: JsonEditorPr
           spellCheck={false}
           autoCapitalize="off"
           autoComplete="off"
-          placeholder="Paste or write a System One request"
+          placeholder={t("playground.systemOne.payloadPlaceholder")}
           className={cn(
             EDITOR_TEXT,
             CONTENT_INSET,

@@ -1,4 +1,5 @@
-import { systemOneRequestSchema, type SystemOneRequest } from "./schemas";
+import { DEFAULT_LANGUAGE, translate } from "@/i18n";
+import { createSystemOneRequestSchema, type SystemOneRequest, type Translate } from "./schemas";
 
 const RECOMMENDED_MAX_SCORE_LEVELS = 10;
 
@@ -27,26 +28,28 @@ function parseJson(raw: string): { ok: true; value: unknown } | { ok: false; mes
   }
 }
 
-const scoreLevelWarnings = (payload: SystemOneRequest): SystemOnePayloadIssue[] =>
+const scoreLevelWarnings = (payload: SystemOneRequest, t: Translate): SystemOnePayloadIssue[] =>
   Object.entries(payload.questions)
     .filter(([, question]) => question.type === "score" && question.criteria.length > RECOMMENDED_MAX_SCORE_LEVELS)
     .map(([id]) => ({
       path: `questions.${id}.criteria`,
-      message: `More than ${RECOMMENDED_MAX_SCORE_LEVELS} score levels may reduce result quality.`,
+      message: t("playground.systemOne.validation.tooManyScoreLevels", { max: RECOMMENDED_MAX_SCORE_LEVELS }),
       severity: "warning",
     }));
 
-export function validateSystemOnePayload(raw: string): SystemOnePayloadValidation {
+export function validateSystemOnePayload(raw: string, translateMessages?: Translate): SystemOnePayloadValidation {
+  const t: Translate = translateMessages ?? ((key, params) => translate(DEFAULT_LANGUAGE, key, params));
+
   if (!raw.trim()) {
-    return invalid("root", "Payload cannot be empty.");
+    return invalid("root", t("playground.systemOne.validation.payloadEmpty"));
   }
 
   const json = parseJson(raw);
   if (!json.ok) {
-    return invalid("syntax", `Invalid JSON syntax: ${json.message}`);
+    return invalid("syntax", t("playground.systemOne.validation.invalidJsonSyntax", { message: json.message }));
   }
 
-  const result = systemOneRequestSchema.safeParse(json.value);
+  const result = createSystemOneRequestSchema(t).safeParse(json.value);
   if (!result.success) {
     return {
       isValid: false,
@@ -58,5 +61,5 @@ export function validateSystemOnePayload(raw: string): SystemOnePayloadValidatio
     };
   }
 
-  return { isValid: true, payload: result.data, issues: scoreLevelWarnings(result.data) };
+  return { isValid: true, payload: result.data, issues: scoreLevelWarnings(result.data, t) };
 }

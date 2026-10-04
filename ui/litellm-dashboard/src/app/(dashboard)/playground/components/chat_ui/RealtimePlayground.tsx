@@ -1,12 +1,13 @@
 "use client";
 
 import { CircleX, Mic, MicOff, Send, Volume2 } from "lucide-react";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getProxyBaseUrl } from "@/components/networking";
-import { OPEN_AI_VOICE_SELECT_OPTIONS } from "./chatConstants";
+import { getOpenAiVoiceSelectOptions } from "./chatConstants";
+import { useTranslation } from "@/i18n";
 
 interface RealtimeMessage {
   role: "user" | "assistant" | "system" | "status";
@@ -27,6 +28,8 @@ const RealtimePlayground: React.FC<RealtimePlaygroundProps> = ({
   customProxyBaseUrl,
   selectedGuardrails,
 }) => {
+  const { t } = useTranslation();
+  const voiceOptions = useMemo(() => getOpenAiVoiceSelectOptions(t), [t]);
   const [messages, setMessages] = useState<RealtimeMessage[]>([]);
   const [inputText, setInputText] = useState("");
   const [isConnected, setIsConnected] = useState(false);
@@ -88,7 +91,7 @@ const RealtimePlayground: React.FC<RealtimePlaygroundProps> = ({
   const connect = useCallback(async () => {
     if (wsRef.current) return;
     if (!selectedModel) {
-      addMessage("status", "Please select a model first");
+      addMessage("status", t("playground.realtime.selectModelFirst"));
       return;
     }
     setIsConnecting(true);
@@ -108,7 +111,7 @@ const RealtimePlayground: React.FC<RealtimePlaygroundProps> = ({
       ws.onopen = () => {
         setIsConnected(true);
         setIsConnecting(false);
-        addMessage("status", "Connected to realtime API");
+        addMessage("status", t("playground.realtime.connected"));
       };
 
       ws.onmessage = async (event) => {
@@ -179,7 +182,10 @@ const RealtimePlayground: React.FC<RealtimePlaygroundProps> = ({
               return prev;
             });
           } else if (type === "error") {
-            addMessage("status", `Error: ${data.error?.message || JSON.stringify(data.error)}`);
+            addMessage(
+              "status",
+              `${t("playground.realtime.errorPrefix")}: ${data.error?.message || JSON.stringify(data.error)}`,
+            );
           }
         } catch {
           // ignore parse errors
@@ -187,13 +193,13 @@ const RealtimePlayground: React.FC<RealtimePlaygroundProps> = ({
       };
 
       ws.onerror = () => {
-        addMessage("status", "WebSocket error");
+        addMessage("status", t("playground.realtime.webSocketError"));
         setIsConnected(false);
         setIsConnecting(false);
       };
 
       ws.onclose = () => {
-        addMessage("status", "Disconnected");
+        addMessage("status", t("playground.realtime.disconnected"));
         setIsConnected(false);
         setIsConnecting(false);
         wsRef.current = null;
@@ -201,7 +207,7 @@ const RealtimePlayground: React.FC<RealtimePlaygroundProps> = ({
 
       wsRef.current = ws;
     } catch (err: any) {
-      addMessage("status", `Connection failed: ${err.message}`);
+      addMessage("status", t("playground.realtime.connectionFailed", { message: err.message }));
       setIsConnecting(false);
     }
   }, [
@@ -211,6 +217,7 @@ const RealtimePlayground: React.FC<RealtimePlaygroundProps> = ({
     customProxyBaseUrl,
     selectedGuardrails,
     addMessage,
+    t,
     appendAssistantText,
     playAudioChunk,
   ]);
@@ -295,9 +302,9 @@ const RealtimePlayground: React.FC<RealtimePlaygroundProps> = ({
       source.connect(processor);
       processor.connect(ctx.destination);
       setIsRecording(true);
-      addMessage("status", "🎙️ Listening...");
+      addMessage("status", `🎙️ ${t("playground.chat.listeningShort")}`);
     } catch (err: any) {
-      addMessage("status", `Microphone error: ${err.message}`);
+      addMessage("status", t("playground.realtime.microphoneError", { message: err.message }));
     }
   }, [addMessage]);
 
@@ -365,10 +372,14 @@ const RealtimePlayground: React.FC<RealtimePlaygroundProps> = ({
       <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted">
         <div className="flex items-center gap-3">
           <Volume2 className="size-5 text-info" />
-          <span className="font-semibold text-foreground">Realtime Voice Chat</span>
+          <span className="font-semibold text-foreground">{t("playground.realtime.title")}</span>
           <span className={`inline-block w-2 h-2 rounded-full ${isConnected ? "bg-success" : "bg-border"}`} />
           <span className="text-xs text-muted-foreground">
-            {isConnected ? "Connected" : isConnecting ? "Connecting..." : "Disconnected"}
+            {isConnected
+              ? t("playground.realtime.connectedBadge")
+              : isConnecting
+                ? t("playground.realtime.connecting")
+                : t("playground.realtime.disconnected")}
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -377,11 +388,11 @@ const RealtimePlayground: React.FC<RealtimePlaygroundProps> = ({
             onValueChange={(voice) => setSelectedVoice(voice ?? selectedVoice)}
             disabled={isConnected}
           >
-            <SelectTrigger size="sm" className="w-[220px]" aria-label="Voice">
-              <SelectValue>{OPEN_AI_VOICE_SELECT_OPTIONS.find((v) => v.value === selectedVoice)?.label}</SelectValue>
+            <SelectTrigger size="sm" className="w-[220px]" aria-label={t("playground.realtime.voiceAria")}>
+              <SelectValue>{voiceOptions.find((v) => v.value === selectedVoice)?.label}</SelectValue>
             </SelectTrigger>
             <SelectContent>
-              {OPEN_AI_VOICE_SELECT_OPTIONS.map((voice) => (
+              {voiceOptions.map((voice) => (
                 <SelectItem key={voice.value} value={voice.value}>
                   {voice.label}
                 </SelectItem>
@@ -390,12 +401,12 @@ const RealtimePlayground: React.FC<RealtimePlaygroundProps> = ({
           </Select>
           {!isConnected ? (
             <Button onClick={connect} disabled={isConnecting} size="sm">
-              Connect
+              {t("playground.realtime.connect")}
             </Button>
           ) : (
             <Button variant="destructive" onClick={disconnect} size="sm">
               <CircleX />
-              Disconnect
+              {t("playground.realtime.disconnect")}
             </Button>
           )}
         </div>
@@ -406,11 +417,8 @@ const RealtimePlayground: React.FC<RealtimePlaygroundProps> = ({
         {messages.length === 0 && !isConnected && (
           <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-3">
             <Volume2 className="size-12" />
-            <span className="text-lg text-muted-foreground">Realtime Voice Playground</span>
-            <p className="text-sm text-muted-foreground text-center max-w-md">
-              Click <b>Connect</b> to start a realtime session. You can speak using your microphone or type messages.
-              The AI will respond with voice and text.
-            </p>
+            <span className="text-lg text-muted-foreground">{t("playground.realtime.emptyTitle")}</span>
+            <p className="text-sm text-muted-foreground text-center max-w-md">{t("playground.realtime.emptyBody")}</p>
           </div>
         )}
         {messages.map((msg, i) => (
@@ -428,7 +436,9 @@ const RealtimePlayground: React.FC<RealtimePlaygroundProps> = ({
                     : "bg-muted text-foreground rounded-bl-md"
                 }`}
               >
-                <div className="text-xs font-medium mb-0.5 opacity-70">{msg.role === "user" ? "You" : "AI"}</div>
+                <div className="text-xs font-medium mb-0.5 opacity-70">
+                  {msg.role === "user" ? t("playground.realtime.you") : t("playground.realtime.ai")}
+                </div>
                 <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
               </div>
             )}
@@ -445,13 +455,13 @@ const RealtimePlayground: React.FC<RealtimePlaygroundProps> = ({
               size="icon-lg"
               variant={isRecording ? "destructive" : "outline"}
               onClick={isRecording ? stopRecording : startRecording}
-              title={isRecording ? "Stop recording" : "Start recording"}
+              title={isRecording ? t("playground.realtime.stopRecording") : t("playground.realtime.startRecording")}
               className={`rounded-full ${isRecording ? "animate-pulse" : ""}`}
             >
               {isRecording ? <MicOff /> : <Mic />}
             </Button>
             <Input
-              placeholder="Type a message or use the mic..."
+              placeholder={t("playground.realtime.inputPlaceholder")}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => {
@@ -459,14 +469,19 @@ const RealtimePlayground: React.FC<RealtimePlaygroundProps> = ({
               }}
               className="h-10 flex-1"
             />
-            <Button size="icon-lg" onClick={sendTextMessage} disabled={!inputText.trim()} aria-label="Send">
+            <Button
+              size="icon-lg"
+              onClick={sendTextMessage}
+              disabled={!inputText.trim()}
+              aria-label={t("playground.realtime.sendAria")}
+            >
               <Send />
             </Button>
           </div>
           {isRecording && (
             <div className="mt-2 flex items-center gap-2 text-destructive text-xs">
               <span className="inline-block w-2 h-2 rounded-full bg-destructive animate-pulse" />
-              Listening — speak into your microphone. Server VAD will detect when you stop.
+              {t("playground.chat.listening")}
             </div>
           )}
         </div>

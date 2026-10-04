@@ -12,6 +12,7 @@ import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import { fetchProxySettings } from "@/utils/proxyUtils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUrlTab } from "@/hooks/useUrlTab";
+import { useTranslation } from "@/i18n";
 
 const PLAYGROUND_TABS = ["chat", "compare", "compliance", "system-one", "agent-builder"] as const;
 
@@ -22,6 +23,7 @@ interface ProxySettings {
 
 export default function PlaygroundPage() {
   const { accessToken, userRole, userId, disabledPersonalKeyCreation, token, isViewOnly } = useAuthorized();
+  const { t } = useTranslation();
   const [proxySettings, setProxySettings] = useState<ProxySettings | undefined>(undefined);
   const [activeTab, setActiveTab] = useUrlTab(PLAYGROUND_TABS, "chat");
 
@@ -44,10 +46,8 @@ export default function PlaygroundPage() {
   if (isViewOnly) {
     return (
       <div className="flex h-full w-full flex-col items-center justify-center gap-2 p-8 text-center">
-        <h1 className="text-2xl font-semibold">Access Denied</h1>
-        <p className="text-muted-foreground">
-          Your role does not have access to the Playground. Ask your proxy admin for access to test models.
-        </p>
+        <h1 className="text-2xl font-semibold">{t("playground.accessDenied")}</h1>
+        <p className="text-muted-foreground">{t("playground.accessDeniedDescription")}</p>
       </div>
     );
   }
@@ -61,19 +61,19 @@ export default function PlaygroundPage() {
       >
         <TabsList variant="line" className="w-full shrink-0 justify-start overflow-x-auto pb-1">
           <TabsTrigger value="chat" className="flex-none">
-            Chat
+            {t("playground.tabChat")}
           </TabsTrigger>
           <TabsTrigger value="compare" className="flex-none">
-            Compare
+            {t("playground.tabCompare")}
           </TabsTrigger>
           <TabsTrigger value="compliance" className="flex-none">
-            Compliance
+            {t("playground.tabCompliance")}
           </TabsTrigger>
           <TabsTrigger value="system-one" className="flex-none">
-            <BetaBadge>System One</BetaBadge>
+            <BetaBadge>{t("playground.tabSystemOne")}</BetaBadge>
           </TabsTrigger>
           <TabsTrigger value="agent-builder" className="flex-none">
-            Agent Builder (Experimental)
+            {t("playground.tabAgentBuilder")}
           </TabsTrigger>
         </TabsList>
         <TabsContent
@@ -100,7 +100,7 @@ export default function PlaygroundPage() {
           <SystemOneUI accessToken={accessToken} disabledPersonalKeyCreation={disabledPersonalKeyCreation} />
         </TabsContent>
         <TabsContent value="agent-builder" className="mt-0 h-full data-hidden:hidden" keepMounted>
-          <DeprecationBanner featureName="The Playground's Agent Builder" />
+          <DeprecationBanner featureName={t("playground.agentBuilderFeature")} />
           <AgentBuilderView
             accessToken={accessToken}
             token={token}

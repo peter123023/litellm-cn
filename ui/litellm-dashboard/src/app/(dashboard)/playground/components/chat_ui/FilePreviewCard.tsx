@@ -1,5 +1,6 @@
 import { FileText, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/i18n";
 
 interface FilePreviewCardProps {
   file: File;
@@ -8,6 +9,7 @@ interface FilePreviewCardProps {
 }
 
 function FilePreviewCard({ file, previewUrl, onRemove }: FilePreviewCardProps) {
+  const { t } = useTranslation();
   const isPdf = file.name.toLowerCase().endsWith(".pdf");
 
   return (
@@ -21,20 +23,22 @@ function FilePreviewCard({ file, previewUrl, onRemove }: FilePreviewCardProps) {
           ) : (
             <img
               src={previewUrl || ""}
-              alt="Upload preview"
+              alt={t("playground.chat.uploadPreviewAlt")}
               className="w-10 h-10 rounded-md border border-border object-cover"
             />
           )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="text-sm font-medium text-foreground truncate">{file.name}</div>
-          <div className="text-xs text-muted-foreground">{isPdf ? "PDF" : "Image"}</div>
+          <div className="text-xs text-muted-foreground">
+            {isPdf ? t("playground.chat.fileKindPdf") : t("playground.chat.fileKindImage")}
+          </div>
         </div>
         <Button
           type="button"
           variant="ghost"
           size="icon-xs"
-          aria-label={`Remove ${file.name}`}
+          aria-label={t("playground.chat.removeFile", { name: file.name })}
           className="text-muted-foreground hover:text-foreground hover:bg-accent"
           onClick={onRemove}
         >

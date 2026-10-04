@@ -1,4 +1,20 @@
-export type UploadValidationResult = { ok: true } | { ok: false; error: string };
+import { DEFAULT_LANGUAGE, translate } from "@/i18n";
+
+export type UploadValidationError = {
+  ok: false;
+  error: string;
+  errorKey: string;
+  errorParams: Readonly<Record<string, string | number>>;
+};
+
+export type UploadValidationResult = { ok: true } | UploadValidationError;
+
+const failure = (errorKey: string, errorParams: Readonly<Record<string, string | number>>): UploadValidationError => ({
+  ok: false,
+  error: translate(DEFAULT_LANGUAGE, errorKey, errorParams),
+  errorKey,
+  errorParams,
+});
 
 export const CHAT_ATTACHMENT_ACCEPT = "image/png,image/jpeg,image/jpg,image/gif,image/webp,application/pdf,.pdf";
 export const IMAGE_EDIT_ACCEPT = "image/png,image/jpeg,image/jpg,image/gif,image/webp";
@@ -54,44 +70,29 @@ function validateSize(file: File, maxBytes: number): UploadValidationResult {
   if (file.size <= maxBytes) {
     return { ok: true };
   }
-  return {
-    ok: false,
-    error: `"${file.name}" is too large. Maximum size is ${formatMb(maxBytes)}.`,
-  };
+  return failure("playground.upload.tooLarge", { name: file.name, size: formatMb(maxBytes) });
 }
 
 export function validateChatAttachment(file: File): UploadValidationResult {
   if (!isImageFile(file) && !isPdfFile(file)) {
-    return {
-      ok: false,
-      error: `"${file.name}" is not a supported attachment. Use PNG, JPEG, GIF, WebP, or PDF.`,
-    };
+    return failure("playground.upload.unsupportedAttachment", { name: file.name });
   }
   return validateSize(file, MAX_CHAT_ATTACHMENT_BYTES);
 }
 
 export function validateImageEditFile(file: File, currentCount: number): UploadValidationResult {
   if (currentCount >= MAX_IMAGE_EDIT_COUNT) {
-    return {
-      ok: false,
-      error: `You can upload at most ${MAX_IMAGE_EDIT_COUNT} images.`,
-    };
+    return failure("playground.upload.tooManyImages", { count: MAX_IMAGE_EDIT_COUNT });
   }
   if (!isImageFile(file)) {
-    return {
-      ok: false,
-      error: `"${file.name}" is not a supported image. Use PNG, JPEG, GIF, or WebP.`,
-    };
+    return failure("playground.upload.unsupportedImage", { name: file.name });
   }
   return validateSize(file, MAX_IMAGE_EDIT_BYTES);
 }
 
 export function validateAudioFile(file: File): UploadValidationResult {
   if (!isAudioFile(file)) {
-    return {
-      ok: false,
-      error: `"${file.name}" is not a supported audio file. Use MP3, MP4, MPEG, MPGA, M4A, WAV, or WEBM.`,
-    };
+    return failure("playground.upload.unsupportedAudio", { name: file.name });
   }
   return validateSize(file, MAX_AUDIO_BYTES);
 }

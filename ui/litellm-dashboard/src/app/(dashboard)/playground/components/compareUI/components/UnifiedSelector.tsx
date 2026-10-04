@@ -12,7 +12,8 @@ import {
   ComboboxList,
 } from "@/components/ui/combobox";
 import { UiLoadingSpinner } from "@/components/ui/ui-loading-spinner";
-import { SelectorOption, EndpointConfig } from "../endpoint_config";
+import { SelectorOption, EndpointConfig, endpointI18nPrefix } from "../endpoint_config";
+import { useTranslation } from "@/i18n";
 
 interface UnifiedSelectorProps {
   value: string;
@@ -26,8 +27,9 @@ const matchesQuery = (option: SelectorOption, query: string): boolean =>
   option.label.toLowerCase().includes(query.trim().toLowerCase());
 
 export function UnifiedSelector({ value, options, loading, config, onChange }: UnifiedSelectorProps) {
+  const { t } = useTranslation();
   const selected = options.find((option) => option.value === value) ?? null;
-  const noun = config.selectorLabel.toLowerCase();
+  const prefix = endpointI18nPrefix(config.id);
 
   return (
     <Combobox
@@ -39,7 +41,7 @@ export function UnifiedSelector({ value, options, loading, config, onChange }: U
       filter={matchesQuery}
     >
       <ComboboxInput
-        placeholder={loading ? `Loading ${noun}s...` : config.selectorPlaceholder}
+        placeholder={loading ? t(`${prefix}.loading`) : config.selectorPlaceholder}
         className="w-48 md:w-64 lg:w-72"
       />
       <ComboboxContent>
@@ -49,7 +51,7 @@ export function UnifiedSelector({ value, options, loading, config, onChange }: U
               <UiLoadingSpinner className="size-4" />
             </span>
           ) : (
-            `No ${noun}s available`
+            t(`${prefix}.empty`)
           )}
         </ComboboxEmpty>
         <ComboboxList>

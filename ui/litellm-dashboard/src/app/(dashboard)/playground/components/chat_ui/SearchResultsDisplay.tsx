@@ -3,12 +3,14 @@ import { VectorStoreSearchResponse } from "@/components/chat_ui/types";
 import { ChevronDown, ChevronRight, Database, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useTranslation } from "@/i18n";
 
 interface SearchResultsDisplayProps {
   searchResults: VectorStoreSearchResponse[];
 }
 
 export function SearchResultsDisplay({ searchResults }: SearchResultsDisplayProps) {
+  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(true);
   const [expandedResults, setExpandedResults] = useState<Record<string, boolean>>({});
 
@@ -40,7 +42,9 @@ export function SearchResultsDisplay({ searchResults }: SearchResultsDisplayProp
           }
         >
           <Database className="size-4" />
-          {isExpanded ? "Hide sources" : `Show sources (${totalResults})`}
+          {isExpanded
+            ? t("playground.chat.search.hideSources")
+            : t("playground.chat.search.showSources", { count: totalResults })}
           {isExpanded ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}
         </CollapsibleTrigger>
 
@@ -50,11 +54,16 @@ export function SearchResultsDisplay({ searchResults }: SearchResultsDisplayProp
               {searchResults.map((resultPage, pageIndex) => (
                 <div key={pageIndex}>
                   <div className="text-xs text-muted-foreground mb-2 flex items-center gap-2">
-                    <span className="font-medium">Query:</span>
+                    <span className="font-medium">{t("playground.chat.search.query")}</span>
                     <span className="italic">&quot;{resultPage.search_query}&quot;</span>
                     <span className="text-muted-foreground">•</span>
                     <span className="text-muted-foreground">
-                      {resultPage.data.length} result{resultPage.data.length !== 1 ? "s" : ""}
+                      {t(
+                        resultPage.data.length === 1
+                          ? "playground.chat.search.resultCount"
+                          : "playground.chat.search.resultsCount",
+                        { count: resultPage.data.length },
+                      )}
                     </span>
                   </div>
 
@@ -76,7 +85,9 @@ export function SearchResultsDisplay({ searchResults }: SearchResultsDisplayProp
                               />
                               <FileText className="size-3 shrink-0 text-muted-foreground" />
                               <span className="text-xs font-medium text-foreground truncate">
-                                {result.filename || result.file_id || `Result ${resultIndex + 1}`}
+                                {result.filename ||
+                                  result.file_id ||
+                                  t("playground.chat.search.resultLabel", { index: resultIndex + 1 })}
                               </span>
                               <span className="text-xs px-2 py-0.5 rounded-sm bg-info/15 text-info font-mono shrink-0">
                                 {result.score.toFixed(3)}
@@ -97,7 +108,9 @@ export function SearchResultsDisplay({ searchResults }: SearchResultsDisplayProp
 
                                 {result.attributes && Object.keys(result.attributes).length > 0 && (
                                   <div className="mt-2 pt-2 border-t border-border">
-                                    <div className="text-xs text-muted-foreground mb-1 font-medium">Metadata:</div>
+                                    <div className="text-xs text-muted-foreground mb-1 font-medium">
+                                      {t("playground.chat.search.metadata")}
+                                    </div>
                                     <div className="space-y-1">
                                       {Object.entries(result.attributes).map(([key, value]) => (
                                         <div key={key} className="text-xs flex gap-2">

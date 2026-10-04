@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useTranslation } from "@/i18n";
 import { ChevronDown, LoaderCircle } from "lucide-react";
 import { useState } from "react";
 import type { SystemOneAnswer, SystemOneResponse } from "./lib/schemas";
@@ -24,6 +25,7 @@ function ProbabilityMeter({
   probability: number;
   selected?: boolean;
 }) {
+  const { t } = useTranslation();
   const percentage = Math.round(probability * 100);
   return (
     <div className="grid gap-1.5">
@@ -33,9 +35,11 @@ function ProbabilityMeter({
       </div>
       <div
         role="meter"
-        aria-label={`${label} probability`}
+        aria-label={t("playground.systemOne.probabilityAria", { label })}
         aria-valuenow={percentage}
-        aria-valuetext={selected ? `${percentage}%, selected` : `${percentage}%`}
+        aria-valuetext={t(selected ? "playground.systemOne.percentSelected" : "playground.systemOne.percentOnly", {
+          percentage,
+        })}
         aria-valuemin={0}
         aria-valuemax={100}
         className="h-2 overflow-hidden rounded-full bg-muted"
@@ -50,6 +54,7 @@ function ProbabilityMeter({
 }
 
 function AnswerDetails({ answer }: { answer: SystemOneAnswer }) {
+  const { t } = useTranslation();
   if (answer.type === "noul") {
     const percentage = Math.round(answer.noul * 100);
     return (
@@ -65,7 +70,7 @@ function AnswerDetails({ answer }: { answer: SystemOneAnswer }) {
     return (
       <div className="grid gap-4">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-muted-foreground">Selected choice</span>
+          <span className="text-xs text-muted-foreground">{t("playground.systemOne.selectedChoice")}</span>
           <Badge>{answer.choice}</Badge>
           {answer.confidence !== undefined && (
             <Badge variant="outline">{Math.round(answer.confidence * 100)}% confidence</Badge>
@@ -84,7 +89,7 @@ function AnswerDetails({ answer }: { answer: SystemOneAnswer }) {
   return (
     <div className="grid gap-4">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs text-muted-foreground">Score</span>
+        <span className="text-xs text-muted-foreground">{t("playground.systemOne.score")}</span>
         <Badge>{answer.score}</Badge>
         {answer.confidence !== undefined && (
           <Badge variant="outline">{Math.round(answer.confidence * 100)}% confidence</Badge>
@@ -108,6 +113,7 @@ function AnswerDetails({ answer }: { answer: SystemOneAnswer }) {
 }
 
 export default function ResponseView({ response, fallbackModel, latencyMs, error, isLoading }: ResponseViewProps) {
+  const { t } = useTranslation();
   const [showRaw, setShowRaw] = useState(false);
 
   if (isLoading) {
@@ -124,7 +130,7 @@ export default function ResponseView({ response, fallbackModel, latencyMs, error
   if (error) {
     return (
       <Alert variant="destructive">
-        <AlertTitle>System One request failed</AlertTitle>
+        <AlertTitle>{t("playground.systemOne.requestFailed")}</AlertTitle>
         <AlertDescription>{error}</AlertDescription>
       </Alert>
     );
@@ -134,8 +140,8 @@ export default function ResponseView({ response, fallbackModel, latencyMs, error
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Calibrated probabilities</CardTitle>
-          <CardDescription>Send a request to see System One answers and probabilities.</CardDescription>
+          <CardTitle>{t("playground.systemOne.calibratedProbabilities")}</CardTitle>
+          <CardDescription>{t("playground.systemOne.calibratedProbabilitiesDesc")}</CardDescription>
         </CardHeader>
       </Card>
     );
@@ -148,7 +154,7 @@ export default function ResponseView({ response, fallbackModel, latencyMs, error
       <CardHeader>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="grid gap-1">
-            <CardTitle>Calibrated probabilities</CardTitle>
+            <CardTitle>{t("playground.systemOne.calibratedProbabilities")}</CardTitle>
             {model && <CardDescription>{model}</CardDescription>}
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs">

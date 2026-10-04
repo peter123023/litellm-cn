@@ -4,6 +4,7 @@ import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { CHAT_ATTACHMENT_ACCEPT, validateChatAttachment } from "./uploadValidation";
+import { useTranslation } from "@/i18n";
 
 interface ResponsesImageUploadProps {
   responsesUploadedImage: File | null;
@@ -18,6 +19,7 @@ const ResponsesImageUpload: React.FC<ResponsesImageUploadProps> = ({
   onImageUpload,
   disabled = false,
 }) => {
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const inputId = useId();
 
@@ -33,7 +35,7 @@ const ResponsesImageUpload: React.FC<ResponsesImageUploadProps> = ({
     }
     const result = validateChatAttachment(file);
     if (!result.ok) {
-      toast.error(result.error);
+      toast.error(t(result.errorKey, result.errorParams));
       return;
     }
     onImageUpload(file);
@@ -59,7 +61,7 @@ const ResponsesImageUpload: React.FC<ResponsesImageUploadProps> = ({
               variant="ghost"
               size="icon-sm"
               disabled={disabled}
-              aria-label="Attach image or PDF"
+              aria-label={t("playground.chat.attachFile")}
               className="text-muted-foreground hover:text-foreground"
               onClick={() => inputRef.current?.click()}
             />
@@ -67,7 +69,7 @@ const ResponsesImageUpload: React.FC<ResponsesImageUploadProps> = ({
         >
           <Paperclip className="size-4" />
         </TooltipTrigger>
-        <TooltipContent>Attach image or PDF</TooltipContent>
+        <TooltipContent>{t("playground.chat.attachFile")}</TooltipContent>
       </Tooltip>
     </>
   );

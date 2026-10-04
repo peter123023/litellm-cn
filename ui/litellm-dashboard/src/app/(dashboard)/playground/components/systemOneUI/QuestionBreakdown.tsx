@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/cva.config";
+import { useTranslation } from "@/i18n";
 import { ROOT_BLOCK_STYLES } from "./lib/rootBlocks";
 import type { SystemOneQuestion, SystemOneRequest } from "./lib/schemas";
 
@@ -12,6 +13,7 @@ function formatState(state: unknown): string {
 }
 
 function QuestionCriteria({ question }: { question: SystemOneQuestion }) {
+  const { t } = useTranslation();
   if (question.type === "choice") {
     return (
       <dl className="grid gap-2">
@@ -39,7 +41,7 @@ function QuestionCriteria({ question }: { question: SystemOneQuestion }) {
         ))}
       </dl>
     ) : (
-      <p className="text-xs text-muted-foreground">No criteria defined</p>
+      <p className="text-xs text-muted-foreground">{t("playground.systemOne.noCriteria")}</p>
     );
   }
 
@@ -56,12 +58,13 @@ function QuestionCriteria({ question }: { question: SystemOneQuestion }) {
 }
 
 export default function QuestionBreakdown({ payload }: { payload?: SystemOneRequest }) {
+  const { t } = useTranslation();
   if (!payload) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Question breakdown</CardTitle>
-          <CardDescription>Enter a valid request to preview its state and questions.</CardDescription>
+          <CardTitle>{t("playground.systemOne.questionBreakdown")}</CardTitle>
+          <CardDescription>{t("playground.systemOne.questionBreakdownEmpty")}</CardDescription>
         </CardHeader>
       </Card>
     );
@@ -70,8 +73,8 @@ export default function QuestionBreakdown({ payload }: { payload?: SystemOneRequ
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Question breakdown</CardTitle>
-        <CardDescription>Review the state and criteria that will be sent.</CardDescription>
+        <CardTitle>{t("playground.systemOne.questionBreakdown")}</CardTitle>
+        <CardDescription>{t("playground.systemOne.questionBreakdownDesc")}</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4 wrap-anywhere">
         <section
@@ -96,7 +99,7 @@ export default function QuestionBreakdown({ payload }: { payload?: SystemOneRequ
               </div>
               <p className="text-sm">{question.instructions}</p>
               <div className="grid gap-2">
-                <h4 className="text-xs font-medium text-muted-foreground">Criteria</h4>
+                <h4 className="text-xs font-medium text-muted-foreground">{t("playground.systemOne.criteria")}</h4>
                 <QuestionCriteria question={question} />
               </div>
             </section>
