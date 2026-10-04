@@ -7,6 +7,7 @@ import { useWatch } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { MountedFormField } from "@/components/common_components/MountedFormField";
+import { useTranslation } from "@/i18n";
 import { switchControl, tagsControl, textControl } from "./mcpFieldRules";
 
 const AUTH_HEADER_FORMATS: Readonly<Record<string, string>> = {
@@ -18,6 +19,7 @@ const AUTH_HEADER_FORMATS: Readonly<Record<string, string>> = {
 };
 
 const OpenApiByokFields: React.FC = () => {
+  const { t } = useTranslation();
   const isByok = Boolean(useWatch({ name: "is_byok" }));
   const authType = useWatch({ name: "auth_type" }) as string | undefined;
   const hasAuthType = Boolean(authType) && authType !== "none";
@@ -27,8 +29,8 @@ const OpenApiByokFields: React.FC = () => {
       <MountedFormField
         label={
           <span className="text-sm font-medium text-foreground flex items-center gap-2">
-            BYOK (Bring Your Own Key)
-            <SimpleTooltip content="When enabled, each user provides their own API key for this service. Keys are stored per-user and never shared.">
+            {t("mcp.form.byok")}
+            <SimpleTooltip content={t("mcp.form.byokTooltip")}>
               <Info className="size-4 text-info hover:text-info/80 cursor-help" />
             </SimpleTooltip>
           </span>
@@ -44,7 +46,7 @@ const OpenApiByokFields: React.FC = () => {
             <div className="mb-4 p-3 bg-info/10 rounded-lg text-sm text-info flex items-start gap-2">
               <Info className="mt-0.5 size-4 shrink-0" />
               <span>
-                User keys will be sent as:{" "}
+                {t("mcp.form.byokUserKeysSentAs")}{" "}
                 <code className="font-mono bg-info/15 px-1 rounded-sm">
                   {authType === undefined ? "" : AUTH_HEADER_FORMATS[authType]}
                 </code>
@@ -55,16 +57,16 @@ const OpenApiByokFields: React.FC = () => {
             <div className="mb-4 p-3 bg-warning/10 rounded-lg text-sm text-warning flex items-start gap-2">
               <Info className="mt-0.5 size-4 shrink-0" />
               <span>
-                Set the <strong>Authentication Type</strong> below to specify how user keys are sent (e.g., Bearer
-                Token, API Key header).
+                {t("mcp.form.byokSetAuthType")} <strong>{t("mcp.form.byokAuthTypeName")}</strong>{" "}
+                {t("mcp.form.byokSetAuthTypeHint")}
               </span>
             </div>
           )}
           <MountedFormField
             label={
               <span className="text-sm font-medium text-foreground">
-                Access Description
-                <SimpleTooltip content="List of permissions shown to users in the connection modal (e.g. 'Create and manage Jira issues')">
+                {t("mcp.form.byokAccessDescription")}
+                <SimpleTooltip content={t("mcp.form.byokAccessDescriptionTooltip")}>
                   <Info className="ml-2 size-4 text-info hover:text-info/80 cursor-help" />
                 </SimpleTooltip>
               </span>
@@ -74,7 +76,7 @@ const OpenApiByokFields: React.FC = () => {
             {(control) => (
               <MultiSelect
                 {...tagsControl(control)}
-                placeholder="Add access description items (press Enter after each)"
+                placeholder={t("mcp.form.byokAccessDescriptionPlaceholder")}
                 className="w-full"
               />
             )}
@@ -83,8 +85,8 @@ const OpenApiByokFields: React.FC = () => {
           <MountedFormField
             label={
               <span className="text-sm font-medium text-foreground">
-                API Key Help URL
-                <SimpleTooltip content="Optional link shown to users to help them find their API key">
+                {t("mcp.form.byokHelpUrl")}
+                <SimpleTooltip content={t("mcp.form.byokHelpUrlTooltip")}>
                   <Info className="ml-2 size-4 text-info hover:text-info/80 cursor-help" />
                 </SimpleTooltip>
               </span>

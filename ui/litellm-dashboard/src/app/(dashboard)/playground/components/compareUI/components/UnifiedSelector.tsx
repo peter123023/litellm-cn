@@ -12,7 +12,7 @@ import {
   ComboboxList,
 } from "@/components/ui/combobox";
 import { UiLoadingSpinner } from "@/components/ui/ui-loading-spinner";
-import { SelectorOption, EndpointConfig, endpointI18nPrefix } from "../endpoint_config";
+import { SelectorOption, EndpointConfig, endpointI18nKeys } from "../endpoint_config";
 import { useTranslation } from "@/i18n";
 
 interface UnifiedSelectorProps {
@@ -29,7 +29,7 @@ const matchesQuery = (option: SelectorOption, query: string): boolean =>
 export function UnifiedSelector({ value, options, loading, config, onChange }: UnifiedSelectorProps) {
   const { t } = useTranslation();
   const selected = options.find((option) => option.value === value) ?? null;
-  const prefix = endpointI18nPrefix(config.id);
+  const i18nKeys = endpointI18nKeys(config.id);
 
   return (
     <Combobox
@@ -41,7 +41,7 @@ export function UnifiedSelector({ value, options, loading, config, onChange }: U
       filter={matchesQuery}
     >
       <ComboboxInput
-        placeholder={loading ? t(`${prefix}.loading`) : config.selectorPlaceholder}
+        placeholder={loading ? t(i18nKeys.loading) : config.selectorPlaceholder}
         className="w-48 md:w-64 lg:w-72"
       />
       <ComboboxContent>
@@ -51,7 +51,7 @@ export function UnifiedSelector({ value, options, loading, config, onChange }: U
               <UiLoadingSpinner className="size-4" />
             </span>
           ) : (
-            t(`${prefix}.empty`)
+            t(i18nKeys.empty)
           )}
         </ComboboxEmpty>
         <ComboboxList>

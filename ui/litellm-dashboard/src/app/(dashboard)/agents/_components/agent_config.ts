@@ -14,21 +14,21 @@ import {
 
 export interface FieldConfig {
   name: string;
-  label: string;
+  labelKey: string;
   type: "text" | "textarea" | "url" | "switch" | "list" | "select";
   required?: boolean;
-  tooltip?: string;
-  placeholder?: string;
+  tooltipKey?: string;
+  placeholderKey?: string;
   defaultValue?: any;
   rows?: number;
   validation?: any[];
   options?: string[];
-  helpText?: string;
+  helpTextKey?: string;
 }
 
 export interface SectionConfig {
   key: string;
-  title: string;
+  titleKey: string;
   fields: FieldConfig[];
   defaultExpanded?: boolean;
 }
@@ -44,59 +44,57 @@ export const AGENT_FORM_CONFIG: {
 } = {
   basic: {
     key: "basic",
-    title: "Basic Information",
+    titleKey: "agents.form.sections.basic",
     defaultExpanded: true,
     fields: [
       {
         name: "name",
-        label: "Display Name",
+        labelKey: "agents.form.basic.displayName",
         type: "text",
         required: true,
-        placeholder: "e.g., Customer Support Agent",
+        placeholderKey: "agents.form.basic.displayNamePlaceholder",
       },
       {
         name: "description",
-        label: "Description",
+        labelKey: "common.description",
         type: "textarea",
         required: false,
-        placeholder: "Describe what this agent does...",
+        placeholderKey: "agents.form.basic.descriptionPlaceholder",
         rows: 3,
       },
       {
         name: "url",
-        label: "URL",
+        labelKey: "agents.form.basic.url",
         type: "url",
         required: false,
-        placeholder: "http://localhost:9999/",
-        tooltip: "Base URL where the agent is hosted (optional)",
+        placeholderKey: "agents.form.basic.urlPlaceholder",
+        tooltipKey: "agents.form.basic.urlTooltip",
       },
       {
         name: "version",
-        label: "Version",
+        labelKey: "agents.form.basic.version",
         type: "text",
-        placeholder: "1.0.0",
+        placeholderKey: "agents.form.basic.versionPlaceholder",
         defaultValue: "1.0.0",
       },
       {
         name: "protocolVersion",
-        label: "Protocol Version",
+        labelKey: "agents.form.basic.protocolVersion",
         type: "select",
         options: ["1.0", "0.3"],
         defaultValue: "1.0",
-        tooltip:
-          "The A2A protocol version LiteLLM serves to clients for this agent. LiteLLM converts the upstream agent's responses to this version, so clients always see the version you pick here regardless of the original agent's version.",
-        helpText:
-          "LiteLLM serves this version to clients and converts the upstream agent's responses to match it, regardless of the original agent's version.",
+        tooltipKey: "agents.form.basic.protocolVersionTooltip",
+        helpTextKey: "agents.form.basic.protocolVersionHelp",
       },
     ],
   },
   skills: {
     key: "skills",
-    title: "Skills",
+    titleKey: "agents.form.sections.skills",
     fields: [
       {
         name: "skills",
-        label: "Skills",
+        labelKey: "agents.form.section.skills",
         type: "list",
         defaultValue: [],
       },
@@ -104,102 +102,102 @@ export const AGENT_FORM_CONFIG: {
   },
   capabilities: {
     key: "capabilities",
-    title: "Capabilities",
+    titleKey: "agents.form.sections.capabilities",
     fields: [
       {
         name: "streaming",
-        label: "Streaming",
+        labelKey: "agents.form.basic.streaming",
         type: "switch",
         defaultValue: false,
       },
       {
         name: "pushNotifications",
-        label: "Push Notifications",
+        labelKey: "agents.form.basic.pushNotifications",
         type: "switch",
       },
       {
         name: "stateTransitionHistory",
-        label: "State Transition History",
+        labelKey: "agents.form.basic.stateTransitionHistory",
         type: "switch",
       },
     ],
   },
   optional: {
     key: "optional",
-    title: "Optional Settings",
+    titleKey: "agents.form.sections.optional",
     fields: [
       {
         name: "iconUrl",
-        label: "Icon URL",
+        labelKey: "agents.form.optional.iconUrl",
         type: "url",
-        placeholder: "https://example.com/icon.png",
+        placeholderKey: "agents.form.optional.iconUrlPlaceholder",
       },
       {
         name: "documentationUrl",
-        label: "Documentation URL",
+        labelKey: "agents.form.optional.documentationUrl",
         type: "url",
-        placeholder: "https://docs.example.com",
+        placeholderKey: "agents.form.optional.documentationUrlPlaceholder",
       },
       {
         name: "supportsAuthenticatedExtendedCard",
-        label: "Supports Authenticated Extended Card",
+        labelKey: "agents.form.optional.supportsAuthenticatedExtendedCard",
         type: "switch",
       },
     ],
   },
   litellm: {
     key: "litellm",
-    title: "LiteLLM Parameters",
+    titleKey: "agents.form.sections.litellm",
     fields: [
       {
         name: "model",
-        label: "Model (Optional)",
+        labelKey: "agents.form.litellm.model",
         type: "text",
       },
       {
         name: "make_public",
-        label: "Make Public",
+        labelKey: "agents.form.litellm.makePublic",
         type: "switch",
       },
     ],
   },
   cost: {
     key: "cost",
-    title: "Cost Configuration",
+    titleKey: "agents.form.sections.cost",
     fields: [
       {
         name: "cost_per_query",
-        label: "Cost Per Query ($)",
+        labelKey: "agents.form.cost.costPerQuery",
         type: "text",
-        placeholder: "0.0",
-        tooltip: "Fixed cost per query",
+        placeholderKey: "agents.form.cost.costPerQueryPlaceholder",
+        tooltipKey: "agents.form.cost.costPerQueryTooltip",
       },
       {
         name: "input_cost_per_token",
-        label: "Input Cost Per Token ($)",
+        labelKey: "agents.form.cost.inputCostPerToken",
         type: "text",
-        placeholder: "0.000001",
-        tooltip: "Cost per input token",
+        placeholderKey: "agents.form.cost.inputCostPerTokenPlaceholder",
+        tooltipKey: "agents.form.cost.inputCostPerTokenTooltip",
       },
       {
         name: "output_cost_per_token",
-        label: "Output Cost Per Token ($)",
+        labelKey: "agents.form.cost.outputCostPerToken",
         type: "text",
-        placeholder: "0.000002",
-        tooltip: "Cost per output token",
+        placeholderKey: "agents.form.cost.outputCostPerTokenPlaceholder",
+        tooltipKey: "agents.form.cost.outputCostPerTokenTooltip",
       },
     ],
   },
   tracing: {
     key: "tracing",
-    title: "Tracing",
+    titleKey: "agents.form.sections.tracing",
     fields: [
       {
         name: "enable_tracing",
-        label: "Enable Tracing",
+        labelKey: "agents.form.tracing.enable",
         type: "switch",
         defaultValue: false,
-        tooltip: "Enable request tracing for this agent",
+        tooltipKey: "agents.form.tracing.enableTooltip",
       },
     ],
   },
@@ -208,33 +206,33 @@ export const AGENT_FORM_CONFIG: {
 export const SKILL_FIELD_CONFIG = {
   id: {
     name: "id",
-    label: "Skill ID",
+    labelKey: "agents.form.skill.id",
     required: true,
-    placeholder: "e.g., hello_world",
+    placeholderKey: "agents.form.skill.idPlaceholder",
   },
   name: {
     name: "name",
-    label: "Skill Name",
+    labelKey: "agents.form.skill.name",
     required: true,
-    placeholder: "e.g., Returns hello world",
+    placeholderKey: "agents.form.skill.namePlaceholder",
   },
   description: {
     name: "description",
-    label: "Description",
+    labelKey: "common.description",
     required: true,
-    placeholder: "What this skill does",
+    placeholderKey: "agents.form.skill.descriptionPlaceholder",
     rows: 2,
   },
   tags: {
     name: "tags",
-    label: "Tags",
+    labelKey: "agents.form.skill.tags",
     required: true,
-    placeholder: "Type a tag and press Enter",
+    placeholderKey: "agents.form.skill.tagsPlaceholder",
   },
   examples: {
     name: "examples",
-    label: "Examples",
-    placeholder: "Type an example and press Enter",
+    labelKey: "agents.form.skill.examples",
+    placeholderKey: "agents.form.skill.examplesPlaceholder",
   },
 };
 

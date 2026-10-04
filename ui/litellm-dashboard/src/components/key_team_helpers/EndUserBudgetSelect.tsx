@@ -5,10 +5,9 @@ import React from "react";
 import { useBudgetOptions } from "@/app/(dashboard)/hooks/budgets/useBudgetOptions";
 import type { budgetItem } from "@/app/(dashboard)/hooks/budgets/useBudgets";
 import { SearchSelect, type SearchSelectOption } from "@/components/shared/SearchSelect";
+import { useTranslation, type Translate } from "@/i18n";
 
-export const END_USER_BUDGET_HINT =
-  "Reusable budget applied to every new customer (end user) this key creates via `user` or x-litellm-end-user-id. " +
-  "Overrides the proxy-wide max_end_user_budget_id; customers that already have their own budget keep it.";
+export const getEndUserBudgetHint = (t: Translate): string => t("keyCreate.endUserBudgetHint");
 
 interface EndUserBudgetSelectProps {
   readonly id?: string;
@@ -18,10 +17,10 @@ interface EndUserBudgetSelectProps {
   readonly canEdit: boolean;
 }
 
-const budgetSublabel = (budget: budgetItem): string | undefined => {
+const budgetSublabel = (budget: budgetItem, t: Translate): string | undefined => {
   const parts = [
     budget.max_budget != null ? `$${budget.max_budget}` : null,
-    budget.budget_duration ? `resets ${budget.budget_duration}` : null,
+    budget.budget_duration ? t("keyTeam.resetsIn", { duration: budget.budget_duration }) : null,
   ].filter((part): part is string => part !== null);
   return parts.length > 0 ? parts.join(", ") : undefined;
 };
@@ -33,19 +32,20 @@ export const EndUserBudgetSelect: React.FC<EndUserBudgetSelectProps> = ({
   onChange,
   canEdit,
 }) => {
+  const { t } = useTranslation();
   const { data: budgets } = useBudgetOptions(accessToken, canEdit);
   const options: SearchSelectOption[] = (budgets ?? []).map((budget) => ({
     label: budget.budget_id,
     value: budget.budget_id,
-    sublabel: budgetSublabel(budget),
+    sublabel: budgetSublabel(budget, t),
   }));
 
   return (
     <SearchSelect
       inputId={id}
-      aria-label="Default Customer Budget"
-      placeholder="No default budget"
-      emptyText="No budgets found. Create one under Budgets."
+      aria-label={t("keyTeam.defaultCustomerBudget")}
+      placeholder={t("keyTeam.noDefaultBudget")}
+      emptyText={t("keyTeam.noBudgetsFound")}
       options={options}
       value={value}
       onValueChange={onChange}

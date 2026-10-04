@@ -27,6 +27,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { useTranslation } from "@/i18n";
 import type { KeyValueFormValue, KillSwitchConfig, KillSwitchFormValue } from "./kill_switch_config";
 
 export interface AgentSkillFormValue {
@@ -282,9 +283,10 @@ export const AgentTagsInput = ({
   value,
   onValueChange,
   placeholder,
-  emptyText = "No matching options",
+  emptyText,
   ...props
 }: AgentTagsInputProps) => {
+  const { t } = useTranslation();
   const anchor = useComboboxAnchor();
   const [query, setQuery] = React.useState("");
   const pendingRef = React.useRef("");
@@ -366,7 +368,7 @@ export const AgentTagsInput = ({
         </ComboboxValue>
       </ComboboxChips>
       <ComboboxContent anchor={anchor}>
-        <ComboboxEmpty>{emptyText}</ComboboxEmpty>
+        <ComboboxEmpty>{emptyText ?? t("agents.form.noMatchingOptions")}</ComboboxEmpty>
         <ComboboxList>
           {(option: AgentSelectOption) => (
             <ComboboxItem key={option.value} value={option} title={option.label}>
@@ -396,9 +398,10 @@ export const AgentMultiSelect = ({
   value,
   onValueChange,
   placeholder,
-  emptyText = "No matching options",
+  emptyText,
   ...props
 }: AgentMultiSelectProps) => {
+  const { t } = useTranslation();
   const anchor = useComboboxAnchor();
   const items = [...options];
   const selected = value.map((item) => items.find((option) => option.value === item) ?? { label: item, value: item });
@@ -429,7 +432,7 @@ export const AgentMultiSelect = ({
         </ComboboxValue>
       </ComboboxChips>
       <ComboboxContent anchor={anchor}>
-        <ComboboxEmpty>{emptyText}</ComboboxEmpty>
+        <ComboboxEmpty>{emptyText ?? t("agents.form.noMatchingOptions")}</ComboboxEmpty>
         <ComboboxList>
           {(option: AgentSelectOption) => (
             <ComboboxItem key={option.value} value={option} title={option.label}>

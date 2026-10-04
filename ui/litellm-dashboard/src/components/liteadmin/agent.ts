@@ -1,6 +1,7 @@
 import type OpenAI from "openai";
 import type { ChatMessage } from "@/components/chat/types";
 import { createGatewayClient } from "@/components/llm_calls/gateway_client";
+import type { Translate } from "@/i18n";
 import { createLiteAdminOperations, type OperationContext } from "./operations";
 
 export const MAX_INPUT_LENGTH = 8_000;
@@ -24,11 +25,20 @@ type InferenceTarget =
   | { baseUrl: string; requiresConsent: boolean; error: null }
   | { baseUrl: null; requiresConsent: false; error: string };
 
-export function resolveInferenceTarget(candidate: string, managementBaseUrl: string, pageUrl: string): InferenceTarget {
+export function resolveInferenceTarget(
+  candidate: string,
+  managementBaseUrl: string,
+  pageUrl: string,
+  t?: Translate,
+): InferenceTarget {
+  const message = (key: string, fallback: string): string => t?.(key) ?? fallback;
   const invalid: InferenceTarget = {
     baseUrl: null,
     requiresConsent: false,
-    error: "The gateway must be a valid HTTP(S) URL without credentials, a query, or a fragment.",
+    error: message(
+      "liteAdmin.invalidGatewayUrl",
+      "The gateway must be a valid HTTP(S) URL without credentials, a query, or a fragment.",
+    ),
   };
   try {
     const page = new URL(pageUrl);
@@ -40,7 +50,10 @@ export function resolveInferenceTarget(candidate: string, managementBaseUrl: str
       return {
         baseUrl: null,
         requiresConsent: false,
-        error: "Inference must use HTTPS when the dashboard or management gateway uses HTTPS.",
+        error: message(
+          "liteAdmin.httpsRequired",
+          "Inference must use HTTPS when the dashboard or management gateway uses HTTPS.",
+        ),
       };
     }
     return { baseUrl: target.href, requiresConsent: target.origin !== management.origin, error: null };
@@ -50,6 +63,7 @@ export function resolveInferenceTarget(candidate: string, managementBaseUrl: str
 }
 
 export async function runLiteAdmin(options: LiteAdminOptions, client?: OpenAI): Promise<void> {
+  const msg = (key: string, fallback: string): string => options.t?.(key) ?? fallback;
   const active = () => {
     options.signal.throwIfAborted();
     options.assertCurrent();
@@ -68,7 +82,7 @@ export async function runLiteAdmin(options: LiteAdminOptions, client?: OpenAI): 
     )
     .slice(-20);
   if (history.some((message) => message.role === "user" && message.content.length > MAX_INPUT_LENGTH)) {
-    throw new Error("Keep each message under 8,000 characters, or start a new chat.");
+    throw new Error(msg("liteAdmin.messageTooLong", "Keep each message under 8,000 characters, or start a new chat."));
   }
   const context: OperationContext = {
     ...options,
@@ -76,7 +90,12 @@ export async function runLiteAdmin(options: LiteAdminOptions, client?: OpenAI): 
     beforeTool: () => {
       active();
       if (runner.messages.filter((message) => message.role === "tool").length >= 12) {
-        throw new Error("The action limit was reached. Check completed actions before continuing.");
+        throw new Error(
+          msg(
+            "liteAdmin.actionLimitReached",
+            "The action limit was reached. Check completed actions before continuing.",
+          ),
+        );
       }
     },
   };
@@ -117,9 +136,12 @@ export async function runLiteAdmin(options: LiteAdminOptions, client?: OpenAI): 
   const message = completion.choices[0]?.message;
   if (message?.tool_calls?.length) {
     options.onMessage(
-      "I reached the step limit. Any completed actions remain applied; check the relevant page before continuing.",
+      msg(
+        "liteAdmin.stepLimitReached",
+        "I reached the step limit. Any completed actions remain applied; check the relevant page before continuing.",
+      ),
     );
   } else if (!message?.content && !message?.refusal) {
-    options.onMessage("The model returned no answer. Try another request or model.");
+    options.onMessage(msg("liteAdmin.noAnswer", "The model returned no answer. Try another request or model."));
   }
 }

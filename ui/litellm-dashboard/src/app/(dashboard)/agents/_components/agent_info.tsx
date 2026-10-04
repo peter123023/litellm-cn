@@ -50,6 +50,7 @@ import AgentCostView from "./agent_cost_view";
 import { detectAgentType, parseDynamicAgentForForm } from "./agent_type_utils";
 import AgentCardDiscovery, { DiscoveredAgentCardSelection } from "./agent_card_discovery";
 import { buildDiscoveryRequest, overlayDiscoveredCardParams } from "./agent_discovery_utils";
+import { useTranslation } from "@/i18n";
 
 interface AgentInfoViewProps {
   agentId: string;
@@ -79,6 +80,7 @@ const DetailItem: React.FC<{ label: React.ReactNode; children: React.ReactNode }
 );
 
 const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessToken, isAdmin }) => {
+  const { t } = useTranslation();
   const [agent, setAgent] = useState<Agent | null>(null);
   const [selectedKey, setSelectedKey] = useState<KeyResponse | null>(null);
   const { data: keysData, isLoading: keysLoading, refetch: refetchAgentKeys } = useKeys(1, 100, { agentID: agentId });
@@ -140,7 +142,7 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
       }
     } catch (error) {
       console.error("Error fetching agent info:", error);
-      toast.error("Failed to load agent information");
+      toast.error(t("agents.detail.loadFailed"));
     } finally {
       setIsLoading(false);
     }
@@ -249,12 +251,12 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
         object_permission: buildMcpObjectPermission(values),
         access_group_ids: values.access_group_ids ?? [],
       });
-      toast.success("Agent updated successfully");
+      toast.success(t("agents.detail.updated"));
       setIsEditing(false);
       fetchAgentInfo();
     } catch (error) {
       console.error("Error updating agent:", error);
-      toast.error("Failed to update agent");
+      toast.error(t("agents.detail.updateFailed"));
     } finally {
       setIsSaving(false);
     }
@@ -273,9 +275,9 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
   if (!agent) {
     return (
       <div className="p-4">
-        <div className="text-center">Agent not found</div>
+        <div className="text-center">{t("agents.detail.notFound")}</div>
         <Button onClick={onClose} className="mt-4">
-          Back to Agents List
+          {t("agents.detail.backToList")}
         </Button>
       </div>
     );
@@ -297,7 +299,7 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
           onChange={onChange}
           inputRef={ref}
           min={0}
-          placeholder="Unlimited"
+          placeholder={t("common.unlimited")}
         />
       )}
     </AgentFormField>
@@ -314,7 +316,7 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
           refetchAgentKeys();
         }}
         teams={null}
-        backButtonText="Back to Agent"
+        backButtonText={t("agents.detail.backToAgent")}
       />
     );
   }
@@ -324,20 +326,20 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
       <div>
         <Button variant="ghost" onClick={onClose} className="mb-4">
           <ArrowLeft className="size-4" />
-          Back to Agents
+          {t("agents.detail.backToAgents")}
         </Button>
-        <h1 className="text-2xl font-semibold">{agent.agent_name || "Unnamed Agent"}</h1>
+        <h1 className="text-2xl font-semibold">{agent.agent_name || t("agents.detail.unnamed")}</h1>
         <p className="text-sm text-muted-foreground font-mono">{agent.agent_id}</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList variant="line" className="mb-4 h-auto w-full justify-start rounded-none border-b p-0">
           <TabsTrigger value="overview" className="flex-none rounded-none px-4 py-2">
-            Overview
+            {t("agents.detail.tabOverview")}
           </TabsTrigger>
           {isAdmin && (
             <TabsTrigger value="settings" className="flex-none rounded-none px-4 py-2">
-              Settings
+              {t("agents.detail.tabSettings")}
             </TabsTrigger>
           )}
         </TabsList>
@@ -352,38 +354,52 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
               isAdmin={isAdmin}
             />
             <DetailList>
-              <DetailItem label="Agent ID">{agent.agent_id}</DetailItem>
-              <DetailItem label="Agent Name">{agent.agent_name}</DetailItem>
-              <DetailItem label="Display Name">{agent.agent_card_params?.name || "-"}</DetailItem>
-              <DetailItem label="Description">{agent.agent_card_params?.description || "-"}</DetailItem>
-              <DetailItem label="URL">{agent.agent_card_params?.url || "-"}</DetailItem>
-              <DetailItem label="Version">{agent.agent_card_params?.version || "-"}</DetailItem>
-              <DetailItem label="Protocol Version">{agent.agent_card_params?.protocolVersion || "-"}</DetailItem>
-              <DetailItem label="Streaming">
-                {agent.agent_card_params?.capabilities?.streaming ? "Yes" : "No"}
+              <DetailItem label={t("agents.columns.agentId")}>{agent.agent_id}</DetailItem>
+              <DetailItem label={t("agents.columns.agentName")}>{agent.agent_name}</DetailItem>
+              <DetailItem label={t("agents.form.basic.displayName")}>{agent.agent_card_params?.name || "-"}</DetailItem>
+              <DetailItem label={t("common.description")}>{agent.agent_card_params?.description || "-"}</DetailItem>
+              <DetailItem label={t("agents.form.basic.url")}>{agent.agent_card_params?.url || "-"}</DetailItem>
+              <DetailItem label={t("agents.form.basic.version")}>{agent.agent_card_params?.version || "-"}</DetailItem>
+              <DetailItem label={t("agents.form.basic.protocolVersion")}>
+                {agent.agent_card_params?.protocolVersion || "-"}
+              </DetailItem>
+              <DetailItem label={t("agents.form.basic.streaming")}>
+                {agent.agent_card_params?.capabilities?.streaming ? t("common.yes") : t("common.no")}
               </DetailItem>
               {agent.agent_card_params?.capabilities?.pushNotifications && (
-                <DetailItem label="Push Notifications">Yes</DetailItem>
+                <DetailItem label={t("agents.form.basic.pushNotifications")}>{t("common.yes")}</DetailItem>
               )}
               {agent.agent_card_params?.capabilities?.stateTransitionHistory && (
-                <DetailItem label="State Transition History">Yes</DetailItem>
+                <DetailItem label={t("agents.form.basic.stateTransitionHistory")}>{t("common.yes")}</DetailItem>
               )}
-              <DetailItem label="Skills">{agent.agent_card_params?.skills?.length || 0} configured</DetailItem>
-              {agent.litellm_params?.model && <DetailItem label="Model">{agent.litellm_params.model}</DetailItem>}
+              <DetailItem label={t("agents.form.section.skills")}>
+                {t("agents.detail.skillsConfigured", { count: agent.agent_card_params?.skills?.length || 0 })}
+              </DetailItem>
+              {agent.litellm_params?.model && (
+                <DetailItem label={t("agents.columns.model")}>{agent.litellm_params.model}</DetailItem>
+              )}
               {agent.litellm_params?.make_public !== undefined && (
-                <DetailItem label="Make Public">{agent.litellm_params.make_public ? "Yes" : "No"}</DetailItem>
+                <DetailItem label={t("agents.form.litellm.makePublic")}>
+                  {agent.litellm_params.make_public ? t("common.yes") : t("common.no")}
+                </DetailItem>
               )}
               {agent.agent_card_params?.iconUrl && (
-                <DetailItem label="Icon URL">{agent.agent_card_params.iconUrl}</DetailItem>
+                <DetailItem label={t("agents.form.optional.iconUrl")}>{agent.agent_card_params.iconUrl}</DetailItem>
               )}
               {agent.agent_card_params?.documentationUrl && (
-                <DetailItem label="Documentation URL">{agent.agent_card_params.documentationUrl}</DetailItem>
+                <DetailItem label={t("agents.form.optional.documentationUrl")}>
+                  {agent.agent_card_params.documentationUrl}
+                </DetailItem>
               )}
-              <DetailItem label="TPM Limit">{agent.tpm_limit ?? "Unlimited"}</DetailItem>
-              <DetailItem label="RPM Limit">{agent.rpm_limit ?? "Unlimited"}</DetailItem>
-              <DetailItem label="Session TPM Limit">{agent.session_tpm_limit ?? "Unlimited"}</DetailItem>
-              <DetailItem label="Session RPM Limit">{agent.session_rpm_limit ?? "Unlimited"}</DetailItem>
-              <DetailItem label="Access Groups">
+              <DetailItem label={t("agents.detail.tpmLimit")}>{agent.tpm_limit ?? t("common.unlimited")}</DetailItem>
+              <DetailItem label={t("agents.detail.rpmLimit")}>{agent.rpm_limit ?? t("common.unlimited")}</DetailItem>
+              <DetailItem label={t("agents.detail.sessionTpmLimit")}>
+                {agent.session_tpm_limit ?? t("common.unlimited")}
+              </DetailItem>
+              <DetailItem label={t("agents.detail.sessionRpmLimit")}>
+                {agent.session_rpm_limit ?? t("common.unlimited")}
+              </DetailItem>
+              <DetailItem label={t("agents.detail.accessGroups")}>
                 {agent.access_group_ids?.length ? (
                   <div className="space-y-1">
                     {agent.access_group_ids.map((accessGroupId) => (
@@ -391,11 +407,11 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
                     ))}
                   </div>
                 ) : (
-                  "None"
+                  t("common.none")
                 )}
               </DetailItem>
-              <DetailItem label="Created At">{formatDate(agent.created_at)}</DetailItem>
-              <DetailItem label="Updated At">{formatDate(agent.updated_at)}</DetailItem>
+              <DetailItem label={t("agents.detail.createdAt")}>{formatDate(agent.created_at)}</DetailItem>
+              <DetailItem label={t("agents.detail.updatedAt")}>{formatDate(agent.updated_at)}</DetailItem>
             </DetailList>
 
             <AgentVirtualKeys keys={agentKeys} isLoading={keysLoading} onKeyClick={setSelectedKey} />
@@ -407,10 +423,10 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
                 (agent.object_permission.mcp_tool_permissions &&
                   Object.keys(agent.object_permission.mcp_tool_permissions).length > 0)) && (
                 <div style={{ marginTop: 24 }}>
-                  <h3 className="text-lg font-medium">MCP Tool Permissions</h3>
+                  <h3 className="text-lg font-medium">{t("agents.detail.mcpToolPermissions")}</h3>
                   <DetailList className="mt-4">
                     {agent.object_permission.mcp_servers && agent.object_permission.mcp_servers.length > 0 && (
-                      <DetailItem label="MCP Servers">
+                      <DetailItem label={t("agents.detail.mcpServers")}>
                         <div className="space-y-1">
                           {agent.object_permission.mcp_servers.map((serverId) => (
                             <div key={serverId}>{mcpServerLabel(serverId)}</div>
@@ -420,16 +436,18 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
                     )}
                     {agent.object_permission.mcp_access_groups &&
                       agent.object_permission.mcp_access_groups.length > 0 && (
-                        <DetailItem label="MCP Access Groups">
+                        <DetailItem label={t("agents.detail.mcpAccessGroups")}>
                           {agent.object_permission.mcp_access_groups.join(", ")}
                         </DetailItem>
                       )}
                     {agent.object_permission.mcp_toolsets && agent.object_permission.mcp_toolsets.length > 0 && (
-                      <DetailItem label="MCP Toolsets">{agent.object_permission.mcp_toolsets.join(", ")}</DetailItem>
+                      <DetailItem label={t("agents.detail.mcpToolsets")}>
+                        {agent.object_permission.mcp_toolsets.join(", ")}
+                      </DetailItem>
                     )}
                     {agent.object_permission.mcp_tool_permissions &&
                       Object.keys(agent.object_permission.mcp_tool_permissions).length > 0 && (
-                        <DetailItem label="Tool permissions per server">
+                        <DetailItem label={t("agents.detail.toolPermissionsPerServer")}>
                           <div className="space-y-1">
                             {Object.entries(agent.object_permission.mcp_tool_permissions).map(([serverId, tools]) => (
                               <div key={serverId}>
@@ -448,23 +466,27 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
 
             {agent.agent_card_params?.skills && agent.agent_card_params.skills.length > 0 && (
               <div style={{ marginTop: 24 }}>
-                <h3 className="text-lg font-medium">Skills</h3>
+                <h3 className="text-lg font-medium">{t("agents.form.section.skills")}</h3>
                 <DetailList className="mt-4">
                   {agent.agent_card_params.skills.map((skill, index) => (
-                    <DetailItem label={skill.name || `Skill ${index + 1}`} key={index}>
+                    <DetailItem
+                      label={skill.name || t("agents.detail.skillFallback", { index: index + 1 })}
+                      key={index}
+                    >
                       <div>
                         <div>
-                          <strong>ID:</strong> {skill.id}
+                          <strong>{t("agents.detail.skillIdLabel")}</strong> {skill.id}
                         </div>
                         <div>
-                          <strong>Description:</strong> {skill.description}
+                          <strong>{t("agents.detail.skillDescriptionLabel")}</strong> {skill.description}
                         </div>
                         <div>
-                          <strong>Tags:</strong> {Array.isArray(skill.tags) ? skill.tags.join(", ") : skill.tags}
+                          <strong>{t("agents.detail.skillTagsLabel")}</strong>{" "}
+                          {Array.isArray(skill.tags) ? skill.tags.join(", ") : skill.tags}
                         </div>
                         {skill.examples && skill.examples.length > 0 && (
                           <div>
-                            <strong>Examples:</strong>{" "}
+                            <strong>{t("agents.detail.skillExamplesLabel")}</strong>{" "}
                             {Array.isArray(skill.examples) ? skill.examples.join(", ") : skill.examples}
                           </div>
                         )}
@@ -489,7 +511,7 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
             <TabsContent value="settings" keepMounted>
               <Card className="block p-6">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-medium">Agent Settings</h3>
+                  <h3 className="text-lg font-medium">{t("agents.detail.agentSettings")}</h3>
                   {!isEditing && (
                     <Button
                       onClick={() => {
@@ -497,7 +519,7 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
                         setIsEditing(true);
                       }}
                     >
-                      Edit Settings
+                      {t("agents.detail.editSettings")}
                     </Button>
                   )}
                 </div>
@@ -508,7 +530,7 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
                       <form onSubmit={form.handleSubmit(handleUpdate)}>
                         <FieldGroup className="mb-4">
                           <Field>
-                            <FieldLabel htmlFor="agent-id">Agent ID</FieldLabel>
+                            <FieldLabel htmlFor="agent-id">{t("agents.columns.agentId")}</FieldLabel>
                             <Input id="agent-id" value={agent.agent_id} disabled readOnly />
                           </Field>
                         </FieldGroup>
@@ -533,44 +555,41 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
                         )}
 
                         <Separator className="my-6" />
-                        <h3 className="text-lg font-medium mb-4">Rate Limits</h3>
+                        <h3 className="text-lg font-medium mb-4">{t("agents.detail.rateLimits")}</h3>
                         <div className="grid grid-cols-2 gap-4">
-                          {rateLimitField("tpm_limit", "TPM Limit")}
-                          {rateLimitField("rpm_limit", "RPM Limit")}
+                          {rateLimitField("tpm_limit", t("agents.detail.tpmLimit"))}
+                          {rateLimitField("rpm_limit", t("agents.detail.rpmLimit"))}
                         </div>
                         <div className="mt-4 grid grid-cols-2 gap-4">
-                          {rateLimitField("session_tpm_limit", "Session TPM Limit")}
-                          {rateLimitField("session_rpm_limit", "Session RPM Limit")}
+                          {rateLimitField("session_tpm_limit", t("agents.detail.sessionTpmLimit"))}
+                          {rateLimitField("session_rpm_limit", t("agents.detail.sessionRpmLimit"))}
                         </div>
 
                         <Separator className="my-6" />
-                        <h3 className="text-lg font-medium mb-4">Access Groups</h3>
+                        <h3 className="text-lg font-medium mb-4">{t("agents.detail.accessGroups")}</h3>
                         <FieldGroup>
                           <AgentFormField
                             name="access_group_ids"
-                            label={labelWithHint(
-                              "Access Groups",
-                              "Attached groups cap which models, MCP servers, and agents this agent can reach, on top of its key and team permissions. Leave empty to apply no extra cap.",
-                            )}
+                            label={labelWithHint(t("agents.detail.accessGroups"), t("agents.detail.accessGroupsHint"))}
                           >
                             {({ value, onChange }) => (
                               <AccessGroupSelector
                                 value={Array.isArray(value) ? (value as string[]) : []}
                                 onChange={onChange}
-                                placeholder="Select access groups (optional)"
+                                placeholder={t("agents.detail.selectAccessGroups")}
                               />
                             )}
                           </AgentFormField>
                         </FieldGroup>
 
                         <Separator className="my-6" />
-                        <h3 className="text-lg font-medium mb-4">MCP Servers</h3>
+                        <h3 className="text-lg font-medium mb-4">{t("agents.detail.mcpServers")}</h3>
                         <FieldGroup>
                           <AgentFormField
                             name="allowed_mcp_servers_and_groups"
                             label={labelWithHint(
-                              "Allowed MCP Servers",
-                              "Select which MCP servers or access groups this agent can access. Keys bound to this agent can only reach servers granted here.",
+                              t("agents.detail.allowedMcpServers"),
+                              t("agents.detail.allowedMcpServersHint"),
                             )}
                           >
                             {({ value, onChange }) => (
@@ -582,7 +601,7 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
                                   toolsets: (value as McpServerSelection | undefined)?.toolsets ?? [],
                                 }}
                                 accessToken={accessToken ?? ""}
-                                placeholder="Select MCP servers or access groups (optional)"
+                                placeholder={t("agents.detail.selectMcpServers")}
                               />
                             )}
                           </AgentFormField>
@@ -608,18 +627,18 @@ const AgentInfoView: React.FC<AgentInfoViewProps> = ({ agentId, onClose, accessT
                               fetchAgentInfo();
                             }}
                           >
-                            Cancel
+                            {t("common.cancel")}
                           </Button>
                           <Button type="submit" disabled={isSaving} aria-busy={isSaving}>
                             {isSaving && <UiLoadingSpinner className="size-4" />}
-                            Save Changes
+                            {t("agents.form.saveChanges")}
                           </Button>
                         </div>
                       </form>
                     </FormProvider>
                   </TooltipProvider>
                 ) : (
-                  <p>Click &quot;Edit Settings&quot; to modify agent configuration.</p>
+                  <p>{t("agents.detail.editSettingsHint")}</p>
                 )}
               </Card>
             </TabsContent>

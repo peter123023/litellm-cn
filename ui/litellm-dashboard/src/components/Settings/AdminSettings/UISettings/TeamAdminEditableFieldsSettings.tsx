@@ -18,12 +18,19 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useZodForm } from "@/lib/forms/useZodForm";
 import { toast } from "@/lib/toast";
+import { useTranslation } from "@/i18n";
 
 const editableFieldsSchema = z.object({ team_admin_editable_team_fields: z.array(z.string()) });
+
+const ENABLED_COUNT_KEYS = {
+  one: "adminSettings.uiSettings.teamAdminFields.enabledCount_one",
+  other: "adminSettings.uiSettings.teamAdminFields.enabledCount_other",
+} as const;
 
 type SaveEditableFields = ReturnType<typeof useUpdateUISettings>["mutate"];
 
 export default function TeamAdminEditableFieldsSettings() {
+  const { t } = useTranslation();
   const { accessToken } = useAuthorized();
   const { data, isLoading } = useUISettings();
   const { mutate: saveSettings, isPending } = useUpdateUISettings(accessToken);
@@ -35,16 +42,18 @@ export default function TeamAdminEditableFieldsSettings() {
     <Card>
       <CardHeader>
         <div className="flex items-center gap-2">
-          <CardTitle>Team admin editable fields</CardTitle>
+          <CardTitle>{t("adminSettings.uiSettings.teamAdminFields.title")}</CardTitle>
           <Badge variant={enabledFields.length > 0 ? "secondary" : "outline"}>
             {enabledFields.length > 0
-              ? `${enabledFields.length} field${enabledFields.length !== 1 ? "s" : ""} enabled`
-              : "Team admins cannot edit team settings"}
+              ? t(ENABLED_COUNT_KEYS[enabledFields.length === 1 ? "one" : "other"], {
+                  count: enabledFields.length,
+                })
+              : t("adminSettings.uiSettings.teamAdminFields.noneEnabled")}
           </Badge>
         </div>
         <CardDescription>
           {data?.field_schema?.properties?.team_admin_editable_team_fields?.description ??
-            "Team settings fields a team admin may change on the teams they administer."}
+            t("adminSettings.uiSettings.teamAdminFields.description")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -77,6 +86,7 @@ function TeamAdminEditableFieldsForm({
   isPending,
   saveSettings,
 }: TeamAdminEditableFieldsFormProps) {
+  const { t } = useTranslation();
   const form = useZodForm(editableFieldsSchema, {
     defaultValues: { team_admin_editable_team_fields: [...enabledFields] },
   });
@@ -84,7 +94,7 @@ function TeamAdminEditableFieldsForm({
     saveSettings(values, {
       onSuccess: () => {
         form.reset(values);
-        toast.success("Team admin editable fields updated successfully");
+        toast.success(t("adminSettings.uiSettings.teamAdminFields.updateSuccess"));
       },
       onError: (error) => {
         toast.fromError(error);
@@ -95,7 +105,7 @@ function TeamAdminEditableFieldsForm({
   if (supportedFields.length === 0) {
     return (
       <p className="text-sm italic text-muted-foreground">
-        This proxy version does not support enabling any team settings fields for team admins yet.
+        {t("adminSettings.uiSettings.teamAdminFields.unsupported")}
       </p>
     );
   }
@@ -130,7 +140,7 @@ function TeamAdminEditableFieldsForm({
       />
       <div className="flex justify-end">
         <Button type="submit" disabled={isPending || !form.formState.isDirty}>
-          {isPending ? "Saving..." : "Save"}
+          {isPending ? t("adminSettings.secretManager.saving") : t("common.save")}
         </Button>
       </div>
     </form>

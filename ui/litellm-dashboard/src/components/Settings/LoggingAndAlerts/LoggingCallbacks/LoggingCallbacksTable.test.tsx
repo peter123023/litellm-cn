@@ -1,6 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { setLanguage } from "@/i18n";
 
 import { LoggingCallbacksTable } from "./LoggingCallbacksTable";
 
@@ -15,6 +17,10 @@ const baseVars = {
 describe("LoggingCallbacksTable", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    setLanguage("en");
   });
 
   it("should render", () => {
@@ -140,5 +146,33 @@ describe("LoggingCallbacksTable", () => {
     expect(screen.getAllByText("Custom Callback API")).toHaveLength(2);
     expect(screen.getByText("Success")).toBeInTheDocument();
     expect(screen.getByText("Failure")).toBeInTheDocument();
+  });
+
+  // Every user-visible string on this surface has to come from the dictionary, otherwise the
+  // dashboard stays half-English when the operator switches to Chinese. Asserting the Chinese
+  // copy directly fails if any of these labels regress back to a hardcoded literal.
+  it("renders the table chrome, mode badges and row actions in the active language", () => {
+    setLanguage("zh");
+    const callback = { name: "langfuse", type: "success_and_failure" as const, variables: baseVars };
+    render(
+      <LoggingCallbacksTable
+        callbacks={[callback, { name: "datadog", type: "failure", variables: baseVars, read_only: true }]}
+        availableCallbacks={{}}
+        onTest={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("已启用的日志回调")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /添加回调/ })).toBeInTheDocument();
+    expect(screen.getByText("成功与失败")).toBeInTheDocument();
+    expect(screen.getByText("失败")).toBeInTheDocument();
+    expect(screen.getByText("只读")).toBeInTheDocument();
+
+    const modeHeaders = screen.getAllByText("模式");
+    expect(modeHeaders.length).toBeGreaterThan(0);
+    expect(screen.getByText("回调名称")).toBeInTheDocument();
+    expect(screen.queryByText("Active Logging Callbacks")).not.toBeInTheDocument();
   });
 });

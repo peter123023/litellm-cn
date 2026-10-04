@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@/components/ui/input-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useTranslation, type Translate } from "@/i18n";
 import React from "react";
 
 export interface BudgetWindowEntry {
@@ -8,11 +9,11 @@ export interface BudgetWindowEntry {
   max_budget: number | null;
 }
 
-export const BUDGET_WINDOW_OPTIONS = [
-  { value: "1h", label: "Hourly", resetHint: "Resets every hour" },
-  { value: "24h", label: "Daily", resetHint: "Resets daily at midnight UTC" },
-  { value: "7d", label: "Weekly", resetHint: "Resets every Sunday at midnight UTC" },
-  { value: "30d", label: "Monthly", resetHint: "Resets on the 1st of every month at midnight UTC" },
+export const getBudgetWindowOptions = (t: Translate) => [
+  { value: "1h", label: t("keyTeam.windowHourly"), resetHint: t("keyTeam.windowResetsHourly") },
+  { value: "24h", label: t("keyTeam.windowDaily"), resetHint: t("keyTeam.windowResetsDaily") },
+  { value: "7d", label: t("keyTeam.windowWeekly"), resetHint: t("keyTeam.windowResetsWeekly") },
+  { value: "30d", label: t("keyTeam.windowMonthly"), resetHint: t("keyTeam.windowResetsMonthly") },
 ];
 
 interface BudgetWindowsEditorProps {
@@ -21,6 +22,9 @@ interface BudgetWindowsEditorProps {
 }
 
 export function BudgetWindowsEditor({ value, onChange }: BudgetWindowsEditorProps) {
+  const { t } = useTranslation();
+  const options = getBudgetWindowOptions(t);
+
   const addWindow = () => {
     onChange([...value, { budget_duration: "24h", max_budget: null }]);
   };
@@ -37,12 +41,12 @@ export function BudgetWindowsEditor({ value, onChange }: BudgetWindowsEditorProp
   return (
     <div>
       {value.map((window, idx) => {
-        const hint = BUDGET_WINDOW_OPTIONS.find((o) => o.value === window.budget_duration)?.resetHint;
+        const hint = options.find((o) => o.value === window.budget_duration)?.resetHint;
         return (
           <div key={idx} style={{ marginBottom: 12 }}>
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
               <Select
-                items={BUDGET_WINDOW_OPTIONS}
+                items={options}
                 value={window.budget_duration}
                 onValueChange={(v: string | null) => v && updateWindow(idx, "budget_duration", v)}
               >
@@ -50,7 +54,7 @@ export function BudgetWindowsEditor({ value, onChange }: BudgetWindowsEditorProp
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {BUDGET_WINDOW_OPTIONS.map((option) => (
+                  {options.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>
@@ -76,7 +80,7 @@ export function BudgetWindowsEditor({ value, onChange }: BudgetWindowsEditorProp
                       updateWindow(idx, "max_budget", Number(typed.toFixed(2)));
                     }
                   }}
-                  placeholder="Max spend ($)"
+                  placeholder={t("keyTeam.maxSpendPlaceholder")}
                 />
               </InputGroup>
               <Button
@@ -100,7 +104,7 @@ export function BudgetWindowsEditor({ value, onChange }: BudgetWindowsEditorProp
           addWindow();
         }}
       >
-        + Add Budget Window
+        {t("keyTeam.addBudgetWindow")}
       </Button>
     </div>
   );

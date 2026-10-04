@@ -81,6 +81,7 @@ import BetaBadge from "./BetaBadge";
 import SidebarAccountMenu from "./SidebarAccountMenu/SidebarAccountMenu";
 import SidebarUsageCard from "./SidebarUsageCard";
 import { routeSegmentForPathname, uiHref } from "@/utils/uiHref";
+import { DEFAULT_LANGUAGE, translate, useTranslation, type Language } from "@/i18n";
 
 const ICON = { strokeWidth: 1.75 } as const;
 
@@ -105,6 +106,8 @@ interface SidebarProps {
 
 interface MenuItem {
   key: string;
+  /** Dictionary key for the sidebar label. Spelled out so the key stays greppable, not derived from `key`. */
+  labelKey: string;
   page: string;
   route?: string;
   label: string | React.ReactNode;
@@ -116,6 +119,7 @@ interface MenuItem {
 
 interface MenuGroup {
   groupLabel: string;
+  labelKey: string;
   items: MenuItem[];
   roles?: string[];
 }
@@ -126,10 +130,18 @@ interface MenuGroup {
 const menuGroups: MenuGroup[] = [
   {
     groupLabel: "AI GATEWAY",
+    labelKey: "navGroup.AI_GATEWAY",
     items: [
-      { key: "api-keys", page: "api-keys", label: "Virtual Keys", icon: <KeyRound {...ICON} /> },
+      {
+        key: "api-keys",
+        labelKey: "nav.api-keys",
+        page: "api-keys",
+        label: "Virtual Keys",
+        icon: <KeyRound {...ICON} />,
+      },
       {
         key: "llm-playground",
+        labelKey: "nav.llm-playground",
         page: "llm-playground",
         route: "playground",
         label: "Playground",
@@ -138,6 +150,7 @@ const menuGroups: MenuGroup[] = [
       },
       {
         key: "models",
+        labelKey: "nav.models",
         page: "models",
         route: "models-and-endpoints",
         label: "Models + Endpoints",
@@ -146,12 +159,14 @@ const menuGroups: MenuGroup[] = [
       },
       {
         key: "agentic",
+        labelKey: "nav.agentic",
         page: "agentic",
         label: "Agentic",
         icon: <Bot {...ICON} />,
         children: [
           {
             key: "agents",
+            labelKey: "nav.agents",
             page: "agents",
             label: "Agents",
             icon: <Bot {...ICON} />,
@@ -159,6 +174,7 @@ const menuGroups: MenuGroup[] = [
           },
           {
             key: "workflows",
+            labelKey: "nav.workflows",
             page: "workflows",
             label: "Workflow Runs",
             icon: <Workflow {...ICON} />,
@@ -166,6 +182,7 @@ const menuGroups: MenuGroup[] = [
           },
           {
             key: "memory",
+            labelKey: "nav.memory",
             page: "memory",
             label: "Memory",
             icon: <Database {...ICON} />,
@@ -173,11 +190,31 @@ const menuGroups: MenuGroup[] = [
           },
         ],
       },
-      { key: "mcp-servers", page: "mcp-servers", label: "MCP Servers", icon: <Server {...ICON} /> },
-      { key: "skills", page: "skills", label: "Skills", icon: <Blocks {...ICON} />, roles: all_admin_roles },
-      { key: "guardrails", page: "guardrails", label: "Guardrails", icon: <Shield {...ICON} /> },
+      {
+        key: "mcp-servers",
+        labelKey: "nav.mcp-servers",
+        page: "mcp-servers",
+        label: "MCP Servers",
+        icon: <Server {...ICON} />,
+      },
+      {
+        key: "skills",
+        labelKey: "nav.skills",
+        page: "skills",
+        label: "Skills",
+        icon: <Blocks {...ICON} />,
+        roles: all_admin_roles,
+      },
+      {
+        key: "guardrails",
+        labelKey: "nav.guardrails",
+        page: "guardrails",
+        label: "Guardrails",
+        icon: <Shield {...ICON} />,
+      },
       {
         key: "policies",
+        labelKey: "nav.policies",
         page: "policies",
         label: "Policies",
         icon: <ScrollText {...ICON} />,
@@ -185,14 +222,28 @@ const menuGroups: MenuGroup[] = [
       },
       {
         key: "tools",
+        labelKey: "nav.tools",
         page: "tools",
         label: "Tools",
         icon: <Wrench {...ICON} />,
         children: [
-          { key: "search-tools", page: "search-tools", label: "Search Tools", icon: <Search {...ICON} /> },
-          { key: "vector-stores", page: "vector-stores", label: "Vector Stores", icon: <Database {...ICON} /> },
+          {
+            key: "search-tools",
+            labelKey: "nav.search-tools",
+            page: "search-tools",
+            label: "Search Tools",
+            icon: <Search {...ICON} />,
+          },
+          {
+            key: "vector-stores",
+            labelKey: "nav.vector-stores",
+            page: "vector-stores",
+            label: "Vector Stores",
+            icon: <Database {...ICON} />,
+          },
           {
             key: "tool-policies",
+            labelKey: "nav.tool-policies",
             page: "tool-policies",
             label: "Tool Policies",
             icon: <ShieldCheck {...ICON} />,
@@ -204,9 +255,11 @@ const menuGroups: MenuGroup[] = [
   },
   {
     groupLabel: "OBSERVABILITY",
+    labelKey: "navGroup.OBSERVABILITY",
     items: [
       {
         key: "new_usage",
+        labelKey: "nav.new_usage",
         page: "new_usage",
         route: "usage",
         icon: <BarChart3 {...ICON} />,
@@ -215,6 +268,7 @@ const menuGroups: MenuGroup[] = [
       },
       {
         key: "model-insights",
+        labelKey: "nav.model-insights",
         page: "model-insights",
         icon: <Trophy {...ICON} />,
         roles: all_admin_roles,
@@ -226,6 +280,7 @@ const menuGroups: MenuGroup[] = [
       },
       {
         key: "roi-calculator",
+        labelKey: "nav.roi-calculator",
         page: "roi-calculator",
         icon: <Calculator {...ICON} />,
         roles: all_admin_roles,
@@ -237,14 +292,16 @@ const menuGroups: MenuGroup[] = [
       },
       {
         key: "cost-optimization",
+        labelKey: "nav.cost-optimization",
         page: "cost-optimization",
         icon: <PiggyBank {...ICON} />,
         roles: [...all_admin_roles, ...internalUserRoles],
         label: "Cost Optimization",
       },
-      { key: "logs", page: "logs", label: "Logs", icon: <Activity {...ICON} /> },
+      { key: "logs", labelKey: "nav.logs", page: "logs", label: "Logs", icon: <Activity {...ICON} /> },
       {
         key: "lens",
+        labelKey: "nav.lens",
         page: "lens",
         label: (
           <span className="flex items-center gap-2">
@@ -255,6 +312,7 @@ const menuGroups: MenuGroup[] = [
       },
       {
         key: "guardrails-monitor",
+        labelKey: "nav.guardrails-monitor",
         page: "guardrails-monitor",
         label: "Guardrails Monitor",
         icon: <HeartPulse {...ICON} />,
@@ -264,10 +322,12 @@ const menuGroups: MenuGroup[] = [
   },
   {
     groupLabel: "ACCESS CONTROL",
+    labelKey: "navGroup.ACCESS_CONTROL",
     items: [
-      { key: "teams", page: "teams", label: "Teams", icon: <Users {...ICON} /> },
+      { key: "teams", labelKey: "nav.teams", page: "teams", label: "Teams", icon: <Users {...ICON} /> },
       {
         key: "projects",
+        labelKey: "nav.projects",
         page: "projects",
         label: (
           <span className="flex items-center gap-2">
@@ -277,9 +337,17 @@ const menuGroups: MenuGroup[] = [
         icon: <Folder {...ICON} />,
         roles: all_admin_roles,
       },
-      { key: "users", page: "users", label: "Internal Users", icon: <User {...ICON} />, roles: all_admin_roles },
+      {
+        key: "users",
+        labelKey: "nav.users",
+        page: "users",
+        label: "Internal Users",
+        icon: <User {...ICON} />,
+        roles: all_admin_roles,
+      },
       {
         key: "organizations",
+        labelKey: "nav.organizations",
         page: "organizations",
         label: "Organizations",
         icon: <Building2 {...ICON} />,
@@ -287,21 +355,44 @@ const menuGroups: MenuGroup[] = [
       },
       {
         key: "access-groups",
+        labelKey: "nav.access-groups",
         page: "access-groups",
         label: "Access Groups",
         icon: <Boxes {...ICON} />,
         roles: all_admin_roles,
       },
-      { key: "budgets", page: "budgets", label: "Budgets", icon: <Wallet {...ICON} />, roles: all_admin_roles },
+      {
+        key: "budgets",
+        labelKey: "nav.budgets",
+        page: "budgets",
+        label: "Budgets",
+        icon: <Wallet {...ICON} />,
+        roles: all_admin_roles,
+      },
     ],
   },
   {
     groupLabel: "DEVELOPER TOOLS",
+    labelKey: "navGroup.DEVELOPER_TOOLS",
     items: [
-      { key: "api_ref", page: "api_ref", route: "api-reference", label: "API Reference", icon: <Code2 {...ICON} /> },
-      { key: "model-hub-table", page: "model-hub-table", label: "AI Hub", icon: <LayoutGrid {...ICON} /> },
+      {
+        key: "api_ref",
+        labelKey: "nav.api_ref",
+        page: "api_ref",
+        route: "api-reference",
+        label: "API Reference",
+        icon: <Code2 {...ICON} />,
+      },
+      {
+        key: "model-hub-table",
+        labelKey: "nav.model-hub-table",
+        page: "model-hub-table",
+        label: "AI Hub",
+        icon: <LayoutGrid {...ICON} />,
+      },
       {
         key: "learning-resources",
+        labelKey: "nav.learning-resources",
         page: "learning-resources",
         label: "Learning Resources",
         icon: <BookOpen {...ICON} />,
@@ -309,6 +400,7 @@ const menuGroups: MenuGroup[] = [
       },
       {
         key: "caching",
+        labelKey: "nav.caching",
         page: "caching",
         label: "Response Cache",
         icon: <Database {...ICON} />,
@@ -316,12 +408,14 @@ const menuGroups: MenuGroup[] = [
       },
       {
         key: "experimental",
+        labelKey: "nav.experimental",
         page: "experimental",
         label: "Experimental",
         icon: <FlaskConical {...ICON} />,
         children: [
           {
             key: "prompts",
+            labelKey: "nav.prompts",
             page: "prompts",
             label: "Prompts",
             icon: <FileText {...ICON} />,
@@ -329,6 +423,7 @@ const menuGroups: MenuGroup[] = [
           },
           {
             key: "transform-request",
+            labelKey: "nav.transform-request",
             page: "transform-request",
             label: "API Playground",
             icon: <Terminal {...ICON} />,
@@ -336,6 +431,7 @@ const menuGroups: MenuGroup[] = [
           },
           {
             key: "tag-management",
+            labelKey: "nav.tag-management",
             page: "tag-management",
             label: "Tag Management",
             icon: <Tags {...ICON} />,
@@ -343,6 +439,7 @@ const menuGroups: MenuGroup[] = [
           },
           {
             key: "4",
+            labelKey: "nav.4",
             page: "usage",
             route: "old-usage",
             label: "Old Usage",
@@ -355,10 +452,12 @@ const menuGroups: MenuGroup[] = [
   },
   {
     groupLabel: "SETTINGS",
+    labelKey: "navGroup.SETTINGS",
     roles: all_admin_roles,
     items: [
       {
         key: "settings",
+        labelKey: "nav.settings",
         page: "settings",
         label: "Settings",
         icon: <SettingsIcon {...ICON} />,
@@ -366,6 +465,7 @@ const menuGroups: MenuGroup[] = [
         children: [
           {
             key: "router-settings",
+            labelKey: "nav.router-settings",
             page: "router-settings",
             label: "Router Settings",
             icon: <Route {...ICON} />,
@@ -373,6 +473,7 @@ const menuGroups: MenuGroup[] = [
           },
           {
             key: "logging-and-alerts",
+            labelKey: "nav.logging-and-alerts",
             page: "logging-and-alerts",
             label: "Logging & Alerts",
             icon: <Bell {...ICON} />,
@@ -380,6 +481,7 @@ const menuGroups: MenuGroup[] = [
           },
           {
             key: "admin-panel",
+            labelKey: "nav.admin-panel",
             page: "admin-panel",
             label: "Admin Settings",
             icon: <SettingsIcon {...ICON} />,
@@ -387,12 +489,20 @@ const menuGroups: MenuGroup[] = [
           },
           {
             key: "cost-tracking",
+            labelKey: "nav.cost-tracking",
             page: "cost-tracking",
             label: "Cost Tracking",
             icon: <BarChart3 {...ICON} />,
             roles: all_admin_roles,
           },
-          { key: "ui-theme", page: "ui-theme", label: "UI Theme", icon: <Palette {...ICON} />, roles: all_admin_roles },
+          {
+            key: "ui-theme",
+            labelKey: "nav.ui-theme",
+            page: "ui-theme",
+            label: "UI Theme",
+            icon: <Palette {...ICON} />,
+            roles: all_admin_roles,
+          },
         ],
       },
     ],
@@ -425,31 +535,38 @@ const findMenuItemKey = (route: string): string => {
   return HOME_ROUTE;
 };
 
-const SECTION_DISPLAY: Record<string, string> = {
-  "AI GATEWAY": "AI Gateway",
-  OBSERVABILITY: "Observability",
-  "ACCESS CONTROL": "Access Control",
-  "DEVELOPER TOOLS": "Developer Tools",
-  SETTINGS: "Settings",
-};
-
 const prettify = (key: string): string =>
   key
     .split(/[-_]/)
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
 
-const labelText = (item: MenuItem): string => (typeof item.label === "string" ? item.label : prettify(item.key));
+// Items whose sidebar label carries a BetaBadge; the badge is re-attached after the
+// translated text. The raw `label` field stays English-only for non-React consumers
+// (page_utils page-visibility lists).
+const BADGE_KEYS = new Set(["model-insights", "roi-calculator", "lens", "projects"]);
+
+const fallbackLabel = (item: MenuItem): string => (typeof item.label === "string" ? item.label : prettify(item.key));
+
+/** Plain translated text, usable outside React (collapsed tooltips, breadcrumbs). */
+const labelTextFor = (item: MenuItem, language: Language): string => {
+  const translated = translate(language, item.labelKey);
+  return translated === item.labelKey ? fallbackLabel(item) : translated;
+};
 
 // Breadcrumb ("Section" / "Page") for the top bar, derived from the same nav config.
-export const getBreadcrumb = (pathname: string): { section: string | null; title: string } => {
+// `language` defaults to English so non-hook callers (and existing tests) keep working.
+export const getBreadcrumb = (
+  pathname: string,
+  language: Language = DEFAULT_LANGUAGE,
+): { section: string | null; title: string } => {
   const route = routeForPathname(pathname);
   for (const group of menuGroups) {
     for (const item of group.items) {
-      const section = SECTION_DISPLAY[group.groupLabel] ?? group.groupLabel;
-      if (routeOf(item) === route) return { section, title: labelText(item) };
+      const section = translate(language, group.labelKey);
+      if (routeOf(item) === route) return { section, title: labelTextFor(item, language) };
       const child = item.children?.find((c) => routeOf(c) === route);
-      if (child) return { section, title: labelText(child) };
+      if (child) return { section, title: labelTextFor(child, language) };
     }
   }
   return { section: null, title: prettify(route) };
@@ -466,6 +583,7 @@ const Sidebar_: React.FC<SidebarProps> = ({
   allowVectorStoresForTeamAdmins,
 }) => {
   const { userId, accessToken, userRole, isViewOnly } = useAuthorized();
+  const { language, t } = useTranslation();
   const isOrgAdmin = useIsOrgAdmin();
   const { data: teams } = useTeams();
   const { logoUrl, logoUrlDark } = useTheme();
@@ -541,7 +659,7 @@ const Sidebar_: React.FC<SidebarProps> = ({
 
   const visibleGroups = menuGroups
     .filter((group) => !group.roles || group.roles.includes(userRole))
-    .map((group) => ({ groupLabel: group.groupLabel, items: filterItemsByRole(group.items) }))
+    .map((group) => ({ groupLabel: group.groupLabel, labelKey: group.labelKey, items: filterItemsByRole(group.items) }))
     .filter((group) => group.items.length > 0);
 
   const toggleGroup = (key: string) => {
@@ -558,10 +676,21 @@ const Sidebar_: React.FC<SidebarProps> = ({
     });
   };
 
+  const itemLabel = (item: MenuItem): React.ReactNode => {
+    const text = labelTextFor(item, language);
+    return BADGE_KEYS.has(item.key) ? (
+      <span className="flex items-center gap-2">
+        {text} <BetaBadge />
+      </span>
+    ) : (
+      text
+    );
+  };
+
   const renderLeaf = (item: MenuItem, isChild: boolean) => {
     const active = selectedKey === item.key;
     const size = isChild ? "sub" : "default";
-    const label = <span className="flex-1 truncate group-data-[collapsed=true]/sidebar:hidden">{item.label}</span>;
+    const label = <span className="flex-1 truncate group-data-[collapsed=true]/sidebar:hidden">{itemLabel(item)}</span>;
 
     if (item.external_url) {
       return (
@@ -570,7 +699,7 @@ const Sidebar_: React.FC<SidebarProps> = ({
           href={item.external_url}
           target="_blank"
           rel="noopener noreferrer"
-          title={collapsed ? labelText(item) : undefined}
+          title={collapsed ? labelTextFor(item, language) : undefined}
           data-active={active || undefined}
           className={cn(sidebarMenuButtonVariants({ isActive: active, size }))}
         >
@@ -585,7 +714,7 @@ const Sidebar_: React.FC<SidebarProps> = ({
       <Link
         key={item.key}
         href={uiHref(routeOf(item))}
-        title={collapsed ? labelText(item) : undefined}
+        title={collapsed ? labelTextFor(item, language) : undefined}
         data-active={active || undefined}
         className={cn(sidebarMenuButtonVariants({ isActive: active, size }))}
       >
@@ -609,10 +738,10 @@ const Sidebar_: React.FC<SidebarProps> = ({
           isActive={active}
           aria-expanded={open}
           onClick={() => toggleGroup(item.key)}
-          title={collapsed ? labelText(item) : undefined}
+          title={collapsed ? labelTextFor(item, language) : undefined}
         >
           {item.icon}
-          <span className="flex-1 truncate group-data-[collapsed=true]/sidebar:hidden">{item.label}</span>
+          <span className="flex-1 truncate group-data-[collapsed=true]/sidebar:hidden">{itemLabel(item)}</span>
           <ChevronRight
             className={cn(
               "size-4 shrink-0 transition-transform group-data-[collapsed=true]/sidebar:hidden",
@@ -640,7 +769,7 @@ const Sidebar_: React.FC<SidebarProps> = ({
       <SidebarHeader className="h-14 border-b border-border group-data-[collapsed=true]/sidebar:h-auto">
         <div className="flex items-center justify-between gap-2 group-data-[collapsed=true]/sidebar:flex-col">
           <div className="flex min-w-0 items-center gap-2">
-            <Link href={uiHref("")} className="flex min-w-0 items-center" aria-label="LiteLLM home">
+            <Link href={uiHref("")} className="flex min-w-0 items-center" aria-label={t("navbar.home")}>
               <img src={logoSrc} alt="LiteLLM" className={cn(LOGO_CLASS_NAME, "dark:hidden")} />
               <img
                 src={darkLogoSrc}
@@ -665,7 +794,7 @@ const Sidebar_: React.FC<SidebarProps> = ({
               variant="ghost"
               size="icon-sm"
               onClick={onToggleCollapsed}
-              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              aria-label={collapsed ? t("navbar.expandSidebar") : t("navbar.collapseSidebar")}
               className="flex-none text-muted-foreground"
             >
               {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
@@ -679,7 +808,7 @@ const Sidebar_: React.FC<SidebarProps> = ({
           {visibleGroups.map((group, gi) => (
             <SidebarGroup key={group.groupLabel}>
               {gi > 0 && <SidebarSeparator className="hidden group-data-[collapsed=true]/sidebar:block" />}
-              <SidebarGroupLabel>{group.groupLabel}</SidebarGroupLabel>
+              <SidebarGroupLabel>{t(group.labelKey).toUpperCase()}</SidebarGroupLabel>
               <SidebarMenu>{group.items.map((item) => renderItem(item))}</SidebarMenu>
             </SidebarGroup>
           ))}

@@ -63,29 +63,55 @@ export const getAvailableEndpoints = () =>
     label: config.label,
   }));
 
-const ENDPOINT_I18N_PREFIX = {
-  [EndpointId.CHAT_COMPLETIONS]: "playground.endpoint.chat",
-  [EndpointId.A2A_AGENTS]: "playground.endpoint.a2a",
-} as const;
+interface EndpointI18nKeys {
+  readonly selectorLabel: string;
+  readonly selectorPlaceholder: string;
+  readonly inputPlaceholder: string;
+  readonly loadingMessage: string;
+  readonly validationMessage: string;
+  readonly loading: string;
+  readonly empty: string;
+}
+
+const ENDPOINT_I18N_KEYS = {
+  [EndpointId.CHAT_COMPLETIONS]: {
+    selectorLabel: "playground.endpoint.chat.selectorLabel",
+    selectorPlaceholder: "playground.endpoint.chat.selectorPlaceholder",
+    inputPlaceholder: "playground.endpoint.chat.inputPlaceholder",
+    loadingMessage: "playground.endpoint.chat.loadingMessage",
+    validationMessage: "playground.endpoint.chat.validationMessage",
+    loading: "playground.endpoint.chat.loading",
+    empty: "playground.endpoint.chat.empty",
+  },
+  [EndpointId.A2A_AGENTS]: {
+    selectorLabel: "playground.endpoint.a2a.selectorLabel",
+    selectorPlaceholder: "playground.endpoint.a2a.selectorPlaceholder",
+    inputPlaceholder: "playground.endpoint.a2a.inputPlaceholder",
+    loadingMessage: "playground.endpoint.a2a.loadingMessage",
+    validationMessage: "playground.endpoint.a2a.validationMessage",
+    loading: "playground.endpoint.a2a.loading",
+    empty: "playground.endpoint.a2a.empty",
+  },
+} as const satisfies Record<EndpointIdType, EndpointI18nKeys>;
 
 const A2A_LABEL_I18N_KEY = "playground.endpoint.a2aLabel";
 
-export const endpointI18nPrefix = (endpointId: EndpointIdType) => ENDPOINT_I18N_PREFIX[endpointId];
+export const endpointI18nKeys = (endpointId: EndpointIdType): EndpointI18nKeys => ENDPOINT_I18N_KEYS[endpointId];
 
 // Helper to get config for an endpoint
 export const getEndpointConfig = (endpointId: EndpointIdType): EndpointConfig => ENDPOINT_CONFIGS[endpointId];
 
 export const getLocalizedEndpointConfig = (endpointId: EndpointIdType, t: Translate): EndpointConfig => {
   const config = ENDPOINT_CONFIGS[endpointId];
-  const prefix = ENDPOINT_I18N_PREFIX[endpointId];
+  const keys = ENDPOINT_I18N_KEYS[endpointId];
   return {
     ...config,
     label: endpointId === EndpointId.A2A_AGENTS ? t(A2A_LABEL_I18N_KEY) : config.label,
-    selectorLabel: t(`${prefix}.selectorLabel`),
-    selectorPlaceholder: t(`${prefix}.selectorPlaceholder`),
-    inputPlaceholder: t(`${prefix}.inputPlaceholder`),
-    loadingMessage: t(`${prefix}.loadingMessage`),
-    validationMessage: t(`${prefix}.validationMessage`),
+    selectorLabel: t(keys.selectorLabel),
+    selectorPlaceholder: t(keys.selectorPlaceholder),
+    inputPlaceholder: t(keys.inputPlaceholder),
+    loadingMessage: t(keys.loadingMessage),
+    validationMessage: t(keys.validationMessage),
   };
 };
 
@@ -144,11 +170,12 @@ export const hasValidSelection = (
  *
  * 1. Add the endpoint ID to EndpointId const
  * 2. Add configuration to ENDPOINT_CONFIGS
- * 3. If the endpoint uses a new selector type (not model or agent):
+ * 3. Add the endpoint's translation keys to ENDPOINT_I18N_KEYS
+ * 4. If the endpoint uses a new selector type (not model or agent):
  *    - Add the type to SelectorType
  *    - Add fetch logic in CompareUI.tsx
  *    - Add conversion function (e.g., xxxOptionsToSelectorOptions)
- * 4. Add request handling in CompareUI.tsx handleSendMessage
+ * 5. Add request handling in CompareUI.tsx handleSendMessage
  *
  * Example for adding /v1/responses endpoint:
  *

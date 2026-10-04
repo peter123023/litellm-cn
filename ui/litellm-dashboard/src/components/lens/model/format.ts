@@ -1,31 +1,44 @@
 import { formatActivityTimestamp as runTime } from "@/utils/activityTimestamp";
+import { DEFAULT_LANGUAGE, translate, type Translate } from "@/i18n";
 import type { Settings } from "./types";
 
 export { runTime };
 
-export function scopeLabel(settings: Partial<Pick<Settings, "service" | "agent_name" | "filters">>): string {
+const englishT: Translate = (key, params) => translate(DEFAULT_LANGUAGE, key, params);
+
+export function scopeLabel(
+  settings: Partial<Pick<Settings, "service" | "agent_name" | "filters">>,
+  t: Translate = englishT,
+): string {
   return (
     [settings.agent_name, settings.service, ...(settings.filters ?? []).map((f) => `${f.key}: ${f.value}`)]
       .filter(Boolean)
-      .join(" · ") || "All activity"
+      .join(" · ") || t("lens.common.scopeAllActivity")
   );
 }
 
-export function durationText(seconds: number): string {
-  if (!Number.isFinite(seconds)) return "0s";
-  if (seconds < 60) return `${seconds}s`;
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
-  return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
+export function durationText(seconds: number, t: Translate = englishT): string {
+  if (!Number.isFinite(seconds)) return t("lens.common.durationZero");
+  if (seconds < 60) return t("lens.common.durationSeconds", { seconds });
+  if (seconds < 3600) {
+    return t("lens.common.durationMinutesSeconds", { minutes: Math.floor(seconds / 60), seconds: seconds % 60 });
+  }
+  return t("lens.common.durationHoursMinutes", {
+    hours: Math.floor(seconds / 3600),
+    minutes: Math.floor((seconds % 3600) / 60),
+  });
 }
 
-export function durationLabel(value: number, base: "minutes" | "hours" = "minutes"): string {
+export function durationLabel(value: number, base: "minutes" | "hours" = "minutes", t: Translate = englishT): string {
   const minutes = base === "hours" ? value * 60 : value;
   if (minutes >= 1440) {
     const days = Number((minutes / 1440).toFixed(2));
-    return `${days} ${days === 1 ? "day" : "days"}`;
+    return t(days === 1 ? "lens.common.durationDay" : "lens.common.durationDays", { days });
   }
-  if (minutes % 60 === 0) return `${minutes / 60} ${minutes === 60 ? "hour" : "hours"}`;
-  return `${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
+  if (minutes % 60 === 0) {
+    return t(minutes === 60 ? "lens.common.durationHour" : "lens.common.durationHours", { hours: minutes / 60 });
+  }
+  return t(minutes === 1 ? "lens.common.durationMinute" : "lens.common.durationMinutes", { minutes });
 }
 
 export function agoLabel(thenMs: number, nowMs: number): string {
@@ -39,6 +52,11 @@ export function agoLabel(thenMs: number, nowMs: number): string {
 
 export const money = (n: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 3 }).format(n);
-export const when = (value?: string | null) => (value ? runTime(value) : "Not yet");
+export const when = (value?: string | null, t: Translate = englishT) =>
+  value ? runTime(value) : t("lens.common.notYet");
 
-export const sourceLabels = { both: "Traces and requests", requests: "LLM requests", traces: "Agent traces" };
+export const sourceLabelKeys = {
+  both: "lens.common.sourceBoth",
+  requests: "lens.common.sourceRequests",
+  traces: "lens.common.sourceTraces",
+} as const;

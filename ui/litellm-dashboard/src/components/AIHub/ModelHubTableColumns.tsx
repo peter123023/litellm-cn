@@ -13,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { translate, type Language, type Translate } from "@/i18n";
 import { cn } from "@/lib/cva.config";
 import { copyToClipboard } from "@/utils/dataUtils";
 
@@ -57,13 +58,14 @@ const formatTokens = (tokens: number) => {
 interface ModelHubRowActionsProps {
   model: ModelHubData;
   onModelClick: (model: ModelHubData) => void;
+  t: Translate;
 }
 
-function ModelHubRowActions({ model, onModelClick }: ModelHubRowActionsProps) {
+function ModelHubRowActions({ model, onModelClick, t }: ModelHubRowActionsProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label="Open model actions"
+        aria-label={t("aiHub.model.openActions")}
         data-testid={`model-hub-actions-${model.model_group}`}
         className={cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), "text-muted-foreground")}
       >
@@ -72,14 +74,14 @@ function ModelHubRowActions({ model, onModelClick }: ModelHubRowActionsProps) {
       <DropdownMenuContent align="end" className="w-52">
         <DropdownMenuItem data-testid="model-hub-action-details" onClick={() => onModelClick(model)}>
           <Info />
-          View details
+          {t("aiHub.viewDetails")}
         </DropdownMenuItem>
         <DropdownMenuItem
           data-testid="model-hub-action-copy"
-          onClick={() => void copyToClipboard(model.model_group, "Model name copied")}
+          onClick={() => void copyToClipboard(model.model_group, t("aiHub.model.nameCopied"))}
         >
           <Copy />
-          Copy model name
+          {t("aiHub.model.copyName")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -88,156 +90,167 @@ function ModelHubRowActions({ model, onModelClick }: ModelHubRowActionsProps) {
 
 interface ModelHubTableColumnsDeps {
   onModelClick: (model: ModelHubData) => void;
+  language?: Language;
 }
 
-export const getModelHubTableColumns = ({ onModelClick }: ModelHubTableColumnsDeps): ColumnDef<ModelHubData>[] => [
-  {
-    id: "model_group",
-    accessorKey: "model_group",
-    meta: { title: "Public Model Name" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Public Model Name" />,
-    size: 220,
-    enableSorting: true,
-    sortingFn: "alphanumeric",
-    cell: ({ row }) => (
-      <IdentityCell title={row.original.model_group} className="max-w-72" onClick={() => onModelClick(row.original)} />
-    ),
-  },
-  {
-    id: "providers",
-    accessorKey: "providers",
-    meta: { title: "Provider", skeleton: "chips", className: "hidden md:table-cell" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Provider" />,
-    size: 150,
-    enableSorting: true,
-    sortingFn: (rowA, rowB) => rowA.original.providers.join(", ").localeCompare(rowB.original.providers.join(", ")),
-    cell: ({ row }) => {
-      const providers = row.original.providers;
-      return (
-        <div className="flex flex-wrap gap-1">
-          {providers.slice(0, 2).map((provider) => (
-            <Badge key={provider} variant="secondary">
-              {provider}
-            </Badge>
-          ))}
-          {providers.length > 2 && <span className="text-xs text-muted-foreground">+{providers.length - 2}</span>}
-        </div>
-      );
-    },
-  },
-  {
-    id: "mode",
-    accessorKey: "mode",
-    meta: { title: "Mode", className: "hidden lg:table-cell" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Mode" />,
-    size: 110,
-    enableSorting: true,
-    sortingFn: "alphanumeric",
-    cell: ({ row }) =>
-      row.original.mode ? (
-        <span className="font-mono text-xs text-muted-foreground">{row.original.mode}</span>
-      ) : (
-        <span className="text-xs text-muted-foreground">-</span>
+export const getModelHubTableColumns = ({
+  onModelClick,
+  language = "en",
+}: ModelHubTableColumnsDeps): ColumnDef<ModelHubData>[] => {
+  const t: Translate = (key, params) => translate(language, key, params);
+  return [
+    {
+      id: "model_group",
+      accessorKey: "model_group",
+      meta: { title: t("aiHub.model.publicName") },
+      header: ({ column }) => <DataTableSortHeader column={column} title={t("aiHub.model.publicName")} />,
+      size: 220,
+      enableSorting: true,
+      sortingFn: "alphanumeric",
+      cell: ({ row }) => (
+        <IdentityCell
+          title={row.original.model_group}
+          className="max-w-72"
+          onClick={() => onModelClick(row.original)}
+        />
       ),
-  },
-  {
-    id: "max_input_tokens",
-    accessorKey: "max_input_tokens",
-    meta: { title: "Tokens", className: "hidden lg:table-cell", numeric: true },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Tokens" />,
-    size: 110,
-    enableSorting: true,
-    sortingFn: (rowA, rowB) => {
-      const tokensA = (rowA.original.max_input_tokens || 0) + (rowA.original.max_output_tokens || 0);
-      const tokensB = (rowB.original.max_input_tokens || 0) + (rowB.original.max_output_tokens || 0);
-      return tokensA - tokensB;
     },
-    cell: ({ row }) => {
-      const model = row.original;
-      return (
-        <span className="text-xs tabular-nums">
-          {model.max_input_tokens ? formatTokens(model.max_input_tokens) : "-"} /{" "}
-          {model.max_output_tokens ? formatTokens(model.max_output_tokens) : "-"}
-        </span>
-      );
+    {
+      id: "providers",
+      accessorKey: "providers",
+      meta: { title: t("aiHub.provider"), skeleton: "chips", className: "hidden md:table-cell" },
+      header: ({ column }) => <DataTableSortHeader column={column} title={t("aiHub.provider")} />,
+      size: 150,
+      enableSorting: true,
+      sortingFn: (rowA, rowB) => rowA.original.providers.join(", ").localeCompare(rowB.original.providers.join(", ")),
+      cell: ({ row }) => {
+        const providers = row.original.providers;
+        return (
+          <div className="flex flex-wrap gap-1">
+            {providers.slice(0, 2).map((provider) => (
+              <Badge key={provider} variant="secondary">
+                {provider}
+              </Badge>
+            ))}
+            {providers.length > 2 && <span className="text-xs text-muted-foreground">+{providers.length - 2}</span>}
+          </div>
+        );
+      },
     },
-  },
-  {
-    id: "input_cost_per_token",
-    accessorKey: "input_cost_per_token",
-    meta: { title: "Cost/1M", skeleton: "twoLine", numeric: true },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Cost/1M" />,
-    size: 110,
-    enableSorting: true,
-    sortingFn: (rowA, rowB) => {
-      const costA = (rowA.original.input_cost_per_token || 0) + (rowA.original.output_cost_per_token || 0);
-      const costB = (rowB.original.input_cost_per_token || 0) + (rowB.original.output_cost_per_token || 0);
-      return costA - costB;
+    {
+      id: "mode",
+      accessorKey: "mode",
+      meta: { title: t("aiHub.mode"), className: "hidden lg:table-cell" },
+      header: ({ column }) => <DataTableSortHeader column={column} title={t("aiHub.mode")} />,
+      size: 110,
+      enableSorting: true,
+      sortingFn: "alphanumeric",
+      cell: ({ row }) =>
+        row.original.mode ? (
+          <span className="font-mono text-xs text-muted-foreground">{row.original.mode}</span>
+        ) : (
+          <span className="text-xs text-muted-foreground">-</span>
+        ),
     },
-    cell: ({ row }) => {
-      const model = row.original;
-      return (
-        <div className="flex flex-col gap-0.5 text-xs tabular-nums">
-          <span>{model.input_cost_per_token ? formatCost(model.input_cost_per_token) : "-"}</span>
-          <span className="text-muted-foreground">
-            {model.output_cost_per_token ? formatCost(model.output_cost_per_token) : "-"}
+    {
+      id: "max_input_tokens",
+      accessorKey: "max_input_tokens",
+      meta: { title: t("aiHub.tokens"), className: "hidden lg:table-cell", numeric: true },
+      header: ({ column }) => <DataTableSortHeader column={column} title={t("aiHub.tokens")} />,
+      size: 110,
+      enableSorting: true,
+      sortingFn: (rowA, rowB) => {
+        const tokensA = (rowA.original.max_input_tokens || 0) + (rowA.original.max_output_tokens || 0);
+        const tokensB = (rowB.original.max_input_tokens || 0) + (rowB.original.max_output_tokens || 0);
+        return tokensA - tokensB;
+      },
+      cell: ({ row }) => {
+        const model = row.original;
+        return (
+          <span className="text-xs tabular-nums">
+            {model.max_input_tokens ? formatTokens(model.max_input_tokens) : "-"} /{" "}
+            {model.max_output_tokens ? formatTokens(model.max_output_tokens) : "-"}
           </span>
+        );
+      },
+    },
+    {
+      id: "input_cost_per_token",
+      accessorKey: "input_cost_per_token",
+      meta: { title: t("aiHub.costPer1M"), skeleton: "twoLine", numeric: true },
+      header: ({ column }) => <DataTableSortHeader column={column} title={t("aiHub.costPer1M")} />,
+      size: 110,
+      enableSorting: true,
+      sortingFn: (rowA, rowB) => {
+        const costA = (rowA.original.input_cost_per_token || 0) + (rowA.original.output_cost_per_token || 0);
+        const costB = (rowB.original.input_cost_per_token || 0) + (rowB.original.output_cost_per_token || 0);
+        return costA - costB;
+      },
+      cell: ({ row }) => {
+        const model = row.original;
+        return (
+          <div className="flex flex-col gap-0.5 text-xs tabular-nums">
+            <span>{model.input_cost_per_token ? formatCost(model.input_cost_per_token) : "-"}</span>
+            <span className="text-muted-foreground">
+              {model.output_cost_per_token ? formatCost(model.output_cost_per_token) : "-"}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      id: "capabilities",
+      meta: { title: t("aiHub.features"), skeleton: "chips" },
+      header: t("aiHub.features"),
+      size: 220,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const capabilities = getModelCapabilities(row.original);
+        if (capabilities.length === 0) {
+          return <span className="text-xs text-muted-foreground">-</span>;
+        }
+        return (
+          <div className="flex flex-wrap gap-1">
+            {capabilities.map((capability) => (
+              <Badge key={capability} variant="outline">
+                {formatCapabilityName(capability)}
+              </Badge>
+            ))}
+          </div>
+        );
+      },
+    },
+    {
+      id: "is_public_model_group",
+      accessorKey: "is_public_model_group",
+      meta: { title: t("aiHub.public"), skeleton: "badge", className: "hidden md:table-cell" },
+      header: ({ column }) => <DataTableSortHeader column={column} title={t("aiHub.public")} />,
+      size: 100,
+      enableSorting: true,
+      sortingFn: (rowA, rowB) => {
+        const publicA = rowA.original.is_public_model_group === true ? 1 : 0;
+        const publicB = rowB.original.is_public_model_group === true ? 1 : 0;
+        return publicA - publicB;
+      },
+      cell: ({ row }) =>
+        row.original.is_public_model_group === true ? (
+          <StatusBadge tone="success" label={t("aiHub.yes")} />
+        ) : (
+          <StatusBadge tone="neutral" label={t("aiHub.no")} />
+        ),
+    },
+    {
+      id: "actions",
+      meta: { className: "text-right", headerClassName: "text-right" },
+      header: () => <span className="sr-only">{t("aiHub.actions")}</span>,
+      size: 64,
+      enableSorting: false,
+      enableHiding: false,
+      cell: ({ row }) => (
+        <div className="flex justify-end">
+          <ModelHubRowActions model={row.original} onModelClick={onModelClick} t={t} />
         </div>
-      );
-    },
-  },
-  {
-    id: "capabilities",
-    meta: { title: "Features", skeleton: "chips" },
-    header: "Features",
-    size: 220,
-    enableSorting: false,
-    cell: ({ row }) => {
-      const capabilities = getModelCapabilities(row.original);
-      if (capabilities.length === 0) {
-        return <span className="text-xs text-muted-foreground">-</span>;
-      }
-      return (
-        <div className="flex flex-wrap gap-1">
-          {capabilities.map((capability) => (
-            <Badge key={capability} variant="outline">
-              {formatCapabilityName(capability)}
-            </Badge>
-          ))}
-        </div>
-      );
-    },
-  },
-  {
-    id: "is_public_model_group",
-    accessorKey: "is_public_model_group",
-    meta: { title: "Public", skeleton: "badge", className: "hidden md:table-cell" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Public" />,
-    size: 100,
-    enableSorting: true,
-    sortingFn: (rowA, rowB) => {
-      const publicA = rowA.original.is_public_model_group === true ? 1 : 0;
-      const publicB = rowB.original.is_public_model_group === true ? 1 : 0;
-      return publicA - publicB;
-    },
-    cell: ({ row }) =>
-      row.original.is_public_model_group === true ? (
-        <StatusBadge tone="success" label="Yes" />
-      ) : (
-        <StatusBadge tone="neutral" label="No" />
       ),
-  },
-  {
-    id: "actions",
-    meta: { className: "text-right", headerClassName: "text-right" },
-    header: () => <span className="sr-only">Actions</span>,
-    size: 64,
-    enableSorting: false,
-    enableHiding: false,
-    cell: ({ row }) => (
-      <div className="flex justify-end">
-        <ModelHubRowActions model={row.original} onModelClick={onModelClick} />
-      </div>
-    ),
-  },
-];
+    },
+  ];
+};

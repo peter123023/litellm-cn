@@ -1415,7 +1415,9 @@ const ChatUI: React.FC<ChatUIProps> = ({
                             <Settings className="size-3.5" />
                           </PopoverTrigger>
                           <PopoverContent side="right" className="w-auto p-0">
-                            <div className="border-b border-border px-4 py-2 text-sm font-medium">Model Settings</div>
+                            <div className="border-b border-border px-4 py-2 text-sm font-medium">
+                              {t("playground.chat.modelSettings")}
+                            </div>
                             <AdditionalModelSettings
                               showAdvancedParams={isChatModel()}
                               temperature={temperature}
@@ -1598,7 +1600,7 @@ const ChatUI: React.FC<ChatUIProps> = ({
                       }
                       return (
                         <div className="mt-3">
-                          <p className="mb-1 block text-xs text-muted-foreground">Select Tool</p>
+                          <p className="mb-1 block text-xs text-muted-foreground">{t("playground.chat.selectTool")}</p>
                           <SearchSelect
                             value={selectedMCPDirectTool}
                             placeholder={t("playground.chat.selectToolToCall")}
@@ -1856,7 +1858,10 @@ const ChatUI: React.FC<ChatUIProps> = ({
 
                     {isLoading && (
                       <div className="my-4 flex items-center justify-center">
-                        <Loader2 className="size-6 animate-spin text-muted-foreground" aria-label="Loading" />
+                        <Loader2
+                          className="size-6 animate-spin text-muted-foreground"
+                          aria-label={t("playground.chat.loadingLabel")}
+                        />
                       </div>
                     )}
                     {chatHistory.length > 0 && <div aria-hidden className="h-[calc(100%-3rem)]" />}
@@ -2021,12 +2026,14 @@ const ChatUI: React.FC<ChatUIProps> = ({
                           {isLoading ? (
                             <>
                               <Loader2 className="size-4 animate-spin text-info" aria-hidden="true" />
-                              <span className="text-sm font-medium text-info">Running Python code...</span>
+                              <span className="text-sm font-medium text-info">
+                                {t("playground.chat.ci.runningPython")}
+                              </span>
                             </>
                           ) : (
                             <>
                               <Code2 className="size-4 text-info" aria-hidden="true" />
-                              <span className="text-sm font-medium text-info">Code Interpreter Active</span>
+                              <span className="text-sm font-medium text-info">{t("playground.chat.ci.active")}</span>
                             </>
                           )}
                         </div>

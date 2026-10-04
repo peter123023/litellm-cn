@@ -48,6 +48,7 @@ export const en: Record<string, string> = {
   "healthCheck.neverChecked": "Never checked",
   "healthCheck.checkInProgress": "Check in progress...",
   "healthCheck.neverSucceeded": "Never succeeded",
+  "healthCheck.valueNone": "None",
 
   // -------------------------------------------------- model_dashboard/ModelSettingsModal/ModelSettingsModal.tsx
   "modelSettings.title": "Model Settings",
@@ -74,8 +75,7 @@ export const en: Record<string, string> = {
   "credentials.add": "Add Credential",
 
   // -------------------------------------------------- model_add/CredentialsPanel.tsx
-  "credentials.description":
-    "Configured credentials for different AI providers. Add and manage your API credentials.",
+  "credentials.description": "Configured credentials for different AI providers. Add and manage your API credentials.",
   "credentials.updated": "Credential updated successfully",
   "credentials.updateFailed": "Failed to update credential",
   "credentials.added": "Credential added successfully",
@@ -165,8 +165,7 @@ export const en: Record<string, string> = {
   "priceData.nextRun": "Next run:",
   "priceData.statusLabel": "Status:",
   "priceData.setupTitle": "Set Up Periodic Reload",
-  "priceData.setupDescription":
-    "Set how often LiteLLM should fetch the latest pricing data from the remote source.",
+  "priceData.setupDescription": "Set how often LiteLLM should fetch the latest pricing data from the remote source.",
   "priceData.setupPrompt": "Set up automatic reload of price data every:",
   "priceData.intervalAria": "Reload interval in hours",
   "priceData.hours": "hours",
@@ -237,6 +236,7 @@ export const zh: Record<string, string> = {
   "healthCheck.neverChecked": "从未检查",
   "healthCheck.checkInProgress": "检查进行中...",
   "healthCheck.neverSucceeded": "从未成功",
+  "healthCheck.valueNone": "无",
 
   // -------------------------------------------------- model_dashboard/ModelSettingsModal/ModelSettingsModal.tsx
   "modelSettings.title": "模型设置",

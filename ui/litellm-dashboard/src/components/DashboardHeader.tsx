@@ -16,6 +16,8 @@ import { NotificationsBell } from "@/components/Navbar/NotificationsBell/Notific
 import ViewSwitcher from "@/components/Navbar/ViewSwitcher";
 import LiteAdmin from "@/components/liteadmin/LiteAdmin";
 import ThemeToggle from "@/components/ThemeToggle/ThemeToggle";
+import LanguageToggle from "@/components/Navbar/LanguageToggle";
+import { useTranslation } from "@/i18n";
 import WorkerDropdown from "@/components/Navbar/WorkerDropdown/WorkerDropdown";
 import { useWorker } from "@/hooks/useWorker";
 import { useDisableShowPrompts } from "@/app/(dashboard)/hooks/useDisableShowPrompts";
@@ -26,7 +28,8 @@ import { usePathname } from "next/navigation";
 // Top bar for the dashboard shell. Sits only over the content column (the brand
 // lives in the sidebar header); mirrors the design's breadcrumb-left / tools-right layout.
 export function DashboardHeader() {
-  const { title } = getBreadcrumb(usePathname());
+  const { language } = useTranslation();
+  const { title } = getBreadcrumb(usePathname(), language);
   const { isControlPlane, selectedWorker } = useWorker();
   const showWorkerSwitch = isControlPlane && selectedWorker !== null;
   const hideCommunityLinks = useDisableShowPrompts();
@@ -66,6 +69,7 @@ export function DashboardHeader() {
         {!hideCommunityLinks && <CommunityEngagementButtons />}
         <ToolbarSeparator />
         <ThemeToggle />
+        <LanguageToggle />
         <NotificationsBell />
       </div>
     </header>

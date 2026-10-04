@@ -1,4 +1,7 @@
+import { DEFAULT_LANGUAGE, translate, type Translate } from "@/i18n";
 import type { components } from "@/lib/http/schema";
+
+const DEFAULT_T: Translate = (key, params) => translate(DEFAULT_LANGUAGE, key, params);
 
 export type ROISummary = components["schemas"]["ROISummaryResponse"];
 export type ROIPull = components["schemas"]["ROIPullResponse"];
@@ -44,20 +47,22 @@ export const formatSyncedAt = (value: string): string => {
   return new Intl.DateTimeFormat("en-US", SYNCED_AT_FORMAT_OPTIONS).format(timestamp);
 };
 
-export const effortNote = (basis: string | null | undefined): string =>
-  basis === "without_ai"
-    ? "Estimated engineering hours without AI assistance, not actual hours worked or hours saved."
-    : "Earlier estimates did not specify AI assistance. Sync to estimate engineering hours without AI.";
+export const effortNote = (basis: string | null | undefined, t: Translate = DEFAULT_T): string =>
+  basis === "without_ai" ? t("roi.estimator.effortNoteWithoutAi") : t("roi.estimator.effortNoteUnknownBasis");
 
-export const coverageLabel = (summary: {
-  metrics: Pick<ROISummary["metrics"], "matched_prs" | "merged_prs">;
-  source_provider?: string;
-}): string => `${summary.metrics.matched_prs} of ${summary.metrics.merged_prs} matched`;
+export const coverageLabel = (
+  summary: {
+    metrics: Pick<ROISummary["metrics"], "matched_prs" | "merged_prs">;
+    source_provider?: string;
+  },
+  t: Translate = DEFAULT_T,
+): string =>
+  t("roi.coverage.matchedOfTotal", { matched: summary.metrics.matched_prs, total: summary.metrics.merged_prs });
 
-export const estimateLabel = (estimate: ROIEstimate): string => {
-  if (estimate.status === "estimated") return `${formatNumber(estimate.hours)} hrs`;
-  if (estimate.status === "error") return "Estimate failed";
-  return "Needs review";
+export const estimateLabel = (estimate: ROIEstimate, t: Translate = DEFAULT_T): string => {
+  if (estimate.status === "estimated") return t("roi.estimator.hoursValue", { hours: formatNumber(estimate.hours) });
+  if (estimate.status === "error") return t("roi.estimator.estimateFailed");
+  return t("roi.estimator.needsReview");
 };
 
 const matchedMethods = new Set(["manual", "commit email", "profile email"]);
@@ -121,14 +126,17 @@ export const peopleCsv = (summary: Pick<ROISummary, "people" | "start" | "end" |
     .join("\r\n");
 };
 
-export const branchCostLabel = (pull: ROIPull): string => {
-  if (!pull.branch_cost || pull.branch_cost.status === "unavailable") return "Sync to calculate";
-  if (pull.branch_cost.status === "ambiguous") return "Ambiguous branch";
-  if (pull.branch_cost.status === "unattributed") return "No tagged requests";
+export const branchCostLabel = (pull: ROIPull, t: Translate = DEFAULT_T): string => {
+  if (!pull.branch_cost || pull.branch_cost.status === "unavailable") return t("roi.branchCost.syncToCalculate");
+  if (pull.branch_cost.status === "ambiguous") return t("roi.branchCost.ambiguousBranch");
+  if (pull.branch_cost.status === "unattributed") return t("roi.branchCost.noTaggedRequests");
   return formatMoney(pull.branch_cost.spend);
 };
 
-export const estimatorModelOptions = (settings: Pick<ROISettings, "available_models" | "estimator_models">) => {
+export const estimatorModelOptions = (
+  settings: Pick<ROISettings, "available_models" | "estimator_models">,
+  t: Translate = DEFAULT_T,
+) => {
   const details = new Map(settings.estimator_models?.map((model) => [model.model_name, model]));
   const isLuna = (name: string) => /(?:^|\/)gpt-6-luna(?:-\d{4}-\d{2}-\d{2})?$/i.test(name);
   return settings.available_models
@@ -139,7 +147,10 @@ export const estimatorModelOptions = (settings: Pick<ROISettings, "available_mod
       return {
         value: name,
         label,
-        sublabel: [recommended ? "Recommended" : "", label !== name ? `Gateway name: ${name}` : ""]
+        sublabel: [
+          recommended ? t("roi.settings.recommendedModel") : "",
+          label !== name ? t("roi.settings.gatewayModelName", { name }) : "",
+        ]
           .filter(Boolean)
           .join(" · "),
         recommended,

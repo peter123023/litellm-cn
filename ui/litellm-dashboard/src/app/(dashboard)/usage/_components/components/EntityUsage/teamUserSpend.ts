@@ -1,14 +1,17 @@
 import Papa from "papaparse";
 
 import type { TeamUserSpendResponse } from "@/components/networking";
+import { DEFAULT_LANGUAGE, translate, type Translate } from "@/i18n";
 
 export type TeamUserSpendRow = TeamUserSpendResponse["results"][number];
 
 export const NO_USER_LABEL = "(no user)";
 
-export const userLabel = (row: TeamUserSpendRow): string => {
+const englishT: Translate = (key, params) => translate(DEFAULT_LANGUAGE, key, params);
+
+export const userLabel = (row: TeamUserSpendRow, t: Translate = englishT): string => {
   const identity = row.user_email || row.user_alias;
-  return identity || row.user_id || NO_USER_LABEL;
+  return identity || row.user_id || t("usage.teamUserSpend.noUser");
 };
 
 export const teamLabel = (row: TeamUserSpendRow): string => row.team_alias || row.team_id;

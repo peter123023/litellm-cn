@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { SettingsIcon } from "lucide-react";
 import ModelSelector from "@/components/common_components/ModelSelector";
+import { useTranslation } from "@/i18n";
 
 interface ModelConfigCardProps {
   model: string | null;
@@ -25,6 +26,7 @@ const ModelConfigCard: React.FC<ModelConfigCardProps> = ({
   onMaxTokensChange,
 }) => {
   const [showConfig, setShowConfig] = useState(false);
+  const { t } = useTranslation();
 
   return (
     <div className="flex items-center gap-3">
@@ -34,19 +36,19 @@ const ModelConfigCard: React.FC<ModelConfigCardProps> = ({
 
       <Button type="button" variant="outline" onClick={() => setShowConfig(!showConfig)} className="gap-2">
         <SettingsIcon size={16} />
-        <span>Parameters</span>
+        <span>{t("prompts.editor.parameters")}</span>
       </Button>
 
       <Dialog open={showConfig} onOpenChange={setShowConfig}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Model Parameters</DialogTitle>
+            <DialogTitle>{t("prompts.editor.modelParameters")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label htmlFor="prompt-temperature" className="text-sm text-foreground">
-                  Temperature
+                  {t("prompts.editor.temperature")}
                 </label>
                 <Input
                   id="prompt-temperature"
@@ -63,7 +65,7 @@ const ModelConfigCard: React.FC<ModelConfigCardProps> = ({
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label htmlFor="prompt-max-tokens" className="text-sm text-foreground">
-                  Max Tokens
+                  {t("prompts.editor.maxTokens")}
                 </label>
                 <Input
                   id="prompt-max-tokens"

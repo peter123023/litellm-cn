@@ -10,6 +10,7 @@ import { useUpdateCyberArkConfig } from "@/app/(dashboard)/hooks/configOverrides
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import DeleteResourceModal from "@/components/common_components/DeleteResourceModal";
 import { toast } from "@/lib/toast";
+import { useTranslation, type Translate } from "@/i18n";
 import { Alert, AlertDescription, AlertTitle } from "@/components/shared/Alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,12 +18,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 import CyberArkEmptyPlaceholder from "./CyberArkEmptyPlaceholder";
 import EditCyberArkModal from "./EditCyberArkModal";
-import { FIELD_LABELS, SENSITIVE_FIELDS } from "./constants";
+import { getFieldLabels, SENSITIVE_FIELDS } from "./constants";
 
-function detectAuthMethod(values: Record<string, unknown>): string {
-  if (values.cyberark_api_key) return "API Key";
-  if (values.client_cert && values.client_key) return "TLS Certificate";
-  return "None";
+function detectAuthMethod(values: Record<string, unknown>, t: Translate): string {
+  if (values.cyberark_api_key) return t("adminSettings.cyberArk.fieldLabels.apiKey");
+  if (values.client_cert && values.client_key) return t("adminSettings.secretManager.authMethod.tlsCertificate");
+  return t("adminSettings.secretManager.authMethod.none");
 }
 
 function DetailRow({ children, label }: { children: React.ReactNode; label: string }) {
@@ -35,6 +36,7 @@ function DetailRow({ children, label }: { children: React.ReactNode; label: stri
 }
 
 export default function CyberArk() {
+  const { t } = useTranslation();
   const { accessToken } = useAuthorized();
   const { data, isLoading, isError, error } = useCyberArkConfig();
   const { mutate: deleteConfig, isPending: isDeleting } = useDeleteCyberArkConfig(accessToken);
@@ -45,13 +47,14 @@ export default function CyberArk() {
   const [isTesting, setIsTesting] = useState(false);
   const rawValues = data?.values ?? {};
   const isConfigured = Boolean(rawValues.cyberark_api_base);
+  const fieldLabels = getFieldLabels(t);
 
   const handleTestConnection = async () => {
     if (!accessToken) return;
     setIsTesting(true);
     try {
       const result = await testCyberArkConnection(accessToken);
-      toast.success(result.message || "Connection to CyberArk Conjur successful!");
+      toast.success(result.message || t("adminSettings.cyberArk.test.success"));
     } catch (err) {
       toast.fromError(err);
     } finally {
@@ -62,7 +65,7 @@ export default function CyberArk() {
   const handleDelete = () => {
     deleteConfig(undefined, {
       onSuccess: () => {
-        toast.success("CyberArk configuration deleted");
+        toast.success(t("adminSettings.cyberArk.delete.success"));
         setIsDeleteModalOpen(false);
       },
       onError: (err) => toast.fromError(err),
@@ -75,7 +78,9 @@ export default function CyberArk() {
       { [clearingField]: "" },
       {
         onSuccess: () => {
-          toast.success(`${FIELD_LABELS[clearingField] ?? clearingField} cleared`);
+          toast.success(
+            t("adminSettings.secretManager.field.cleared", { field: fieldLabels[clearingField] ?? clearingField }),
+          );
           setClearingField(null);
         },
         onError: (err) => toast.fromError(err),
@@ -85,7 +90,8 @@ export default function CyberArk() {
 
   const renderValue = (key: string) => {
     const value = rawValues[key];
-    if (!value) return <span className="text-muted-foreground italic">Not configured</span>;
+    if (!value)
+      return <span className="text-muted-foreground italic">{t("adminSettings.secretManager.notConfigured")}</span>;
     if (!SENSITIVE_FIELDS.has(key)) return <span className="font-mono text-muted-foreground">{value}</span>;
 
     return (
@@ -95,7 +101,7 @@ export default function CyberArk() {
           type="button"
           variant="ghost"
           size="icon-sm"
-          aria-label={`Clear ${FIELD_LABELS[key] ?? key}`}
+          aria-label={t("adminSettings.secretManager.field.clear", { field: fieldLabels[key] ?? key })}
           onClick={() => setClearingField(key)}
         >
           <Trash2 className="size-3.5" />
@@ -109,7 +115,7 @@ export default function CyberArk() {
   const renderCard = () => {
     if (isLoading) {
       return (
-        <Card role="status" aria-label="Loading CyberArk configuration">
+        <Card role="status" aria-label={t("adminSettings.cyberArk.loading")}>
           <CardContent className="space-y-3">
             <Skeleton className="h-8 w-64" />
             <Skeleton className="h-40 w-full" />
@@ -122,7 +128,7 @@ export default function CyberArk() {
         <Card>
           <CardContent>
             <Alert variant="error">
-              <AlertTitle>Could not load CyberArk configuration</AlertTitle>
+              <AlertTitle>{t("adminSettings.cyberArk.loadError")}</AlertTitle>
               {error instanceof Error && <AlertDescription>{error.message}</AlertDescription>}
             </Alert>
           </CardContent>
@@ -138,22 +144,22 @@ export default function CyberArk() {
               <CardTitle>
                 <h3>CyberArk Conjur</h3>
               </CardTitle>
-              <CardDescription>Manage secret manager configuration</CardDescription>
+              <CardDescription>{t("adminSettings.secretManager.card.description")}</CardDescription>
             </div>
           </div>
           {isConfigured && (
             <CardAction className="flex flex-wrap gap-2">
               <Button type="button" variant="outline" disabled={isTesting} onClick={handleTestConnection}>
                 <PlugZap />
-                {isTesting ? "Testing..." : "Test Connection"}
+                {isTesting ? t("adminSettings.secretManager.testing") : t("adminSettings.secretManager.test.action")}
               </Button>
               <Button type="button" variant="outline" onClick={() => setIsEditModalVisible(true)}>
                 <Edit />
-                Edit Configuration
+                {t("adminSettings.secretManager.editConfiguration")}
               </Button>
               <Button type="button" variant="destructive" onClick={() => setIsDeleteModalOpen(true)}>
                 <Trash2 />
-                Delete Configuration
+                {t("adminSettings.secretManager.deleteConfiguration")}
               </Button>
             </CardAction>
           )}
@@ -162,7 +168,7 @@ export default function CyberArk() {
           {isConfigured && (
             <Alert variant="info">
               <Info />
-              <AlertTitle>Configuration changes are hot-reloaded across all proxy instances</AlertTitle>
+              <AlertTitle>{t("adminSettings.cyberArk.hotReloadNotice")}</AlertTitle>
               <AlertDescription>
                 <a
                   href="https://docs.litellm.ai/docs/secret_managers/cyberark"
@@ -170,7 +176,7 @@ export default function CyberArk() {
                   rel="noreferrer"
                   className="inline-flex items-center gap-1"
                 >
-                  View documentation
+                  {t("adminSettings.secretManager.viewDocumentation")}
                   <ExternalLink className="size-3" />
                 </a>
               </AlertDescription>
@@ -180,9 +186,11 @@ export default function CyberArk() {
           {isConfigured ? (
             fieldsToShow.length > 0 && (
               <dl className="divide-y divide-border overflow-hidden rounded-md border border-border">
-                <DetailRow label="Auth Method">{detectAuthMethod(rawValues)}</DetailRow>
+                <DetailRow label={t("adminSettings.secretManager.authMethodLabel")}>
+                  {detectAuthMethod(rawValues, t)}
+                </DetailRow>
                 {fieldsToShow.map(([key]) => (
-                  <DetailRow key={key} label={FIELD_LABELS[key] ?? key}>
+                  <DetailRow key={key} label={fieldLabels[key] ?? key}>
                     {renderValue(key)}
                   </DetailRow>
                 ))}
@@ -207,21 +215,28 @@ export default function CyberArk() {
       />
       <DeleteResourceModal
         isOpen={isDeleteModalOpen}
-        title="Delete CyberArk Configuration?"
-        message="Models using CyberArk secrets will lose access to their API keys until a new configuration is saved."
-        resourceInformationTitle="CyberArk Configuration"
-        resourceInformation={[{ label: "Conjur Server URL", value: rawValues.cyberark_api_base }]}
+        title={t("adminSettings.cyberArk.deleteModal.title")}
+        message={t("adminSettings.cyberArk.deleteModal.message")}
+        resourceInformationTitle={t("adminSettings.cyberArk.deleteModal.resourceTitle")}
+        resourceInformation={[
+          { label: t("adminSettings.cyberArk.fieldLabels.conjurServerUrl"), value: rawValues.cyberark_api_base },
+        ]}
         onCancel={() => setIsDeleteModalOpen(false)}
         onOk={handleDelete}
         confirmLoading={isDeleting}
       />
       <DeleteResourceModal
         isOpen={clearingField !== null}
-        title={`Clear ${clearingField ? FIELD_LABELS[clearingField] ?? clearingField : ""}?`}
-        message="This will remove the stored value."
-        resourceInformationTitle="Field"
+        title={t("adminSettings.secretManager.clearModal.title", {
+          field: clearingField ? fieldLabels[clearingField] ?? clearingField : "",
+        })}
+        message={t("adminSettings.secretManager.clearModal.message")}
+        resourceInformationTitle={t("adminSettings.secretManager.clearModal.resourceTitle")}
         resourceInformation={[
-          { label: "Field", value: clearingField ? FIELD_LABELS[clearingField] ?? clearingField : "" },
+          {
+            label: t("adminSettings.secretManager.clearModal.resourceTitle"),
+            value: clearingField ? fieldLabels[clearingField] ?? clearingField : "",
+          },
         ]}
         onCancel={() => setClearingField(null)}
         onOk={handleClearField}

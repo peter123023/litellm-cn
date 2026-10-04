@@ -57,17 +57,17 @@ import LLMJudgeFields from "./llm_judge/LLMJudgeFields";
 import PiiConfiguration from "./pii_configuration";
 import ToolPermissionRulesEditor, { ToolPermissionConfig } from "./tool_permission/ToolPermissionRulesEditor";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { useTranslation } from "@/i18n";
 
-// Define human-friendly descriptions for each mode
-const modeDescriptions = {
-  pre_call: "Before LLM Call - Runs before the LLM call and checks the input (Recommended)",
-  during_call: "During LLM Call - Runs in parallel with the LLM call, with response held until check completes",
-  post_call: "After LLM Call - Runs after the LLM call and checks only the output",
-  logging_only: "Logging Only - Only runs on logging callbacks without affecting the LLM call",
-  pre_mcp_call: "Before MCP Tool Call - Runs before MCP tool execution and validates tool calls",
-  during_mcp_call: "During MCP Tool Call - Runs in parallel with MCP tool execution for monitoring",
-  post_mcp_call: "After MCP Tool Call - Runs after MCP tool execution and checks the tool result",
-};
+const modeDescriptionKeys = {
+  pre_call: "addForm.modeDesc.preCall",
+  during_call: "addForm.modeDesc.duringCall",
+  post_call: "addForm.modeDesc.postCall",
+  logging_only: "addForm.modeDesc.loggingOnly",
+  pre_mcp_call: "addForm.modeDesc.preMcpCall",
+  during_mcp_call: "addForm.modeDesc.duringMcpCall",
+  post_mcp_call: "addForm.modeDesc.postMcpCall",
+} as const;
 
 interface GuardrailPreset {
   provider: string;
@@ -164,11 +164,6 @@ const INITIAL_VALUES: GuardrailFormValues = {
   skip_tool_message_choice: "inherit",
 };
 
-const ALWAYS_ON_ITEMS = [
-  { label: "Yes", value: true },
-  { label: "No", value: false },
-];
-
 const DEFAULT_MODES = ["pre_call", "during_call", "post_call", "logging_only"];
 
 const CALL_TYPE_ITEMS = [{ label: "/v1/realtime", value: "realtime" }];
@@ -198,6 +193,11 @@ interface ProviderParamsResponse {
 }
 
 const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, accessToken, onSuccess, preset }) => {
+  const { t } = useTranslation();
+  const alwaysOnItems = [
+    { label: t("addForm.yes"), value: true },
+    { label: t("addForm.no"), value: false },
+  ];
   const form = useForm<GuardrailFormValues>({ defaultValues: INITIAL_VALUES });
   const [loading, setLoading] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
@@ -259,7 +259,7 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
         populateGuardrailProviderMap(providerParamsResp);
       } catch (error) {
         console.error("Error fetching guardrail data:", error);
-        toast.fromError("Failed to load guardrail configuration");
+        toast.fromError(t("addForm.loadConfigFailed"));
       }
     };
 
@@ -383,7 +383,7 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
     // Validate configuration steps
     if (currentStep === 1) {
       if (shouldRenderPIIConfigSettings(selectedProvider) && selectedEntities.length === 0) {
-        toast.fromError("Please select at least one PII entity to continue");
+        toast.fromError(t("addForm.selectPiiEntity"));
         return;
       }
     }
@@ -423,7 +423,7 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
       setLoading(true);
       // First validate currently visible fields
       if (!(await form.trigger())) {
-        toast.fromError("Failed to create guardrail: please fix the highlighted fields");
+        toast.fromError(t("addForm.fixHighlightedFields"));
         return;
       }
 
@@ -487,9 +487,7 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
         const hasContentFilterSelections =
           selectedPatterns.length > 0 || blockedWords.length > 0 || selectedContentCategories.length > 0;
         if (!hasContentFilterSelections && !hasCompetitorIntent) {
-          toast.fromError(
-            "Please configure at least one content filter setting (category, pattern, keyword, or competitor intent)",
-          );
+          toast.fromError(t("addForm.configureContentFilter"));
           setLoading(false);
           return;
         }
@@ -543,7 +541,7 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
           // For some guardrails, the config values need to be in litellm_params
           guardrailData.guardrail_info = configObj;
         } catch (error) {
-          toast.fromError("Invalid JSON in configuration");
+          toast.fromError(t("addForm.invalidJson"));
           setLoading(false);
           return;
         }
@@ -552,13 +550,13 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
       if (guardrailProvider === "llm_as_a_judge") {
         const criteria: GuardrailCriterion[] = values.criteria ?? [];
         if (criteria.length === 0) {
-          toast.fromError("Add at least one evaluation criterion");
+          toast.fromError(t("addForm.addCriterion"));
           setLoading(false);
           return;
         }
         const weightTotal = criteria.reduce((sum, c) => sum + (Number(c?.weight) || 0), 0);
         if (weightTotal !== 100) {
-          toast.fromError(`Criterion weights must sum to 100% (currently ${weightTotal}%)`);
+          toast.fromError(t("addForm.weightsMustSum", { total: weightTotal }));
           setLoading(false);
           return;
         }
@@ -574,7 +572,7 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
 
       if (guardrailProvider === "tool_permission") {
         if (toolPermissionConfig.rules.length === 0) {
-          toast.fromError("Add at least one tool permission rule");
+          toast.fromError(t("addForm.addToolRule"));
           setLoading(false);
           return;
         }
@@ -645,12 +643,12 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
       }
 
       if (!accessToken) {
-        throw new Error("No access token available");
+        throw new Error(t("addForm.noAccessToken"));
       }
 
       await createGuardrailCall(accessToken, guardrailData);
 
-      toast.success("Guardrail created successfully");
+      toast.success(t("addForm.created"));
 
       // Reset form and close modal
       resetForm();
@@ -658,7 +656,7 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
       onClose();
     } catch (error) {
       console.error("Failed to create guardrail:", error);
-      toast.fromError("Failed to create guardrail: " + (error instanceof Error ? error.message : String(error)));
+      toast.fromError(t("addForm.createFailed", { error: error instanceof Error ? error.message : String(error) }));
     } finally {
       setLoading(false);
     }
@@ -677,19 +675,19 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
         <GuardrailField
           control={form.control}
           name="guardrail_name"
-          label="Guardrail Name"
-          rules={requiredRule("Please enter a guardrail name")}
+          label={t("addForm.nameLabel")}
+          rules={requiredRule(t("addForm.nameRequired"))}
         >
           {({ ref, value, ...field }) => (
-            <Input {...field} ref={ref} value={asText(value)} placeholder="Enter a name for this guardrail" />
+            <Input {...field} ref={ref} value={asText(value)} placeholder={t("addForm.namePlaceholder")} />
           )}
         </GuardrailField>
 
         <GuardrailField
           control={form.control}
           name="provider"
-          label="Guardrail Provider"
-          rules={requiredRule("Please select a provider")}
+          label={t("addForm.providerLabel")}
+          rules={requiredRule(t("addForm.providerRequired"))}
         >
           {({ id, value, onChange, "aria-invalid": ariaInvalid, "aria-describedby": ariaDescribedBy }) => (
             <Combobox
@@ -707,11 +705,11 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
                 id={id}
                 aria-invalid={ariaInvalid}
                 aria-describedby={ariaDescribedBy}
-                placeholder="Select a guardrail provider"
+                placeholder={t("addForm.providerPlaceholder")}
                 className="w-full"
               />
               <ComboboxContent>
-                <ComboboxEmpty>No matching providers</ComboboxEmpty>
+                <ComboboxEmpty>{t("addForm.noMatchingProviders")}</ComboboxEmpty>
                 <ComboboxList>
                   {(key: string) => (
                     <ComboboxItem key={key} value={key}>
@@ -734,8 +732,8 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
         <GuardrailField
           control={form.control}
           name="mode"
-          label={labelWithHint("Mode", "How the guardrail should be applied")}
-          rules={requiredRule("Please select a mode")}
+          label={labelWithHint(t("addForm.modeLabel"), t("addForm.modeHint"))}
+          rules={requiredRule(t("addForm.modeRequired"))}
         >
           {({ id, value, onChange }) => (
             <MultiSelect
@@ -743,7 +741,7 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
               options={supportedModes.map((mode) => ({
                 label: mode,
                 value: mode,
-                description: modeDescriptions[mode as keyof typeof modeDescriptions],
+                description: t(modeDescriptionKeys[mode as keyof typeof modeDescriptionKeys]),
               }))}
               value={asStringArray(value)}
               onValueChange={onChange}
@@ -755,20 +753,20 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
         <GuardrailField
           control={form.control}
           name="default_on"
-          label={labelWithHint("Always On", "If enabled, this guardrail will be applied to all requests by default.")}
+          label={labelWithHint(t("addForm.alwaysOnLabel"), t("addForm.alwaysOnHint"))}
         >
           {({ id, value, onChange, "aria-invalid": ariaInvalid, "aria-describedby": ariaDescribedBy }) => (
             <Select
-              items={ALWAYS_ON_ITEMS}
+              items={alwaysOnItems}
               value={typeof value === "boolean" ? value : null}
               onValueChange={(next: boolean | null) => onChange(next)}
             >
               <SelectTrigger id={id} aria-invalid={ariaInvalid} aria-describedby={ariaDescribedBy} className="w-full">
-                <SelectValue placeholder="Select an option" />
+                <SelectValue placeholder={t("addForm.selectOption")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={true}>Yes</SelectItem>
-                <SelectItem value={false}>No</SelectItem>
+                <SelectItem value={true}>{t("addForm.yes")}</SelectItem>
+                <SelectItem value={false}>{t("addForm.no")}</SelectItem>
               </SelectContent>
             </Select>
           )}
@@ -777,10 +775,7 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
         <GuardrailField
           control={form.control}
           name="skip_system_message_choice"
-          label={labelWithHint(
-            "Skip system messages in guardrail",
-            "Unified guardrails only: omit role: system from guardrail evaluation input (OpenAI chat + Anthropic messages). The model still receives full messages. Use global default follows litellm_settings.skip_system_message_in_guardrail.",
-          )}
+          label={labelWithHint(t("addForm.skipSystemLabel"), t("addForm.skipSystemHint"))}
         >
           {(fieldControl) => <SkipMessageSelect control={fieldControl} />}
         </GuardrailField>
@@ -788,10 +783,7 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
         <GuardrailField
           control={form.control}
           name="skip_tool_message_choice"
-          label={labelWithHint(
-            "Skip tool messages in guardrail",
-            "Unified guardrails only: omit role: tool from guardrail evaluation input (OpenAI chat + Anthropic messages). The model still receives full messages. Use global default follows litellm_settings.skip_tool_message_in_guardrail.",
-          )}
+          label={labelWithHint(t("addForm.skipToolLabel"), t("addForm.skipToolHint"))}
         >
           {(fieldControl) => <SkipMessageSelect control={fieldControl} />}
         </GuardrailField>
@@ -934,14 +926,13 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
       <div className="space-y-6">
         <div>
           <p className="text-sm text-muted-foreground">
-            Configure settings for a specific call type. Most guardrails don't need this — skip it unless you're using a
-            specific endpoint like <code>/v1/realtime</code>.
+            {t("addForm.endpointIntro")} <code>/v1/realtime</code>.
           </p>
         </div>
 
         <div>
           <label htmlFor="guardrail-call-type" className="mb-1 block text-sm font-medium text-foreground">
-            Call type
+            {t("addForm.callTypeLabel")}
           </label>
           <Select
             items={CALL_TYPE_ITEMS}
@@ -952,7 +943,7 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
             }}
           >
             <SelectTrigger id="guardrail-call-type" className="w-65">
-              <SelectValue placeholder="Select a call type" />
+              <SelectValue placeholder={t("addForm.callTypePlaceholder")} />
             </SelectTrigger>
             <SelectContent>
               {CALL_TYPE_ITEMS.map((item) => (
@@ -962,7 +953,7 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
               ))}
             </SelectContent>
           </Select>
-          <p className="mt-1 text-xs text-muted-foreground">More call types coming soon.</p>
+          <p className="mt-1 text-xs text-muted-foreground">{t("addForm.moreCallTypes")}</p>
         </div>
 
         {selectedEndpointType === "realtime" && (
@@ -972,7 +963,7 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
               onClick={() => setEndpointSettingsOpen((o) => !o)}
               className="flex w-full items-center justify-between bg-muted px-4 py-3 text-sm font-medium text-foreground hover:bg-muted/70"
             >
-              <span>/v1/realtime settings</span>
+              <span>/v1/realtime {t("addForm.settingsSuffix")}</span>
               <svg
                 className={`w-4 h-4 text-muted-foreground transition-transform ${endpointSettingsOpen ? "rotate-180" : ""}`}
                 fill="none"
@@ -991,17 +982,14 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
                     htmlFor="guardrail-end-session-after"
                     className="mb-1 block text-sm font-medium text-foreground"
                   >
-                    End session after X violations
+                    {t("addForm.endSessionLabel")}
                   </label>
-                  <p className="mb-2 text-xs text-muted-foreground">
-                    Automatically close the session after this many guardrail violations. Leave empty to never
-                    auto-close.
-                  </p>
+                  <p className="mb-2 text-xs text-muted-foreground">{t("addForm.endSessionHint")}</p>
                   <Input
                     id="guardrail-end-session-after"
                     type="number"
                     min={1}
-                    placeholder="e.g. 3"
+                    placeholder={t("addForm.endSessionPlaceholder")}
                     value={endSessionAfterNFails ?? ""}
                     onChange={(e) =>
                       setEndSessionAfterNFails(e.target.value ? parseInt(e.target.value, 10) : undefined)
@@ -1011,7 +999,9 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-foreground">On violation</label>
+                  <label className="mb-2 block text-sm font-medium text-foreground">
+                    {t("addForm.onViolationLabel")}
+                  </label>
                   <div className="space-y-2">
                     {(["warn", "end_session"] as const).map((opt) => (
                       <label key={opt} className="flex items-start gap-2 cursor-pointer">
@@ -1025,12 +1015,10 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
                         />
                         <div>
                           <span className="text-sm font-medium text-foreground">
-                            {opt === "warn" ? "Warn" : "End session"}
+                            {opt === "warn" ? t("addForm.warn") : t("addForm.endSession")}
                           </span>
                           <p className="m-0 text-xs text-muted-foreground">
-                            {opt === "warn"
-                              ? "Bot speaks the message, session continues"
-                              : "Bot speaks the message, connection closes immediately"}
+                            {opt === "warn" ? t("addForm.warnHint") : t("addForm.endSessionRadioHint")}
                           </p>
                         </div>
                       </label>
@@ -1043,16 +1031,13 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
                     htmlFor="guardrail-realtime-message"
                     className="mb-1 block text-sm font-medium text-foreground"
                   >
-                    Message the user hears
+                    {t("addForm.userMessageLabel")}
                   </label>
-                  <p className="mb-2 text-xs text-muted-foreground">
-                    What the bot says aloud when this guardrail fires. Falls back to the default violation message if
-                    empty.
-                  </p>
+                  <p className="mb-2 text-xs text-muted-foreground">{t("addForm.userMessageHint")}</p>
                   <Textarea
                     id="guardrail-realtime-message"
                     rows={3}
-                    placeholder="e.g. I'm not able to continue this conversation. Please contact us at 1-800-774-2678."
+                    placeholder={t("addForm.userMessagePlaceholder")}
                     value={realtimeViolationMessage}
                     onChange={(e) => setRealtimeViolationMessage(e.target.value)}
                     className="w-full resize-none"
@@ -1069,22 +1054,22 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
   const getStepConfigs = () => {
     if (shouldRenderContentFilterConfigSettings(selectedProvider)) {
       return [
-        { title: "Basic Info", optional: false },
-        { title: "Topics", optional: false },
-        { title: "Patterns", optional: false },
-        { title: "Keywords", optional: false },
-        { title: "Endpoint Settings (Optional)", optional: true },
+        { title: t("addForm.stepBasicInfo"), optional: false },
+        { title: t("addForm.stepTopics"), optional: false },
+        { title: t("addForm.stepPatterns"), optional: false },
+        { title: t("addForm.stepKeywords"), optional: false },
+        { title: t("addForm.stepEndpointSettings"), optional: true },
       ];
     }
     if (shouldRenderPIIConfigSettings(selectedProvider)) {
       return [
-        { title: "Basic Info", optional: false },
-        { title: "PII Configuration", optional: false },
+        { title: t("addForm.stepBasicInfo"), optional: false },
+        { title: t("addForm.stepPiiConfig"), optional: false },
       ];
     }
     return [
-      { title: "Basic Info", optional: false },
-      { title: "Provider Configuration", optional: false },
+      { title: t("addForm.stepBasicInfo"), optional: false },
+      { title: t("addForm.stepProviderConfig"), optional: false },
     ];
   };
 
@@ -1100,7 +1085,9 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
           <div className="flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-border px-6 py-4">
-              <DialogTitle className="m-0 text-base font-semibold text-foreground">Create guardrail</DialogTitle>
+              <DialogTitle className="m-0 text-base font-semibold text-foreground">
+                {t("addForm.createTitle")}
+              </DialogTitle>
               <button
                 type="button"
                 onClick={handleClose}
@@ -1140,9 +1127,11 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
                         >
                           <span className={`text-sm ${getStepTitleClass(isDone, isCurrent)}`}>{step.title}</span>
                           {step.optional && !isCurrent && (
-                            <span className="text-[11px] text-muted-foreground">optional</span>
+                            <span className="text-[11px] text-muted-foreground">{t("addForm.optional")}</span>
                           )}
-                          {isDone && <span className="text-[11px] text-info hover:underline">Edit</span>}
+                          {isDone && (
+                            <span className="text-[11px] text-info hover:underline">{t("addForm.editStep")}</span>
+                          )}
                         </div>
 
                         {/* Expanded form content for current step */}
@@ -1157,21 +1146,21 @@ const AddGuardrailForm: React.FC<AddGuardrailFormProps> = ({ visible, onClose, a
             {/* Bottom bar */}
             <div className="flex items-center justify-end space-x-3 border-t border-border px-6 py-3">
               <Button type="button" variant="outline" onClick={handleClose}>
-                Cancel
+                {t("addForm.cancel")}
               </Button>
               {currentStep > 0 && (
                 <Button type="button" variant="outline" onClick={prevStep}>
-                  Previous
+                  {t("addForm.previous")}
                 </Button>
               )}
               {currentStep < stepConfigs.length - 1 ? (
                 <Button type="button" onClick={nextStep}>
-                  Next
+                  {t("addForm.next")}
                 </Button>
               ) : (
                 <Button type="button" onClick={handleSubmit} disabled={loading}>
                   {loading && <UiLoadingSpinner className="size-4" />}
-                  Create Guardrail
+                  {t("addForm.createGuardrail")}
                 </Button>
               )}
             </div>

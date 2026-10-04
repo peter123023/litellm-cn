@@ -6,6 +6,7 @@ import { useController, type Control, type ControllerRenderProps, type RegisterO
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useTranslation } from "@/i18n";
 
 export interface GuardrailCriterion {
   name: string;
@@ -100,23 +101,25 @@ export const GuardrailField: React.FC<GuardrailFieldProps> = ({
 };
 
 const SKIP_MESSAGE_ITEMS = [
-  { label: "Use global default", value: "inherit" },
-  { label: "Yes — exclude from guardrail scan", value: "yes" },
-  { label: "No — always include in scan", value: "no" },
+  { labelKey: "guardrailForm.skipInherit", value: "inherit" },
+  { labelKey: "guardrailForm.skipYes", value: "yes" },
+  { labelKey: "guardrailForm.skipNo", value: "no" },
 ];
 
 export const SkipMessageSelect: React.FC<{ control: GuardrailFieldControlProps }> = ({ control }) => {
+  const { t } = useTranslation();
   const { id, value, onChange, "aria-invalid": ariaInvalid, "aria-describedby": ariaDescribedBy } = control;
+  const items = SKIP_MESSAGE_ITEMS.map((item) => ({ value: item.value, label: t(item.labelKey) }));
 
   return (
-    <Select items={SKIP_MESSAGE_ITEMS} value={asText(value) || null} onValueChange={onChange}>
+    <Select items={items} value={asText(value) || null} onValueChange={onChange}>
       <SelectTrigger id={id} aria-invalid={ariaInvalid} aria-describedby={ariaDescribedBy} className="w-full">
-        <SelectValue placeholder="Select an option" />
+        <SelectValue placeholder={t("guardrailForm.selectOption")} />
       </SelectTrigger>
       <SelectContent>
         {SKIP_MESSAGE_ITEMS.map((item) => (
           <SelectItem key={item.value} value={item.value}>
-            {item.label}
+            {t(item.labelKey)}
           </SelectItem>
         ))}
       </SelectContent>

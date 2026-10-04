@@ -6,6 +6,7 @@ import anthropicLogo from "@/../public/assets/logos/anthropic.svg";
 import openaiLogo from "@/../public/assets/logos/openai_small.svg";
 import { briefMarkdown } from "../model/findings";
 import { type IssueBrief } from "../model/types";
+import { useTranslation } from "@/i18n";
 
 const AGENTS = [
   { name: "Claude Code", logo: anthropicLogo.src },
@@ -29,10 +30,11 @@ const markdown: Components = {
 };
 
 export function IssueBrief({ title, brief }: { title: string; brief: IssueBrief }) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState<string | null>(null);
-  const source = briefMarkdown(title, brief);
+  const source = briefMarkdown(title, brief, t);
   const copy = async (agent: string) => {
-    if (await copyToClipboard(source, `Copied for ${agent}`)) {
+    if (await copyToClipboard(source, t("lens.investigations.copiedFor", { agent }))) {
       setCopied(agent);
       window.setTimeout(() => setCopied(null), COPIED_RESET_MS);
     }
@@ -41,13 +43,13 @@ export function IssueBrief({ title, brief }: { title: string; brief: IssueBrief 
     <div className="overflow-hidden rounded-lg border border-border">
       <div className="flex h-10 items-center gap-1 border-b border-border bg-muted/40 px-3">
         <span className="font-mono text-xs text-muted-foreground">issue-brief.md</span>
-        <span className="mr-1 ml-auto text-xs text-muted-foreground">Copy for</span>
+        <span className="mr-1 ml-auto text-xs text-muted-foreground">{t("lens.investigations.copyFor")}</span>
         {AGENTS.map((agent) => (
           <button
             key={agent.name}
             type="button"
             onClick={() => void copy(agent.name)}
-            aria-label={`Copy for ${agent.name}`}
+            aria-label={t("lens.investigations.copyForNamed", { agent: agent.name })}
             className="inline-flex h-7 items-center gap-1.5 rounded-md border border-border bg-background px-2 text-xs font-medium hover:bg-muted"
           >
             {copied === agent.name ? (

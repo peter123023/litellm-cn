@@ -1,4 +1,8 @@
+import { DEFAULT_LANGUAGE, translate, type Translate } from "@/i18n";
+
 import { modelAvailableCall } from "../networking";
+
+const englishT: Translate = (key, params) => translate(DEFAULT_LANGUAGE, key, params);
 
 export const fetchAvailableModelsForTeamOrKey = async (
   userID: string,
@@ -41,13 +45,13 @@ export const excludeProxyWideSentinel = (models: string[]): string[] =>
 export const hasAllModelsSentinel = (models: string[]): boolean =>
   models.includes("all-proxy-models") || models.includes("all-team-models");
 
-export const getModelDisplayName = (model: string) => {
+export const getModelDisplayName = (model: string, t: Translate = englishT) => {
   if (model === "all-proxy-models") {
-    return "All Proxy Models";
+    return t("keyTeam.allProxyModels");
   }
   if (model.endsWith("/*")) {
     const provider = model.replace("/*", "");
-    return `All ${provider} models`;
+    return t("keyTeam.allProviderModels", { provider });
   }
   return model;
 };

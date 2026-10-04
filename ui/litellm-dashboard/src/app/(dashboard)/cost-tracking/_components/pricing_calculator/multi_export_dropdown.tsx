@@ -9,12 +9,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MultiModelResult } from "./types";
 import { exportMultiToPDF, exportMultiToCSV } from "./multi_export_utils";
+import { useTranslation } from "@/i18n";
 
 interface MultiExportDropdownProps {
   multiResult: MultiModelResult;
 }
 
 const MultiExportDropdown: React.FC<MultiExportDropdownProps> = ({ multiResult }) => {
+  const { t } = useTranslation();
   const hasResults = multiResult.entries.some((e) => e.result !== null);
 
   if (!hasResults) {
@@ -25,16 +27,16 @@ const MultiExportDropdown: React.FC<MultiExportDropdownProps> = ({ multiResult }
     <DropdownMenu>
       <DropdownMenuTrigger className={buttonVariants({ variant: "secondary", size: "xs" })}>
         <Download />
-        Export
+        {t("costTracking.export.action")}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">
-        <DropdownMenuItem onClick={() => exportMultiToPDF(multiResult)}>
+        <DropdownMenuItem onClick={() => exportMultiToPDF(multiResult, t)}>
           <FileText />
-          Export as PDF
+          {t("costTracking.export.pdf")}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => exportMultiToCSV(multiResult)}>
+        <DropdownMenuItem onClick={() => exportMultiToCSV(multiResult, t)}>
           <FileSpreadsheet />
-          Export as CSV
+          {t("costTracking.export.csv")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

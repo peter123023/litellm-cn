@@ -1,7 +1,10 @@
+import { DEFAULT_LANGUAGE, translate, type Translate } from "@/i18n";
 import type { Job } from "./types";
 import { durationText } from "./format";
 
-export function analysisProgress(job: Job) {
+const englishT: Translate = (key, params) => translate(DEFAULT_LANGUAGE, key, params);
+
+export function analysisProgress(job: Job, t: Translate = englishT) {
   const {
     screened = 0,
     selected = 0,
@@ -13,49 +16,49 @@ export function analysisProgress(job: Job) {
   if (job.status === "queued") {
     return {
       step: -1,
-      title: "Queued for your worker",
+      title: t("lens.common.progressQueuedTitle"),
       done: 0,
       total: 0,
-      detail: "The worker picks up queued investigations automatically.",
+      detail: t("lens.common.progressQueuedDetail"),
     };
   }
   if (job.stage === "Grouping observations") {
     return {
       step: 1,
-      title: "Finding patterns",
+      title: t("lens.common.progressFindingPatterns"),
       done: grouped_batches,
       total: grouping_batches,
       detail: grouping_batches
-        ? `${grouped_batches} of ${grouping_batches} observation batches compared`
-        : `Comparing observations across ${screened} reviewed runs`,
+        ? t("lens.common.progressBatchesCompared", { done: grouped_batches, total: grouping_batches })
+        : t("lens.common.progressComparingObservations", { screened }),
     };
   }
   if (job.stage === "Checking original evidence") {
     return {
       step: 2,
-      title: "Checking evidence",
+      title: t("lens.common.progressCheckingEvidence"),
       done: investigated,
       total: candidates,
       detail: candidates
-        ? `${investigated} of ${candidates} patterns checked against the original activity`
-        : `${investigated} patterns checked against the original activity`,
+        ? t("lens.common.progressPatternsCheckedOf", { done: investigated, total: candidates })
+        : t("lens.common.progressPatternsChecked", { done: investigated }),
     };
   }
   if (!selected) {
     return {
       step: -1,
-      title: "Preparing activity",
+      title: t("lens.common.progressPreparingTitle"),
       done: 0,
       total: 0,
-      detail: "Loading the runs selected for this investigation.",
+      detail: t("lens.common.progressPreparingDetail"),
     };
   }
   return {
     step: 0,
-    title: "Reviewing activity",
+    title: t("lens.common.progressReviewingTitle"),
     done: screened,
     total: selected,
-    detail: `${screened} of ${selected} selected runs reviewed`,
+    detail: t("lens.common.progressRunsReviewed", { done: screened, total: selected }),
   };
 }
 
@@ -131,13 +134,16 @@ export function stageDurations(samples: readonly ProgressSample[], createdAt: st
   });
 }
 
-export function remainingLabel(seconds: number | null): string {
-  if (seconds === null) return "estimating";
-  if (seconds < 60) return "<1m";
-  if (seconds < 3600) return `~${Math.ceil(seconds / 60)}m`;
-  return `~${Math.floor(seconds / 3600)}h ${Math.ceil((seconds % 3600) / 60)}m`;
+export function remainingLabel(seconds: number | null, t: Translate = englishT): string {
+  if (seconds === null) return t("lens.common.estimating");
+  if (seconds < 60) return t("lens.common.remainingUnderMinute");
+  if (seconds < 3600) return t("lens.common.remainingMinutes", { minutes: Math.ceil(seconds / 60) });
+  return t("lens.common.remainingHoursMinutes", {
+    hours: Math.floor(seconds / 3600),
+    minutes: Math.ceil((seconds % 3600) / 60),
+  });
 }
 
-export function analysisElapsed(createdAt: string, now: number): string {
-  return durationText(Math.max(0, Math.floor((now - Date.parse(createdAt)) / 1000)));
+export function analysisElapsed(createdAt: string, now: number, t: Translate = englishT): string {
+  return durationText(Math.max(0, Math.floor((now - Date.parse(createdAt)) / 1000)), t);
 }

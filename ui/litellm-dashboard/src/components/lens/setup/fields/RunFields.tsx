@@ -1,32 +1,57 @@
 "use client";
-
 import { Controller, useFormContext, useWatch } from "react-hook-form";
-import { Input } from "@/components/ui/input";
-import { DurationInput } from "@/components/shared/DurationInput";
 import type { InvestigationInput } from "../investigationSchema";
-import { AnalysisModelField, type AnalysisModelFieldProps } from "./AnalysisModelField";
 
-export function RunFields({ models, gate }: AnalysisModelFieldProps) {
+import { Input } from "@/components/ui/input";
+
+import { DurationInput } from "@/components/shared/DurationInput";
+import { type AnalysisModelInfo } from "../fields/analysisModels";
+import { useTranslation } from "@/i18n";
+
+import { AnalysisModelField } from "../fields/AnalysisModelField";
+export function RunStep({
+  modelValid,
+  models,
+  modelDetails,
+  modelsLoading,
+  modelsError,
+  unavailable,
+  unsupported,
+}: {
+  modelValid: boolean;
+  models: string[];
+  modelDetails: AnalysisModelInfo[];
+  modelsLoading: boolean;
+  modelsError?: string;
+  unavailable: boolean;
+  unsupported: boolean;
+}) {
   const {
     control,
     register,
     setValue,
     formState: { errors },
   } = useFormContext<InvestigationInput>();
+  const { t } = useTranslation();
   const repeat = useWatch({ control, name: "repeat" });
   return (
     <>
       <div className="space-y-3">
         <label className="flex items-center gap-2 text-sm font-medium">
           <input type="checkbox" className="size-4 rounded border-input accent-foreground" {...register("repeat")} />
-          Keep watching for new traces
+          {t("lens.setup.run.keepWatching")}
         </label>
         {repeat && (
           <Controller
             control={control}
             name="interval"
             render={({ field }) => (
-              <DurationInput label="Check every" value={field.value} onChange={field.onChange} base="minutes" />
+              <DurationInput
+                label={t("lens.setup.checkEvery")}
+                value={field.value}
+                onChange={field.onChange}
+                base="minutes"
+              />
             )}
           />
         )}
@@ -36,20 +61,27 @@ export function RunFields({ models, gate }: AnalysisModelFieldProps) {
           </p>
         )}
       </div>
-      <details open={!gate.modelValid || undefined}>
-        <summary className="cursor-pointer text-sm font-medium">Advanced options</summary>
+      <details open={!modelValid || undefined}>
+        <summary className="cursor-pointer text-sm font-medium">{t("lens.setup.advancedOptions")}</summary>
         <div className="mt-4 space-y-5">
-          <AnalysisModelField models={models} gate={gate} />
+          <AnalysisModelField
+            models={models}
+            modelDetails={modelDetails}
+            modelsLoading={modelsLoading}
+            modelsError={modelsError}
+            unavailable={unavailable}
+            unsupported={unsupported}
+          />
           <div className="grid gap-5 sm:grid-cols-2">
             <label className="grid content-start gap-2 text-sm font-medium">
-              Maximum runs (optional)
+              {t("lens.setup.run.maximumRuns")}
               <Input
                 {...register("selection.sample_size", {
                   setValueAs: (value: unknown) => (value == null || value === "" ? null : Number(value)),
                 })}
                 type="number"
                 min="1"
-                placeholder="No limit"
+                placeholder={t("lens.setup.run.noLimit")}
               />
               {errors.selection?.sample_size?.message && (
                 <p role="alert" className="text-sm text-destructive">
@@ -64,7 +96,7 @@ export function RunFields({ models, gate }: AnalysisModelFieldProps) {
                   onChange: () => setValue("selection.execution_ids", [], { shouldValidate: true }),
                 })}
               />
-              Choose individual runs
+              {t("lens.setup.run.chooseIndividual")}
             </label>
           </div>
           {errors.selection?.execution_ids?.message && (
@@ -74,7 +106,7 @@ export function RunFields({ models, gate }: AnalysisModelFieldProps) {
           )}
           <div className="grid gap-5 sm:grid-cols-2">
             <label className="grid content-start gap-2 text-sm font-medium">
-              Monthly limit (USD)
+              {t("lens.setup.monthlyLimit")}
               <Input {...register("budget", { valueAsNumber: true })} type="number" min="0.01" step="1" />
               {errors.budget?.message && (
                 <p role="alert" className="text-sm text-destructive">

@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import type { Translate } from "@/i18n";
+
 const IPV4 = "(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)(?:\\.(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)){3}";
 const SEG = "[a-fA-F\\d]{1,4}";
 const IPV6 =
@@ -24,16 +26,16 @@ const URL_RULE_PATTERN = new RegExp(
 
 const isUrl = (value: string): boolean => value.length <= 2048 && URL_RULE_PATTERN.test(value);
 
-const pluginShape = {
-  name: z.string().min(1, "Required"),
-  display_name: z.string().min(1, "Required"),
+const buildPluginShape = (t: Translate) => ({
+  name: z.string().min(1, t("common.required")),
+  display_name: z.string().min(1, t("common.required")),
   url: z
     .string()
-    .min(1, "Required")
-    .refine((value) => value === "" || isUrl(value), "Must be a valid URL"),
+    .min(1, t("common.required"))
+    .refine((value) => value === "" || isUrl(value), t("adminSettings.plugins.validation.url")),
   plugin_key: z.string().optional(),
-};
+});
 
-export const pluginSchema = z.object(pluginShape);
+export const buildPluginSchema = (t: Translate) => z.object(buildPluginShape(t));
 
-export type PluginFormValues = z.output<typeof pluginSchema>;
+export type PluginFormValues = z.output<ReturnType<typeof buildPluginSchema>>;

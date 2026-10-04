@@ -1,7 +1,10 @@
 import React from "react";
 import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderWithProviders } from "@/../tests/test-utils";
+import { renderWithProviders as renderWithAppProviders } from "@/../tests/test-utils";
+import { I18nProvider } from "@/i18n";
+
+const renderWithProviders = (ui: React.ReactElement) => renderWithAppProviders(<I18nProvider>{ui}</I18nProvider>);
 import AddPluginForm from "./add_plugin_form";
 import { registerClaudeCodePlugin } from "@/components/networking";
 import { toast } from "@/lib/toast";

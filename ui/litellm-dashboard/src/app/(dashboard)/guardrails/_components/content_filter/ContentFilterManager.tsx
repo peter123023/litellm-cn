@@ -5,6 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import ContentFilterConfiguration from "./ContentFilterConfiguration";
 import ContentFilterDisplay from "./ContentFilterDisplay";
 import type { CompetitorIntentConfig } from "./CompetitorIntentConfiguration";
+import { useTranslation } from "@/i18n";
 
 interface Pattern {
   id: string;
@@ -74,6 +75,7 @@ const ContentFilterManager: React.FC<ContentFilterManagerProps> = ({
   onDataChange,
   onUnsavedChanges,
 }) => {
+  const { t } = useTranslation();
   const [selectedPatterns, setSelectedPatterns] = useState<Pattern[]>([]);
   const [blockedWords, setBlockedWords] = useState<BlockedWord[]>([]);
   const [selectedContentCategories, setSelectedContentCategories] = useState<SelectedContentCategory[]>([]);
@@ -234,15 +236,13 @@ const ContentFilterManager: React.FC<ContentFilterManagerProps> = ({
   return (
     <>
       <div className="my-6 flex items-center gap-4">
-        <span className="shrink-0 font-medium">Content Filter Configuration</span>
+        <span className="shrink-0 font-medium">{t("contentFilter.configurationHeading")}</span>
         <Separator className="flex-1" />
       </div>
       {hasUnsavedChanges && (
         <Alert variant="warning" className="mb-4">
           <TriangleAlert />
-          <AlertDescription>
-            You have unsaved changes to patterns or keywords. Remember to click &quot;Save Changes&quot; at the bottom.
-          </AlertDescription>
+          <AlertDescription>{t("contentFilter.unsavedChangesWarning")}</AlertDescription>
         </Alert>
       )}
       <div className="mb-6">

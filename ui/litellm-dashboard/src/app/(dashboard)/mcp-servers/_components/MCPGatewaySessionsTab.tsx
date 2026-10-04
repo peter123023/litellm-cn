@@ -23,10 +23,11 @@ import type {
   MCPGatewaySessionsTerminateResponse,
 } from "@/components/mcp_tools/types";
 import { createQueryKeys } from "@/app/(dashboard)/hooks/common/queryKeysFactory";
+import { DEFAULT_LANGUAGE, translate, useTranslation, type Translate } from "@/i18n";
 
 const mcpGatewaySessionKeys = createQueryKeys("mcpGatewaySessions");
 const REFETCH_INTERVAL_MS = 15000;
-const UNKNOWN_LABEL = "(unknown)";
+const englishT: Translate = (key, params) => translate(DEFAULT_LANGUAGE, key, params);
 
 export function formatIdleSeconds(idleSeconds: number): string {
   const total = Math.max(0, Math.floor(idleSeconds));
@@ -36,19 +37,24 @@ export function formatIdleSeconds(idleSeconds: number): string {
   return seconds === 0 ? `${minutes}m` : `${minutes}m ${seconds}s`;
 }
 
-function groupLabel(label: string | null): string {
-  if (label === null) return UNKNOWN_LABEL;
+function groupLabel(label: string | null, t: Translate): string {
+  if (label === null) return t("mcpSessions.unknownLabel");
   return label === "" ? '""' : label;
 }
 
-export function describeSelector(selector: MCPGatewaySessionSelector): string {
-  if (selector.user_id !== undefined) return `every live session opened by user ${groupLabel(selector.user_id)}`;
-  return `session ${selector.session_id_prefix}`;
+export function describeSelector(selector: MCPGatewaySessionSelector, t: Translate = englishT): string {
+  if (selector.user_id !== undefined) {
+    return t("mcpSessions.describeSelector.user", { user: groupLabel(selector.user_id, t) });
+  }
+  return t("mcpSessions.describeSelector.session", { prefix: selector.session_id_prefix });
 }
 
-export function describeTerminateResult(result: MCPGatewaySessionsTerminateResponse): string {
-  const noun = result.terminated_sessions === 1 ? "session" : "sessions";
-  return `Disconnected ${result.terminated_sessions} ${noun} on worker pid ${result.worker_pid}.`;
+export function describeTerminateResult(result: MCPGatewaySessionsTerminateResponse, t: Translate = englishT): string {
+  const key =
+    result.terminated_sessions === 1
+      ? "mcpSessions.describeTerminateResult.one"
+      : "mcpSessions.describeTerminateResult.many";
+  return t(key, { count: result.terminated_sessions, pid: result.worker_pid });
 }
 
 function StatCard({ label, value }: { label: string; value: number }) {
@@ -63,9 +69,11 @@ function StatCard({ label, value }: { label: string; value: number }) {
 function DisconnectUserButton({
   userId,
   onDisconnectUser,
+  t,
 }: {
   userId: string | null;
   onDisconnectUser: (userId: string) => void;
+  t: Translate;
 }) {
   if (userId === null || userId === "") return null;
   return (
@@ -73,10 +81,10 @@ function DisconnectUserButton({
       variant="outline"
       size="sm"
       onClick={() => onDisconnectUser(userId)}
-      aria-label={`Disconnect all sessions for user ${groupLabel(userId)}`}
+      aria-label={t("mcpSessions.gateway.disconnectAllAriaLabel", { user: groupLabel(userId, t) })}
     >
       <Unplug className="size-4" />
-      Disconnect all
+      {t("mcpSessions.gateway.disconnectAll")}
     </Button>
   );
 }
@@ -86,11 +94,13 @@ function GroupCountTable({
   groups,
   labelHeader,
   onDisconnectUser,
+  t,
 }: {
   title: string;
   groups: MCPGatewaySessionGroupCount[];
   labelHeader: string;
   onDisconnectUser?: (userId: string) => void;
+  t: Translate;
 }) {
   return (
     <section aria-label={title} className="rounded-lg border border-border bg-card">
@@ -99,18 +109,18 @@ function GroupCountTable({
         <TableHeader>
           <TableRow>
             <TableHead>{labelHeader}</TableHead>
-            <TableHead className="text-right">Sessions</TableHead>
-            {onDisconnectUser ? <TableHead className="text-right">Actions</TableHead> : null}
+            <TableHead className="text-right">{t("mcpSessions.gateway.colSessions")}</TableHead>
+            {onDisconnectUser ? <TableHead className="text-right">{t("common.actions")}</TableHead> : null}
           </TableRow>
         </TableHeader>
         <TableBody>
           {groups.map((group) => (
             <TableRow key={group.label ?? "__unknown__"}>
-              <TableCell className="font-mono text-xs">{groupLabel(group.label)}</TableCell>
+              <TableCell className="font-mono text-xs">{groupLabel(group.label, t)}</TableCell>
               <TableCell className="text-right">{group.count}</TableCell>
               {onDisconnectUser ? (
                 <TableCell className="text-right">
-                  <DisconnectUserButton userId={group.label} onDisconnectUser={onDisconnectUser} />
+                  <DisconnectUserButton userId={group.label} onDisconnectUser={onDisconnectUser} t={t} />
                 </TableCell>
               ) : null}
             </TableRow>
@@ -126,11 +136,13 @@ function SessionsBody({
   error,
   isLoading,
   onDisconnect,
+  t,
 }: {
   data: MCPGatewaySessionsResponse | undefined;
   error: Error | null;
   isLoading: boolean;
   onDisconnect: ((selector: MCPGatewaySessionSelector) => void) | null;
+  t: Translate;
 }) {
   if (isLoading) {
     return (
@@ -139,14 +151,14 @@ function SessionsBody({
         className="flex items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-card p-12"
       >
         <UiLoadingSpinner className="size-6 text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">Loading live connections...</p>
+        <p className="text-sm text-muted-foreground">{t("mcpSessions.gateway.loading")}</p>
       </div>
     );
   }
   if (error) {
     return (
       <Alert variant="destructive">
-        <AlertTitle>Could not load live connections</AlertTitle>
+        <AlertTitle>{t("mcpSessions.gateway.loadFailed")}</AlertTitle>
         <AlertDescription>{error.message}</AlertDescription>
       </Alert>
     );
@@ -155,45 +167,51 @@ function SessionsBody({
   if (data.total_sessions === 0) {
     return (
       <div className="rounded-lg border border-dashed border-border bg-card p-12 text-center">
-        <p className="text-sm text-muted-foreground">
-          No live MCP connections on this worker (pid {data.worker_pid}). Connect an AI client to the gateway to see it
-          here.
-        </p>
+        <p className="text-sm text-muted-foreground">{t("mcpSessions.gateway.emptyState", { pid: data.worker_pid })}</p>
       </div>
     );
   }
   return (
     <>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <StatCard label="Live sessions" value={data.total_sessions} />
-        <StatCard label="AI clients" value={data.by_client.length} />
-        <StatCard label="Users" value={data.by_user.length} />
+        <StatCard label={t("mcpSessions.gateway.stat.liveSessions")} value={data.total_sessions} />
+        <StatCard label={t("mcpSessions.gateway.stat.aiClients")} value={data.by_client.length} />
+        <StatCard label={t("mcpSessions.gateway.stat.users")} value={data.by_user.length} />
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <GroupCountTable title="Sessions by AI client" labelHeader="Client" groups={data.by_client} />
         <GroupCountTable
-          title="Sessions by user"
-          labelHeader="User"
+          title={t("mcpSessions.gateway.byClient.title")}
+          labelHeader={t("mcpSessions.gateway.byClient.labelHeader")}
+          groups={data.by_client}
+          t={t}
+        />
+        <GroupCountTable
+          title={t("mcpSessions.gateway.byUser.title")}
+          labelHeader={t("mcpSessions.gateway.byUser.labelHeader")}
           groups={data.by_user}
           onDisconnectUser={onDisconnect ? (userId) => onDisconnect({ user_id: userId }) : undefined}
+          t={t}
         />
       </div>
-      <section aria-label="Live sessions" className="rounded-lg border border-border bg-card">
+      <section
+        aria-label={t("mcpSessions.gateway.liveSessionsAriaLabel")}
+        className="rounded-lg border border-border bg-card"
+      >
         <h3 className="border-b border-border px-4 py-2 text-sm font-semibold text-foreground">
-          Live sessions (worker pid {data.worker_pid})
+          {t("mcpSessions.gateway.liveSessionsTitle", { pid: data.worker_pid })}
         </h3>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Session</TableHead>
-              <TableHead>Client</TableHead>
-              <TableHead>User</TableHead>
-              <TableHead>Key alias</TableHead>
-              <TableHead>Team</TableHead>
-              <TableHead>Client IP</TableHead>
-              <TableHead className="text-right">Idle</TableHead>
-              <TableHead className="text-right">In flight</TableHead>
-              {onDisconnect ? <TableHead className="text-right">Actions</TableHead> : null}
+              <TableHead>{t("mcpSessions.gateway.colSession")}</TableHead>
+              <TableHead>{t("mcpSessions.gateway.byClient.labelHeader")}</TableHead>
+              <TableHead>{t("mcpSessions.gateway.colUser")}</TableHead>
+              <TableHead>{t("mcpSessions.gateway.colKeyAlias")}</TableHead>
+              <TableHead>{t("mcpSessions.gateway.colTeam")}</TableHead>
+              <TableHead>{t("mcpSessions.gateway.colClientIp")}</TableHead>
+              <TableHead className="text-right">{t("mcpSessions.gateway.colIdle")}</TableHead>
+              <TableHead className="text-right">{t("mcpSessions.gateway.colInFlight")}</TableHead>
+              {onDisconnect ? <TableHead className="text-right">{t("common.actions")}</TableHead> : null}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -202,10 +220,10 @@ function SessionsBody({
                 <TableCell className="font-mono text-xs">{session.session_id_prefix}</TableCell>
                 <TableCell>
                   {session.client_name === null ? (
-                    <span className="text-muted-foreground">{UNKNOWN_LABEL}</span>
+                    <span className="text-muted-foreground">{t("mcpSessions.unknownLabel")}</span>
                   ) : (
                     <>
-                      <span className="font-mono text-xs">{groupLabel(session.client_name)}</span>
+                      <span className="font-mono text-xs">{groupLabel(session.client_name, t)}</span>
                       {session.client_version ? (
                         <span className="ml-1 text-xs text-muted-foreground">v{session.client_version}</span>
                       ) : null}
@@ -214,7 +232,7 @@ function SessionsBody({
                 </TableCell>
                 <TableCell>
                   {session.user_id === null ? (
-                    <span className="text-muted-foreground">{UNKNOWN_LABEL}</span>
+                    <span className="text-muted-foreground">{t("mcpSessions.unknownLabel")}</span>
                   ) : (
                     <>
                       <span className="font-mono text-xs">{session.user_id}</span>
@@ -235,10 +253,10 @@ function SessionsBody({
                       variant="outline"
                       size="sm"
                       onClick={() => onDisconnect({ session_id_prefix: session.session_id_prefix })}
-                      aria-label={`Disconnect session ${session.session_id_prefix}`}
+                      aria-label={t("mcpSessions.gateway.disconnectAriaLabel", { prefix: session.session_id_prefix })}
                     >
                       <Unplug className="size-4" />
-                      Disconnect
+                      {t("mcpSessions.gateway.disconnect")}
                     </Button>
                   </TableCell>
                 ) : null}
@@ -257,6 +275,7 @@ interface MCPGatewaySessionsTabProps {
 }
 
 export function MCPGatewaySessionsTab({ accessToken, canTerminate }: MCPGatewaySessionsTabProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [pendingSelector, setPendingSelector] = useState<MCPGatewaySessionSelector | null>(null);
   const queryOptions = {
@@ -280,37 +299,32 @@ export function MCPGatewaySessionsTab({ accessToken, canTerminate }: MCPGatewayS
     <div className="mt-4 space-y-4" data-testid="mcp-gateway-sessions-tab">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold text-foreground">Live Connections</h2>
-          <p className="text-sm text-muted-foreground">
-            Stateful Streamable HTTP sessions currently open on this proxy worker, grouped by the AI client that sent
-            the MCP initialize request and by the authenticated LiteLLM user. Stateless requests and SSE connections are
-            not counted.
-          </p>
+          <h2 className="text-base font-semibold text-foreground">{t("mcpSessions.gateway.title")}</h2>
+          <p className="text-sm text-muted-foreground">{t("mcpSessions.gateway.description")}</p>
         </div>
         <Button
           variant="outline"
           size="sm"
           onClick={() => refetch()}
           disabled={isFetching}
-          aria-label="Refresh live connections"
+          aria-label={t("mcpSessions.gateway.refreshAriaLabel")}
         >
           <RefreshCw className={`size-4 ${isFetching ? "animate-spin" : ""}`} />
-          Refresh
+          {t("common.refresh")}
         </Button>
       </div>
 
       {terminate.isError ? (
         <Alert variant="destructive">
-          <AlertTitle>Could not disconnect</AlertTitle>
+          <AlertTitle>{t("mcpSessions.gateway.disconnectFailed")}</AlertTitle>
           <AlertDescription>{terminate.error.message}</AlertDescription>
         </Alert>
       ) : null}
       {terminate.isSuccess ? (
         <Alert>
-          <AlertTitle>Disconnected</AlertTitle>
+          <AlertTitle>{t("mcpSessions.gateway.disconnected")}</AlertTitle>
           <AlertDescription>
-            {describeTerminateResult(terminate.data)} Clients holding those sessions must send a new initialize request,
-            which re-runs authentication. Sessions on other proxy workers are not affected.
+            {t("mcpSessions.gateway.disconnectedDescription", { result: describeTerminateResult(terminate.data, t) })}
           </AlertDescription>
         </Alert>
       ) : null}
@@ -320,23 +334,25 @@ export function MCPGatewaySessionsTab({ accessToken, canTerminate }: MCPGatewayS
         error={error}
         isLoading={isLoading}
         onDisconnect={canTerminate ? setPendingSelector : null}
+        t={t}
       />
 
       <AlertDialog open={pendingSelector !== null} onOpenChange={(open) => !open && setPendingSelector(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Disconnect MCP session</AlertDialogTitle>
+            <AlertDialogTitle>{t("mcpSessions.gateway.confirmTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {pendingSelector ? `This force-closes ${describeSelector(pendingSelector)} on this proxy worker. ` : ""}
-              In-flight requests fail and the client must initialize again before it can call tools.
+              {pendingSelector
+                ? t("mcpSessions.gateway.confirmDescription", { selector: describeSelector(pendingSelector, t) })
+                : ""}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <Button variant="outline" onClick={() => setPendingSelector(null)}>
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button variant="destructive" onClick={confirmDisconnect} disabled={terminate.isPending}>
-              Disconnect
+              {t("mcpSessions.gateway.disconnect")}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

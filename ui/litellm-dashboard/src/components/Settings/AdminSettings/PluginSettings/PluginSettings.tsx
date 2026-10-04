@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, Pencil, Plus, Trash2 } from "lucide-react";
 import { getConfigFieldSetting, updateConfigFieldSetting } from "@/components/networking";
+import { useTranslation } from "@/i18n";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import { FieldGroup } from "@/components/ui/field";
 import { FormField } from "@/components/shared/form/FormField";
@@ -13,7 +14,7 @@ import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { UiLoadingSpinner } from "@/components/ui/ui-loading-spinner";
 import { useZodForm } from "@/lib/forms/useZodForm";
-import { pluginSchema, type PluginFormValues } from "./schema";
+import { buildPluginSchema, type PluginFormValues } from "./schema";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const INLINE_CODE_CLASS = "rounded-sm bg-muted px-1 py-0.5 font-mono text-xs";
@@ -28,6 +29,7 @@ interface Plugin {
 const BLANK_PLUGIN: PluginFormValues = { name: "", display_name: "", url: "", plugin_key: undefined };
 
 export default function PluginSettings() {
+  const { t } = useTranslation();
   const { accessToken } = useAuthorized();
   const [plugins, setPlugins] = useState<Plugin[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,6 +37,7 @@ export default function PluginSettings() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [keyVisible, setKeyVisible] = useState(false);
+  const pluginSchema = useMemo(() => buildPluginSchema(t), [t]);
   const form = useZodForm(pluginSchema, { defaultValues: BLANK_PLUGIN });
 
   useEffect(() => {
@@ -102,7 +105,7 @@ export default function PluginSettings() {
       return (
         <TableRow>
           <TableCell colSpan={5} className="py-6 text-center text-sm text-muted-foreground">
-            No data
+            {t("adminSettings.plugins.noData")}
           </TableCell>
         </TableRow>
       );
@@ -128,13 +131,18 @@ export default function PluginSettings() {
         </TableCell>
         <TableCell>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon-sm" aria-label={`Edit ${plugin.name}`} onClick={() => openEdit(idx)}>
+            <Button
+              variant="outline"
+              size="icon-sm"
+              aria-label={t("adminSettings.plugins.editAria", { name: plugin.name })}
+              onClick={() => openEdit(idx)}
+            >
               <Pencil />
             </Button>
             <Button
               variant="destructive"
               size="icon-sm"
-              aria-label={`Delete ${plugin.name}`}
+              aria-label={t("adminSettings.plugins.deleteAria", { name: plugin.name })}
               onClick={() => handleDelete(idx)}
             >
               <Trash2 />
@@ -148,30 +156,28 @@ export default function PluginSettings() {
   return (
     <Card>
       <CardHeader>
-        <h4 className="text-base font-semibold text-foreground">Plugins</h4>
-        <p className="text-sm text-foreground">
-          Register external services as plugins. Once added, users can toggle to the plugin from the mode switcher in
-          the top-left of the sidebar.
-        </p>
+        <h4 className="text-base font-semibold text-foreground">{t("adminSettings.plugins.title")}</h4>
+        <p className="text-sm text-foreground">{t("adminSettings.plugins.description")}</p>
         <p className="text-xs text-muted-foreground">
-          Each plugin must expose <code className={INLINE_CODE_CLASS}>GET /api/plugin-manifest</code> returning nav
-          items and capabilities.
+          {t("adminSettings.plugins.manifestPrefix")}{" "}
+          <code className={INLINE_CODE_CLASS}>GET /api/plugin-manifest</code>{" "}
+          {t("adminSettings.plugins.manifestSuffix")}
         </p>
       </CardHeader>
       <CardContent>
         <Button className="mb-4" onClick={openAdd}>
           <Plus />
-          Add Plugin
+          {t("adminSettings.plugins.add")}
         </Button>
 
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Display Name</TableHead>
-              <TableHead>URL</TableHead>
-              <TableHead>Plugin Key</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead>{t("adminSettings.plugins.columns.name")}</TableHead>
+              <TableHead>{t("adminSettings.plugins.columns.displayName")}</TableHead>
+              <TableHead>{t("adminSettings.plugins.columns.url")}</TableHead>
+              <TableHead>{t("adminSettings.plugins.columns.pluginKey")}</TableHead>
+              <TableHead>{t("common.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>{renderRows()}</TableBody>
@@ -181,29 +187,42 @@ export default function PluginSettings() {
       <Dialog open={modalOpen} onOpenChange={(open) => !open && setModalOpen(false)}>
         <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingIndex !== null ? "Edit Plugin" : "Add Plugin"}</DialogTitle>
+            <DialogTitle>
+              {editingIndex !== null
+                ? t("adminSettings.plugins.modal.editTitle")
+                : t("adminSettings.plugins.modal.addTitle")}
+            </DialogTitle>
           </DialogHeader>
           <form onSubmit={(event) => event.preventDefault()} noValidate style={{ marginTop: 16 }}>
             <FieldGroup>
               <FormField
                 control={form.control}
                 name="name"
-                label="Name (identifier)"
-                description="Used in URLs and config. No spaces. E.g. litellm-platform-plugin"
+                label={t("adminSettings.plugins.modal.nameLabel")}
+                description={t("adminSettings.plugins.modal.nameDescription")}
               >
                 {({ ref, ...field }) => <Input {...field} ref={ref} placeholder="litellm-platform-plugin" />}
               </FormField>
-              <FormField control={form.control} name="display_name" label="Display Name">
+              <FormField
+                control={form.control}
+                name="display_name"
+                label={t("adminSettings.plugins.columns.displayName")}
+              >
                 {({ ref, ...field }) => <Input {...field} ref={ref} placeholder="Agent Control Plane" />}
               </FormField>
-              <FormField control={form.control} name="url" label="URL" description="Base URL of the plugin service">
+              <FormField
+                control={form.control}
+                name="url"
+                label={t("adminSettings.plugins.columns.url")}
+                description={t("adminSettings.plugins.modal.urlDescription")}
+              >
                 {({ ref, ...field }) => <Input {...field} ref={ref} placeholder="https://your-plugin.example.com" />}
               </FormField>
               <FormField
                 control={form.control}
                 name="plugin_key"
-                label="Plugin Key"
-                description="Optional. The plugin's own credential, injected as Authorization: Bearer <key> only when litellm reverse-proxies API calls to the plugin's backend (/plugin-proxy/<name>/*). Leave blank for plugins that use the forwarded litellm user token (e.g. iframe plugins) — that path uses the user's token, not this key."
+                label={t("adminSettings.plugins.columns.pluginKey")}
+                description={t("adminSettings.plugins.modal.pluginKeyDescription")}
               >
                 {({ ref, ...field }) => (
                   <InputGroup>
@@ -212,13 +231,21 @@ export default function PluginSettings() {
                       ref={ref}
                       type={keyVisible ? "text" : "password"}
                       value={field.value ?? ""}
-                      placeholder={editingIndex !== null ? "Leave blank to keep current key" : "sk-... (optional)"}
+                      placeholder={
+                        editingIndex !== null
+                          ? t("adminSettings.plugins.modal.keepCurrentKey")
+                          : t("adminSettings.plugins.modal.optionalKeyPlaceholder")
+                      }
                     />
                     <InputGroupAddon align="inline-end">
                       <InputGroupButton
                         size="icon-xs"
                         onClick={() => setKeyVisible(!keyVisible)}
-                        aria-label={keyVisible ? "Hide plugin key" : "Show plugin key"}
+                        aria-label={
+                          keyVisible
+                            ? t("adminSettings.plugins.modal.hideKey")
+                            : t("adminSettings.plugins.modal.showKey")
+                        }
                       >
                         {keyVisible ? <EyeOff /> : <Eye />}
                       </InputGroupButton>
@@ -230,10 +257,10 @@ export default function PluginSettings() {
           </form>
           <DialogFooter>
             <Button variant="outline" onClick={() => setModalOpen(false)}>
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button onClick={form.handleSubmit(handleOk)} disabled={saving} aria-busy={saving}>
-              Save
+              {t("common.save")}
             </Button>
           </DialogFooter>
         </DialogContent>

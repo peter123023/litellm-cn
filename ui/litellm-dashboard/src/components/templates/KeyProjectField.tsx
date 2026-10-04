@@ -2,6 +2,7 @@ import type { Organization, Team } from "@/components/networking";
 import { isOrgAdminForAnyOrg, isProxyAdminRole } from "@/utils/roles";
 import { useId } from "react";
 import { useProjects } from "@/app/(dashboard)/hooks/projects/useProjects";
+import { useTranslation } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -16,22 +17,19 @@ type KeyProjectFieldProps = {
 
 export function KeyProjectField({ projectId, canDetach, pending, disabled, onToggle }: KeyProjectFieldProps) {
   const id = useId();
+  const { t } = useTranslation();
   const { data: projects } = useProjects();
   const alias = projects?.find((project) => project.project_id === projectId)?.project_alias;
   const display = alias ? `${alias} (${projectId})` : projectId;
   return (
     <Field>
-      <FieldLabel htmlFor={id}>Project</FieldLabel>
+      <FieldLabel htmlFor={id}>{t("keyEdit.project.label")}</FieldLabel>
       <Input id={id} value={display ?? ""} disabled readOnly />
       {canDetach && (
         <>
-          {pending && (
-            <p className="text-sm text-muted-foreground">
-              The project will be removed when you save. Team, organization, and key limits will stay the same.
-            </p>
-          )}
+          {pending && <p className="text-sm text-muted-foreground">{t("keyEdit.project.pendingNote")}</p>}
           <Button type="button" variant="outline" disabled={disabled} onClick={onToggle}>
-            {pending ? "Keep project" : "Detach from project"}
+            {pending ? t("keyEdit.project.keep") : t("keyEdit.project.detach")}
           </Button>
         </>
       )}

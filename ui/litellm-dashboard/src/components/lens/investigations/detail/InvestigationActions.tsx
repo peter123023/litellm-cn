@@ -8,65 +8,66 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { hasActiveJob } from "../../model/status";
-import { type Lens } from "../../model/types";
-
-export interface InvestigationIntents {
-  readonly onEdit: () => void;
-  readonly onDuplicate: () => void;
-  readonly onPause: () => void;
-  readonly onEnableMonitoring: () => void;
-  readonly onCancelRun: () => void;
-  readonly onRunNow: () => void;
-}
-
-export type InvestigationActionsProps = Omit<InvestigationIntents, "onCancelRun"> & {
-  readonly lens: Lens;
-  readonly ready: boolean;
-  readonly busy: boolean;
-};
+import { type Lens, type Job } from "../../model/types";
+import type { LensWrite } from "../../api/mutations";
+import { useTranslation } from "@/i18n";
 
 export function InvestigationActions({
   lens,
   ready,
   busy,
-  onEdit,
-  onDuplicate,
-  onPause,
-  onEnableMonitoring,
+  active,
+  setEditing,
+  setMonitoring,
+  update,
   onRunNow,
-}: InvestigationActionsProps) {
+}: {
+  lens: Lens;
+  ready: boolean;
+  busy: boolean;
+  active: Job | undefined;
+  setEditing: (mode: "new" | "edit" | "duplicate") => void;
+  setMonitoring: (open: boolean) => void;
+  update: (write: LensWrite) => Promise<unknown>;
+  onRunNow: () => void;
+}) {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-wrap gap-2">
       <DropdownMenu>
-        <DropdownMenuTrigger render={<Button variant="ghost" size="icon" aria-label="Investigation actions" />}>
+        <DropdownMenuTrigger
+          render={<Button variant="ghost" size="icon" aria-label={t("lens.investigations.actionsLabel")} />}
+        >
           <MoreHorizontal className="size-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuItem onClick={onEdit}>
+          <DropdownMenuItem onClick={() => setEditing("edit")}>
             <Settings2 />
-            Edit investigation
+            {t("lens.investigations.editInvestigation")}
           </DropdownMenuItem>
-          <DropdownMenuItem disabled={!ready} onClick={onDuplicate}>
+          <DropdownMenuItem disabled={!ready} onClick={() => setEditing("duplicate")}>
             <Copy />
-            Duplicate
+            {t("common.duplicate")}
           </DropdownMenuItem>
           {lens.settings.enabled ? (
-            <DropdownMenuItem disabled={busy} onClick={onPause}>
+            <DropdownMenuItem
+              disabled={busy}
+              onClick={() => update((api) => api.saveLens(lens.id, { ...lens.settings, enabled: false }))}
+            >
               <Pause />
-              Pause monitoring
+              {t("lens.investigations.pauseMonitoring")}
             </DropdownMenuItem>
           ) : (
-            <DropdownMenuItem disabled={!ready || busy} onClick={onEnableMonitoring}>
+            <DropdownMenuItem disabled={!ready || busy} onClick={() => setMonitoring(true)}>
               <Play />
-              Enable monitoring
+              {t("lens.investigations.enableMonitoring")}
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>
       </DropdownMenu>
-      <Button disabled={busy || hasActiveJob(lens.jobs) || !ready} onClick={onRunNow}>
+      <Button disabled={busy || !!active || !ready} onClick={onRunNow}>
         <Play className="size-3" />
-        Run now
+        {t("lens.investigations.runNow")}
       </Button>
     </div>
   );

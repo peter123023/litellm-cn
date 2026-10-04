@@ -1,9 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { FormProvider, useFormContext, useWatch, type UseFormReturn } from "react-hook-form";
 import { z } from "zod";
-import { ssoProviderLogoMap, ssoProviderDisplayNames } from "../constants";
+import { getSsoProviderDisplayNames, ssoProviderLogoMap } from "../constants";
+import { useTranslation, type Translate } from "@/i18n";
 import { Logo } from "@/components/molecules/logo/Logo";
 import { FieldGroup } from "@/components/ui/field";
 import { FormField } from "@/components/shared/form/FormField";
@@ -52,9 +53,9 @@ export interface BaseSSOSettingsFormProps {
 export interface SSOProviderConfig {
   envVarMap: Record<string, string>;
   fields: Array<{
-    label: string;
+    labelKey: string;
+    placeholderKey?: string;
     name: keyof SSOSettingsFormValues;
-    placeholder?: string;
     required?: boolean;
     type?: "password" | "textarea" | "checkbox";
   }>;
@@ -67,8 +68,8 @@ export const ssoProviderConfigs: Record<string, SSOProviderConfig> = {
       google_client_secret: "GOOGLE_CLIENT_SECRET",
     },
     fields: [
-      { label: "Google Client ID", name: "google_client_id" },
-      { label: "Google Client Secret", name: "google_client_secret" },
+      { labelKey: "adminSettings.sso.providerFields.googleClientId", name: "google_client_id" },
+      { labelKey: "adminSettings.sso.providerFields.googleClientSecret", name: "google_client_secret" },
     ],
   },
   microsoft: {
@@ -78,9 +79,9 @@ export const ssoProviderConfigs: Record<string, SSOProviderConfig> = {
       microsoft_tenant: "MICROSOFT_TENANT",
     },
     fields: [
-      { label: "Microsoft Client ID", name: "microsoft_client_id" },
-      { label: "Microsoft Client Secret", name: "microsoft_client_secret" },
-      { label: "Microsoft Tenant", name: "microsoft_tenant" },
+      { labelKey: "adminSettings.sso.providerFields.microsoftClientId", name: "microsoft_client_id" },
+      { labelKey: "adminSettings.sso.providerFields.microsoftClientSecret", name: "microsoft_client_secret" },
+      { labelKey: "adminSettings.sso.providerFields.microsoftTenant", name: "microsoft_tenant" },
     ],
   },
   okta: {
@@ -93,20 +94,29 @@ export const ssoProviderConfigs: Record<string, SSOProviderConfig> = {
       generic_scope: "GENERIC_SCOPE",
     },
     fields: [
-      { label: "Generic Client ID", name: "generic_client_id" },
-      { label: "Generic Client Secret", name: "generic_client_secret" },
+      { labelKey: "adminSettings.sso.providerFields.genericClientId", name: "generic_client_id" },
+      { labelKey: "adminSettings.sso.providerFields.genericClientSecret", name: "generic_client_secret" },
       {
-        label: "Authorization Endpoint",
+        labelKey: "adminSettings.sso.providerFields.authorizationEndpoint",
         name: "generic_authorization_endpoint",
-        placeholder: "https://your-domain/authorize",
+        placeholderKey: "adminSettings.sso.providerPlaceholders.authorizationEndpoint",
       },
-      { label: "Token Endpoint", name: "generic_token_endpoint", placeholder: "https://your-domain/token" },
       {
-        label: "Userinfo Endpoint",
-        name: "generic_userinfo_endpoint",
-        placeholder: "https://your-domain/userinfo",
+        labelKey: "adminSettings.sso.providerFields.tokenEndpoint",
+        name: "generic_token_endpoint",
+        placeholderKey: "adminSettings.sso.providerPlaceholders.tokenEndpoint",
       },
-      { label: "Scopes", name: "generic_scope", placeholder: "openid email profile", required: false },
+      {
+        labelKey: "adminSettings.sso.providerFields.userinfoEndpoint",
+        name: "generic_userinfo_endpoint",
+        placeholderKey: "adminSettings.sso.providerPlaceholders.userinfoEndpoint",
+      },
+      {
+        labelKey: "adminSettings.sso.providerFields.scopes",
+        name: "generic_scope",
+        placeholderKey: "adminSettings.sso.providerPlaceholders.scopes",
+        required: false,
+      },
     ],
   },
   generic: {
@@ -119,12 +129,20 @@ export const ssoProviderConfigs: Record<string, SSOProviderConfig> = {
       generic_scope: "GENERIC_SCOPE",
     },
     fields: [
-      { label: "Generic Client ID", name: "generic_client_id" },
-      { label: "Generic Client Secret", name: "generic_client_secret" },
-      { label: "Authorization Endpoint", name: "generic_authorization_endpoint" },
-      { label: "Token Endpoint", name: "generic_token_endpoint" },
-      { label: "Userinfo Endpoint", name: "generic_userinfo_endpoint" },
-      { label: "Scopes", name: "generic_scope", placeholder: "openid email profile", required: false },
+      { labelKey: "adminSettings.sso.providerFields.genericClientId", name: "generic_client_id" },
+      { labelKey: "adminSettings.sso.providerFields.genericClientSecret", name: "generic_client_secret" },
+      {
+        labelKey: "adminSettings.sso.providerFields.authorizationEndpoint",
+        name: "generic_authorization_endpoint",
+      },
+      { labelKey: "adminSettings.sso.providerFields.tokenEndpoint", name: "generic_token_endpoint" },
+      { labelKey: "adminSettings.sso.providerFields.userinfoEndpoint", name: "generic_userinfo_endpoint" },
+      {
+        labelKey: "adminSettings.sso.providerFields.scopes",
+        name: "generic_scope",
+        placeholderKey: "adminSettings.sso.providerPlaceholders.scopes",
+        required: false,
+      },
     ],
   },
   saml: {
@@ -136,26 +154,26 @@ export const ssoProviderConfigs: Record<string, SSOProviderConfig> = {
     },
     fields: [
       {
-        label: "IdP Metadata URL",
+        labelKey: "adminSettings.sso.providerFields.idpMetadataUrl",
         name: "saml_idp_metadata_url",
         required: false,
-        placeholder: "https://idp.example.com/metadata (use this or the metadata XML below)",
+        placeholderKey: "adminSettings.sso.providerPlaceholders.idpMetadataUrl",
       },
       {
-        label: "IdP Metadata XML",
+        labelKey: "adminSettings.sso.providerFields.idpMetadataXml",
         name: "saml_idp_metadata_xml",
         required: false,
         type: "textarea",
-        placeholder: "Paste the IdP metadata XML here if you do not have a metadata URL",
+        placeholderKey: "adminSettings.sso.providerPlaceholders.idpMetadataXml",
       },
       {
-        label: "SP Entity ID",
+        labelKey: "adminSettings.sso.providerFields.spEntityId",
         name: "saml_sp_entity_id",
         required: false,
-        placeholder: "Defaults to <proxy base url>/sso/saml/metadata",
+        placeholderKey: "adminSettings.sso.providerPlaceholders.spEntityId",
       },
       {
-        label: "Allow IdP-initiated (unsolicited) responses",
+        labelKey: "adminSettings.sso.providerFields.allowIdpInitiated",
         name: "saml_allow_unsolicited",
         required: false,
         type: "checkbox",
@@ -213,23 +231,23 @@ export const submitMountedSSOValues =
   () =>
     void form.handleSubmit((values) => onFormSubmit(pickMountedSSOValues(values, variant)))();
 
-const REQUIRED_MESSAGES: Record<string, string> = {
-  sso_provider: "Please select an SSO provider",
-  user_email: "Please enter the email of the proxy admin",
-  proxy_base_url: "Please enter the proxy base url",
-  group_claim: "Please enter the group claim",
-  team_ids_jwt_field: "Please enter the team IDs JWT field",
+const REQUIRED_MESSAGE_KEYS: Record<string, string> = {
+  sso_provider: "adminSettings.sso.validation.selectProvider",
+  user_email: "adminSettings.sso.validation.proxyAdminEmail",
+  proxy_base_url: "adminSettings.sso.validation.proxyBaseUrl",
+  group_claim: "adminSettings.sso.validation.groupClaim",
+  team_ids_jwt_field: "adminSettings.sso.validation.teamIdsJwtField",
 };
 
 const isBlank = (value: unknown): boolean => value === undefined || value === null || value === "";
 
-export const buildSSOSettingsSchema = (variant: SSOFormVariant) =>
+export const buildSSOSettingsSchema = (variant: SSOFormVariant, t: Translate) =>
   z.custom<SSOSettingsFormValues>().superRefine((values, ctx) => {
     const mounted = new Set(mountedSSOFieldNames(values, variant));
 
     const requireField = (name: string) => {
       if (mounted.has(name) && isBlank(values[name as keyof SSOSettingsFormValues])) {
-        ctx.addIssue({ code: "custom", path: [name], message: REQUIRED_MESSAGES[name] });
+        ctx.addIssue({ code: "custom", path: [name], message: t(REQUIRED_MESSAGE_KEYS[name]) });
       }
     };
 
@@ -245,20 +263,20 @@ export const buildSSOSettingsSchema = (variant: SSOFormVariant) =>
       ctx.addIssue({
         code: "custom",
         path: [field.name],
-        message: `Please enter the ${field.label.toLowerCase()}`,
+        message: t("adminSettings.sso.validation.enterField", { field: t(field.labelKey).toLowerCase() }),
       });
     });
 
     const proxyBaseUrl = values.proxy_base_url;
     if (isBlank(proxyBaseUrl)) {
-      ctx.addIssue({ code: "custom", path: ["proxy_base_url"], message: REQUIRED_MESSAGES.proxy_base_url });
+      ctx.addIssue({ code: "custom", path: ["proxy_base_url"], message: t(REQUIRED_MESSAGE_KEYS.proxy_base_url) });
       return;
     }
     if (!/^https?:\/\/.+/.test(proxyBaseUrl as string)) {
       ctx.addIssue({
         code: "custom",
         path: ["proxy_base_url"],
-        message: "URL must start with http:// or https://",
+        message: t("adminSettings.sso.validation.urlScheme"),
       });
       return;
     }
@@ -266,7 +284,7 @@ export const buildSSOSettingsSchema = (variant: SSOFormVariant) =>
       ctx.addIssue({
         code: "custom",
         path: ["proxy_base_url"],
-        message: "URL must not end with a trailing slash",
+        message: t("adminSettings.sso.validation.urlTrailingSlash"),
       });
     }
   });
@@ -291,19 +309,25 @@ export const emptySSOSettingsFormValues: SSOSettingsFormValues = {
 export const useSSOSettingsForm = (
   variant: SSOFormVariant,
   values?: SSOSettingsFormValues,
-): UseFormReturn<SSOSettingsFormValues> =>
-  useZodForm(buildSSOSettingsSchema(variant), {
+): UseFormReturn<SSOSettingsFormValues> => {
+  const { t } = useTranslation();
+  const schema = useMemo(() => buildSSOSettingsSchema(variant, t), [variant, t]);
+  return useZodForm(schema, {
     mode: "onChange",
     defaultValues: emptySSOSettingsFormValues,
     ...(values ? { values } : {}),
   });
+};
 
 const SSOProviderField = ({ field }: { field: SSOProviderConfig["fields"][number] }) => {
+  const { t } = useTranslation();
   const { control } = useFormContext<SSOSettingsFormValues>();
+  const label = t(field.labelKey);
+  const placeholder = field.placeholderKey ? t(field.placeholderKey) : undefined;
 
   if (field.type === "checkbox") {
     return (
-      <FormField control={control} name={field.name} label={field.label} orientation="horizontal">
+      <FormField control={control} name={field.name} label={label} orientation="horizontal">
         {({ value, onChange, onBlur, id, ...rest }) => (
           <Checkbox
             id={id}
@@ -319,9 +343,9 @@ const SSOProviderField = ({ field }: { field: SSOProviderConfig["fields"][number
   }
 
   return (
-    <FormField control={control} name={field.name} label={field.label}>
+    <FormField control={control} name={field.name} label={label}>
       {({ ref, value, ...rest }) => {
-        const shared = { placeholder: field.placeholder, value: (value as string) ?? "", ...rest };
+        const shared = { placeholder, value: (value as string) ?? "", ...rest };
         if (field.type === "textarea") return <Textarea ref={ref} rows={4} {...shared} />;
         if (field.type === "password" || field.name.includes("client")) return <PasswordInput ref={ref} {...shared} />;
         return <Input ref={ref} {...shared} />;
@@ -338,10 +362,12 @@ export const renderProviderFields = (provider: string) => {
 };
 
 export const SSOProviderSelectField = () => {
+  const { t } = useTranslation();
   const { control } = useFormContext<SSOSettingsFormValues>();
+  const displayNames = getSsoProviderDisplayNames(t);
 
   return (
-    <FormField control={control} name="sso_provider" label="SSO Provider">
+    <FormField control={control} name="sso_provider" label={t("adminSettings.sso.form.ssoProvider")}>
       {({ value, onChange, onBlur, id, ...rest }) => (
         <Select value={(value as string) ?? ""} onValueChange={onChange}>
           <SelectTrigger
@@ -351,7 +377,9 @@ export const SSOProviderSelectField = () => {
             aria-describedby={rest["aria-describedby"]}
             className="w-full"
           >
-            <SelectValue>{(provider: string) => (provider ? providerOptionLabel(provider) : "")}</SelectValue>
+            <SelectValue>
+              {(provider: string) => (provider ? providerOptionLabel(provider, displayNames) : "")}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {Object.entries(ssoProviderLogoMap).map(([optionValue, logo]) => (
@@ -360,11 +388,11 @@ export const SSOProviderSelectField = () => {
                   {logo && (
                     <Logo
                       src={logo}
-                      label={ssoProviderDisplayNames[optionValue] || optionValue}
+                      label={displayNames[optionValue] || optionValue}
                       className="h-6 w-6 mr-3 object-contain"
                     />
                   )}
-                  <span>{providerOptionLabel(optionValue)}</span>
+                  <span>{providerOptionLabel(optionValue, displayNames)}</span>
                 </span>
               </SelectItem>
             ))}
@@ -376,20 +404,22 @@ export const SSOProviderSelectField = () => {
 };
 
 export const ProxyAdminEmailField = () => {
+  const { t } = useTranslation();
   const { control } = useFormContext<SSOSettingsFormValues>();
 
   return (
-    <FormField control={control} name="user_email" label="Proxy Admin Email">
+    <FormField control={control} name="user_email" label={t("adminSettings.sso.form.proxyAdminEmail")}>
       {({ ref, value, ...rest }) => <Input ref={ref} value={(value as string) ?? ""} {...rest} />}
     </FormField>
   );
 };
 
 export const ProxyBaseUrlField = () => {
+  const { t } = useTranslation();
   const { control } = useFormContext<SSOSettingsFormValues>();
 
   return (
-    <FormField control={control} name="proxy_base_url" label="Proxy Base URL">
+    <FormField control={control} name="proxy_base_url" label={t("adminSettings.sso.form.proxyBaseUrl")}>
       {({ ref, value, onChange, ...rest }) => (
         <Input
           ref={ref}
@@ -429,31 +459,33 @@ export const MappingToggleField = ({
 };
 
 export const GroupClaimField = () => {
+  const { t } = useTranslation();
   const { control } = useFormContext<SSOSettingsFormValues>();
 
   return (
-    <FormField control={control} name="group_claim" label="Group Claim">
+    <FormField control={control} name="group_claim" label={t("adminSettings.sso.form.groupClaim")}>
       {({ ref, value, ...rest }) => <Input ref={ref} value={(value as string) ?? ""} {...rest} />}
     </FormField>
   );
 };
 
-const DEFAULT_ROLE_OPTIONS: ReadonlyArray<{ value: string; label: string }> = [
-  { value: "internal_user_viewer", label: "Internal Viewer" },
-  { value: "internal_user", label: "Internal User" },
-  { value: "proxy_admin_viewer", label: "Admin Viewer" },
-  { value: "proxy_admin", label: "Proxy Admin" },
+const DEFAULT_ROLE_OPTIONS: ReadonlyArray<{ value: string; labelKey: string }> = [
+  { value: "internal_user_viewer", labelKey: "adminSettings.sso.roles.internalUserViewer" },
+  { value: "internal_user", labelKey: "adminSettings.sso.roles.internalUser" },
+  { value: "proxy_admin_viewer", labelKey: "adminSettings.sso.roles.proxyAdminViewer" },
+  { value: "proxy_admin", labelKey: "adminSettings.sso.roles.proxyAdmin" },
 ];
 
-const providerOptionLabel = (value: string) =>
-  ssoProviderDisplayNames[value] || value.charAt(0).toUpperCase() + value.slice(1) + " SSO";
+const providerOptionLabel = (value: string, displayNames: Record<string, string>) =>
+  displayNames[value] || value.charAt(0).toUpperCase() + value.slice(1) + " SSO";
 
 export const RoleMappingTeamFields = () => {
+  const { t } = useTranslation();
   const { control } = useFormContext<SSOSettingsFormValues>();
 
   return (
     <>
-      <FormField control={control} name="default_role" label="Default Role">
+      <FormField control={control} name="default_role" label={t("adminSettings.sso.form.defaultRole")}>
         {({ value, onChange, onBlur, id, ...rest }) => (
           <Select value={(value as string) ?? ""} onValueChange={onChange}>
             <SelectTrigger
@@ -464,13 +496,16 @@ export const RoleMappingTeamFields = () => {
               className="w-full"
             >
               <SelectValue>
-                {(role: string) => DEFAULT_ROLE_OPTIONS.find((option) => option.value === role)?.label ?? role}
+                {(role: string) => {
+                  const option = DEFAULT_ROLE_OPTIONS.find((candidate) => candidate.value === role);
+                  return option ? t(option.labelKey) : role;
+                }}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {DEFAULT_ROLE_OPTIONS.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
-                  {option.label}
+                  {t(option.labelKey)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -478,19 +513,19 @@ export const RoleMappingTeamFields = () => {
         )}
       </FormField>
 
-      <FormField control={control} name="proxy_admin_teams" label="Proxy Admin Teams">
+      <FormField control={control} name="proxy_admin_teams" label={t("adminSettings.sso.form.proxyAdminTeams")}>
         {({ ref, value, ...rest }) => <Input ref={ref} value={(value as string) ?? ""} {...rest} />}
       </FormField>
 
-      <FormField control={control} name="admin_viewer_teams" label="Admin Viewer Teams">
+      <FormField control={control} name="admin_viewer_teams" label={t("adminSettings.sso.form.adminViewerTeams")}>
         {({ ref, value, ...rest }) => <Input ref={ref} value={(value as string) ?? ""} {...rest} />}
       </FormField>
 
-      <FormField control={control} name="internal_user_teams" label="Internal User Teams">
+      <FormField control={control} name="internal_user_teams" label={t("adminSettings.sso.form.internalUserTeams")}>
         {({ ref, value, ...rest }) => <Input ref={ref} value={(value as string) ?? ""} {...rest} />}
       </FormField>
 
-      <FormField control={control} name="internal_viewer_teams" label="Internal Viewer Teams">
+      <FormField control={control} name="internal_viewer_teams" label={t("adminSettings.sso.form.internalViewerTeams")}>
         {({ ref, value, ...rest }) => <Input ref={ref} value={(value as string) ?? ""} {...rest} />}
       </FormField>
     </>
@@ -498,16 +533,18 @@ export const RoleMappingTeamFields = () => {
 };
 
 export const TeamIdsJwtFieldField = () => {
+  const { t } = useTranslation();
   const { control } = useFormContext<SSOSettingsFormValues>();
 
   return (
-    <FormField control={control} name="team_ids_jwt_field" label="Team IDs JWT Field">
+    <FormField control={control} name="team_ids_jwt_field" label={t("adminSettings.sso.form.teamIdsJwtField")}>
       {({ ref, value, ...rest }) => <Input ref={ref} value={(value as string) ?? ""} {...rest} />}
     </FormField>
   );
 };
 
 const BaseSSOSettingsForm: React.FC<BaseSSOSettingsFormProps> = ({ form, onFormSubmit }) => {
+  const { t } = useTranslation();
   const provider = useWatch({ control: form.control, name: "sso_provider" });
   const useRoleMappings = useWatch({ control: form.control, name: "use_role_mappings" });
   const useTeamMappings = useWatch({ control: form.control, name: "use_team_mappings" });
@@ -527,14 +564,24 @@ const BaseSSOSettingsForm: React.FC<BaseSSOSettingsFormProps> = ({ form, onFormS
             {provider ? renderProviderFields(provider) : null}
             <ProxyAdminEmailField />
             <ProxyBaseUrlField />
-            {showMappingToggles && <MappingToggleField name="use_role_mappings" label="Use Role Mappings" />}
+            {showMappingToggles && (
+              <MappingToggleField
+                name="use_role_mappings"
+                label={t("adminSettings.sso.mappingToggles.useRoleMappings")}
+              />
+            )}
             {useRoleMappings && showMappingToggles && (
               <>
                 <GroupClaimField />
                 <RoleMappingTeamFields />
               </>
             )}
-            {showMappingToggles && <MappingToggleField name="use_team_mappings" label="Use Team Mappings" />}
+            {showMappingToggles && (
+              <MappingToggleField
+                name="use_team_mappings"
+                label={t("adminSettings.sso.mappingToggles.useTeamMappings")}
+              />
+            )}
             {useTeamMappings && showMappingToggles && <TeamIdsJwtFieldField />}
           </FieldGroup>
         </form>

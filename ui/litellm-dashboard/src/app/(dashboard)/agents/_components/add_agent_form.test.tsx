@@ -4,6 +4,7 @@ import userEvent, { PointerEventsCheckLevel } from "@testing-library/user-event"
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import AddAgentForm from "./add_agent_form";
 import * as networking from "@/components/networking";
+import { I18nProvider } from "@/i18n";
 import type { AgentCreateInfo } from "@/components/networking";
 
 vi.mock("@/components/networking", () => ({
@@ -66,7 +67,11 @@ const a2aInfo: AgentCreateInfo = {
 };
 
 const renderForm = () =>
-  render(<AddAgentForm visible={true} onClose={vi.fn()} accessToken="test-token" onSuccess={vi.fn()} />);
+  render(
+    <I18nProvider>
+      <AddAgentForm visible={true} onClose={vi.fn()} accessToken="test-token" onSuccess={vi.fn()} />
+    </I18nProvider>,
+  );
 
 describe("AddAgentForm logos", () => {
   beforeEach(() => {

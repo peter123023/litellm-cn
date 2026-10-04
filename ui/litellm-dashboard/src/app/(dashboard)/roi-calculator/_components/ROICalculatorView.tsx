@@ -29,6 +29,7 @@ import type {
   ROISummary,
   ROISyncStatus,
 } from "./roiCalculatorData";
+import { useTranslation } from "@/i18n";
 
 type View = "overview" | "people" | "branches";
 
@@ -61,6 +62,7 @@ export default function ROICalculatorView({
   userRole?: string | null;
   isViewOnly?: boolean;
 }) {
+  const { t } = useTranslation();
   const [sampleSummary, setSampleSummary] = React.useState<ROISummary | null>(null);
   const adminReadOnly = isViewOnly && isProxyAdminTierRole(userRole ?? "");
   const readOnly = adminReadOnly || sampleSummary !== null;
@@ -133,7 +135,7 @@ export default function ROICalculatorView({
             .get<ROIReportResponse>("/roi-calculator/report", { accessToken, query: { mode: "demo" } })
             .catch((reason: unknown) => {
               if (!cancelled) {
-                setDemoError(`Could not load demo data: ${extractErrorMessage(reason)}`);
+                setDemoError(t("roi.view.demoLoadFailed", { message: extractErrorMessage(reason) }));
                 updateDemoUrl(false);
               }
               return liveData;
@@ -254,7 +256,7 @@ export default function ROICalculatorView({
     return (
       <div className="p-8">
         <Alert variant="destructive">
-          <AlertTitle>Could not load ROI Calculator</AlertTitle>
+          <AlertTitle>{t("roi.view.couldNotLoad")}</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       </div>
@@ -265,7 +267,7 @@ export default function ROICalculatorView({
   if (!settings || loadingInitialData || awaitingLiveData) {
     return (
       <div className="space-y-6 p-8">
-        <p role="status">Loading ROI Calculator…</p>
+        <p role="status">{t("roi.view.loading")}</p>
         <Skeleton className="h-16 w-96" />
         <Skeleton className="h-96 w-full" />
       </div>
@@ -284,7 +286,7 @@ export default function ROICalculatorView({
       setView("branches");
       setQuery("");
     } catch (reason) {
-      setDemoError(`Could not load demo data: ${extractErrorMessage(reason)}`);
+      setDemoError(t("roi.view.demoLoadFailed", { message: extractErrorMessage(reason) }));
     }
   };
   const resetView = (updated: ROISettings, resetSyncStatus = true) => {
@@ -315,39 +317,35 @@ export default function ROICalculatorView({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <PageHeaderTitle>
             <Calculator />
-            ROI Calculator
+            {t("roi.title")}
           </PageHeaderTitle>
           {!sampleSummary && (
             <div className="flex items-center gap-2">
               {showLiveStatus && (
                 <Button variant="ghost" onClick={() => void previewSample()}>
-                  Preview sample report
+                  {t("roi.previewSampleReport")}
                 </Button>
               )}
               {showReportActions && (
                 <Button variant="outline" onClick={() => setSettingsOpen(true)}>
                   <Settings2 />
-                  Settings
+                  {t("roi.view.settings")}
                 </Button>
               )}
               {showReportActions && !readOnly && (
                 <Button onClick={() => void startSync()} disabled={status.running || !settings.ready}>
                   <RefreshCw className={status.running ? "animate-spin" : ""} />
-                  {status.running ? "Syncing…" : "Run analysis"}
+                  {t(status.running ? "roi.sync.running" : "roi.view.runAnalysis")}
                 </Button>
               )}
             </div>
           )}
         </div>
         <PageHeaderDescription className="flex flex-wrap items-center gap-x-4 gap-y-1">
-          <span>
-            {summary
-              ? `${summary.start} through ${summary.end} · UTC`
-              : "Compare AI costs with estimated engineering effort"}
-          </span>
+          <span>{summary ? t("roi.view.dateRangeUtc", { start: summary.start, end: summary.end }) : t("roi.view.tagline")}</span>
           {syncedAt && (
             <span className="text-xs" role="status">
-              Last synced {formatSyncedAt(syncedAt)}
+              {t("roi.view.lastSynced", { at: formatSyncedAt(syncedAt) })}
             </span>
           )}
         </PageHeaderDescription>
@@ -362,16 +360,16 @@ export default function ROICalculatorView({
       )}
       {adminReadOnly && (
         <p className="text-sm text-muted-foreground" role="note">
-          Read-only access. Settings, analysis runs, and email matches are unavailable.
+          {t("roi.view.readOnly")}
         </p>
       )}
 
       {summary && (
         <Tabs value={view} onValueChange={(value) => setView(value as View)}>
-          <PageTabsList aria-label="ROI Calculator views">
-            <PageTabsTrigger value="overview">Overview</PageTabsTrigger>
-            <PageTabsTrigger value="people">People</PageTabsTrigger>
-            <PageTabsTrigger value="branches">Branches</PageTabsTrigger>
+          <PageTabsList aria-label={t("roi.view.tabsAria")}>
+            <PageTabsTrigger value="overview">{t("roi.view.tabOverview")}</PageTabsTrigger>
+            <PageTabsTrigger value="people">{t("roi.view.tabPeople")}</PageTabsTrigger>
+            <PageTabsTrigger value="branches">{t("roi.view.tabBranches")}</PageTabsTrigger>
           </PageTabsList>
           {view !== "overview" && (
             <div className="flex justify-end">
@@ -383,19 +381,19 @@ export default function ROICalculatorView({
 
       {!sampleSummary && requestError && (
         <Alert variant="destructive">
-          <AlertTitle>ROI Calculator request failed</AlertTitle>
+          <AlertTitle>{t("roi.view.requestFailed")}</AlertTitle>
           <AlertDescription>{requestError}</AlertDescription>
         </Alert>
       )}
       {!sampleSummary && status.error && (
         <Alert variant="destructive">
-          <AlertTitle>Sync failed</AlertTitle>
+          <AlertTitle>{t("roi.sync.failedTitle")}</AlertTitle>
           <AlertDescription>{status.error}</AlertDescription>
         </Alert>
       )}
       {summary?.warnings.map((warning) => (
         <Alert key={warning}>
-          <AlertTitle>Sync note</AlertTitle>
+          <AlertTitle>{t("roi.sync.noteTitle")}</AlertTitle>
           <AlertDescription>{warning}</AlertDescription>
         </Alert>
       ))}
@@ -403,7 +401,7 @@ export default function ROICalculatorView({
         <Card>
           <CardContent className="flex flex-wrap items-center justify-between gap-4">
             <div
-              aria-label="Sync progress"
+              aria-label={t("roi.sync.progressAria")}
               aria-valuemax={100}
               aria-valuemin={0}
               aria-valuenow={progress}
@@ -415,14 +413,20 @@ export default function ROICalculatorView({
                 <div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} />
               </div>
               <p className="text-sm text-muted-foreground">
-                {status.done} of {status.total} changes processed · {status.reused} reused
-                {` · ${status.elapsed_seconds ?? 0}s elapsed`}
-                {status.remaining_seconds != null ? ` · about ${status.remaining_seconds}s remaining` : ""}
+                {t("roi.sync.progress", {
+                  done: status.done,
+                  total: status.total,
+                  reused: status.reused,
+                  elapsed: status.elapsed_seconds ?? 0,
+                })}
+                {status.remaining_seconds != null
+                  ? t("roi.sync.remaining", { seconds: status.remaining_seconds })
+                  : ""}
               </p>
             </div>
             {!readOnly && (
               <Button variant="outline" onClick={() => void cancelSync()}>
-                Cancel sync
+                {t("roi.sync.cancel")}
               </Button>
             )}
           </CardContent>
@@ -471,8 +475,8 @@ export default function ROICalculatorView({
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
         <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Calculator settings</DialogTitle>
-            <DialogDescription>Connect repositories and choose how to estimate effort.</DialogDescription>
+            <DialogTitle>{t("roi.view.calculatorSettings")}</DialogTitle>
+            <DialogDescription>{t("roi.view.calculatorSettingsDescription")}</DialogDescription>
           </DialogHeader>
           <ROISettingsPanel
             accessToken={accessToken}

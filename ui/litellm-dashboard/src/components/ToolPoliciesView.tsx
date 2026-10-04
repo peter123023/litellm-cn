@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import useCan from "@/app/(dashboard)/hooks/useCan";
+import { useTranslation } from "@/i18n";
 import { ToolDetail } from "@/components/ToolDetail";
 import { ToolPoliciesPanel } from "@/components/ToolPolicies/ToolPoliciesPanel";
 
@@ -13,6 +14,7 @@ interface ToolPoliciesViewProps {
 
 export default function ToolPoliciesView({ accessToken }: ToolPoliciesViewProps) {
   const canViewToolPolicies = useCan("viewToolPolicies");
+  const { t } = useTranslation();
   const [view, setView] = useState<View>({ type: "overview" });
 
   const handleSelectTool = (toolName: string) => {
@@ -26,8 +28,8 @@ export default function ToolPoliciesView({ accessToken }: ToolPoliciesViewProps)
   if (!canViewToolPolicies) {
     return (
       <div className="p-6 w-full min-w-0 flex-1">
-        <h1 className="text-2xl font-semibold text-foreground mb-2">Tool Policies</h1>
-        <p className="text-sm text-muted-foreground">Tool Policies is only available to admin users.</p>
+        <h1 className="text-2xl font-semibold text-foreground mb-2">{t("toolPolicies.title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("toolPolicies.adminOnly")}</p>
       </div>
     );
   }

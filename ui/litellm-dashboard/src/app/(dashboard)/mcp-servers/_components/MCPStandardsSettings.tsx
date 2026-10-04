@@ -4,63 +4,63 @@ import { MCPServer } from "@/components/mcp_tools/types";
 
 export interface RequiredFieldDef {
   key: string;
-  label: string;
-  description: string;
+  labelKey: string;
+  descriptionKey: string;
   check: (server: MCPServer) => boolean;
 }
 
 export interface FieldGroup {
-  label: string;
+  labelKey: string;
   fields: RequiredFieldDef[];
 }
 
 export const FIELD_GROUPS: FieldGroup[] = [
   {
-    label: "Documentation",
+    labelKey: "mcpServers.standards.group.documentation",
     fields: [
       {
         key: "description",
-        label: "Description",
-        description: "Must have a non-empty description",
+        labelKey: "mcpServers.standards.field.description.label",
+        descriptionKey: "mcpServers.standards.field.description.description",
         check: (s) => !!s.description?.trim(),
       },
       {
         key: "alias",
-        label: "Alias",
-        description: "Must have a display alias",
+        labelKey: "mcpServers.standards.field.alias.label",
+        descriptionKey: "mcpServers.standards.field.alias.description",
         check: (s) => !!s.alias?.trim(),
       },
     ],
   },
   {
-    label: "Source",
+    labelKey: "mcpServers.standards.group.source",
     fields: [
       {
         key: "source_url",
-        label: "GitHub / Source URL",
-        description: "Must link to a source repository",
+        labelKey: "mcpServers.standards.field.source_url.label",
+        descriptionKey: "mcpServers.standards.field.source_url.description",
         check: (s) => !!s.source_url?.trim(),
       },
     ],
   },
   {
-    label: "Connection",
+    labelKey: "mcpServers.standards.group.connection",
     fields: [
       {
         key: "url",
-        label: "Server URL",
-        description: "Must have a URL configured",
+        labelKey: "mcpServers.standards.field.url.label",
+        descriptionKey: "mcpServers.standards.field.url.description",
         check: (s) => !!s.url?.trim(),
       },
     ],
   },
   {
-    label: "Security",
+    labelKey: "mcpServers.standards.group.security",
     fields: [
       {
         key: "auth_type",
-        label: "Auth configured",
-        description: "Must use authentication (not 'none')",
+        labelKey: "mcpServers.standards.field.auth_type.label",
+        descriptionKey: "mcpServers.standards.field.auth_type.description",
         check: (s) => !!s.auth_type && s.auth_type !== "none",
       },
     ],

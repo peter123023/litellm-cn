@@ -2,49 +2,59 @@
 
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { SearchSelect } from "@/components/shared/SearchSelect";
-import { analysisModelOptions, type ModelGate } from "./analysisModels";
-import type { AnalysisModels } from "./useAnalysisModels";
+import { analysisModelOptions, type AnalysisModelInfo } from "./analysisModels";
+import { useTranslation } from "@/i18n";
 import type { InvestigationInput } from "../investigationSchema";
 
-export interface AnalysisModelFieldProps {
-  readonly models: AnalysisModels;
-  readonly gate: ModelGate;
-}
-
-export function AnalysisModelField({ models, gate }: AnalysisModelFieldProps) {
+export function AnalysisModelField({
+  models,
+  modelDetails,
+  modelsLoading,
+  modelsError,
+  unavailable,
+  unsupported,
+}: {
+  models: string[];
+  modelDetails: AnalysisModelInfo[];
+  modelsLoading: boolean;
+  modelsError?: string;
+  unavailable: boolean;
+  unsupported: boolean;
+}) {
   const { control } = useFormContext<InvestigationInput>();
+  const { t } = useTranslation();
   const model = useWatch({ control, name: "selectedModel" });
   return (
     <div className="space-y-2">
-      <p className="text-sm font-medium">Analysis model</p>
+      <p className="text-sm font-medium">{t("lens.setup.model.label")}</p>
       <Controller
         control={control}
         name="selectedModel"
         render={({ field }) => (
           <SearchSelect
-            aria-label="Analysis model"
-            options={analysisModelOptions(models.models, models.modelDetails)}
+            aria-label={t("lens.setup.model.label")}
+            options={analysisModelOptions(models, modelDetails, t)}
             value={field.value ?? ""}
             onValueChange={(value) => field.onChange(value ?? "")}
-            placeholder={models.modelsLoading ? "Loading models…" : "Choose a model"}
-            disabled={models.modelsLoading}
-            emptyText="No matching models configured on this gateway"
+            placeholder={modelsLoading ? t("lens.setup.model.loading") : t("lens.setup.model.choose")}
+            disabled={modelsLoading}
+            emptyText={t("lens.setup.model.none")}
           />
         )}
       />
-      {models.modelsError && (
+      {modelsError && (
         <p role="alert" className="text-sm text-destructive">
-          Could not load models: {models.modelsError}
+          {t("lens.setup.model.loadFailed", { error: modelsError })}
         </p>
       )}
-      {gate.unavailable && (
+      {unavailable && (
         <p role="alert" className="text-sm text-destructive">
-          {model} is no longer available. Choose another analysis model.
+          {t("lens.setup.model.unavailable", { model: model ?? "" })}
         </p>
       )}
-      {gate.unsupported && (
+      {unsupported && (
         <p role="alert" className="text-sm text-destructive">
-          Choose a chat model that supports JSON output.
+          {t("lens.setup.model.unsupported")}
         </p>
       )}
     </div>

@@ -14,6 +14,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useZodForm } from "@/lib/forms/useZodForm";
+import { useTranslation } from "@/i18n";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const labelWithHint = (label: React.ReactNode, hint: string): React.ReactNode => (
@@ -36,15 +37,15 @@ interface ModelInfo {
   };
 }
 
-const createTagShape = {
-  tag_name: z.string().min(1, "Please input a tag name"),
+const createTagShape = (nameRequired: string) => ({
+  tag_name: z.string().min(1, nameRequired),
   description: z.string().optional(),
   allowed_llms: z.array(z.string()).optional(),
   max_budget: z.string().optional(),
   budget_duration: z.string().optional(),
-};
+});
 
-const createTagSchema = z.object(createTagShape);
+const createTagSchema = z.object(createTagShape("Please input a tag name"));
 
 export type CreateTagFormValues = z.output<typeof createTagSchema>;
 
@@ -56,8 +57,10 @@ interface CreateTagModalProps {
 }
 
 const CreateTagModal: React.FC<CreateTagModalProps> = ({ visible, onCancel, onSubmit, availableModels }) => {
+  const { t } = useTranslation();
   const [budgetSectionOpen, setBudgetSectionOpen] = React.useState(false);
-  const form = useZodForm(createTagSchema, { defaultValues: { tag_name: "" } });
+  const schema = React.useMemo(() => z.object(createTagShape(t("tagMgmt.nameRequired"))), [t]);
+  const form = useZodForm(schema, { defaultValues: { tag_name: "" } });
 
   const modelOptions = availableModels.map((model) => ({
     label: model.model_name,
@@ -80,33 +83,30 @@ const CreateTagModal: React.FC<CreateTagModalProps> = ({ visible, onCancel, onSu
     <Dialog open={visible} onOpenChange={(open) => !open && handleCancel()}>
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[800px]">
         <DialogHeader>
-          <DialogTitle>Create New Tag</DialogTitle>
+          <DialogTitle>{t("tagMgmt.createTitle")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={form.handleSubmit(handleFinish)} noValidate>
           <TooltipProvider>
             <FieldGroup>
-              <FormField control={form.control} name="tag_name" label="Tag Name">
+              <FormField control={form.control} name="tag_name" label={t("tagMgmt.name")}>
                 {({ ref, ...field }) => <Input {...field} ref={ref} />}
               </FormField>
 
-              <FormField control={form.control} name="description" label="Description">
+              <FormField control={form.control} name="description" label={t("tagMgmt.description")}>
                 {({ ref, value, ...field }) => <Textarea {...field} ref={ref} value={value ?? ""} rows={4} />}
               </FormField>
 
               <FormField
                 control={form.control}
                 name="allowed_llms"
-                label={labelWithHint(
-                  "Allowed Models",
-                  "Select which models are allowed to process requests from this tag",
-                )}
+                label={labelWithHint(t("tagMgmt.allowedModels"), t("tagMgmt.createModelsHint"))}
               >
                 {({ value, onChange }) => (
                   <MultiSelect
                     options={modelOptions}
                     value={value}
                     onValueChange={onChange}
-                    placeholder="Select Models"
+                    placeholder={t("tagMgmt.selectModels")}
                   />
                 )}
               </FormField>
@@ -118,7 +118,7 @@ const CreateTagModal: React.FC<CreateTagModalProps> = ({ visible, onCancel, onSu
               className="mt-4 mb-4 rounded-md border border-border"
             >
               <CollapsibleTrigger className="group flex w-full items-center justify-between px-4 py-3 text-base font-medium text-foreground">
-                Budget & Rate Limits (Optional)
+                {t("tagMgmt.budgetRateLimitsOptional")}
                 <ChevronRight className="size-4 text-muted-foreground transition-transform group-data-panel-open:rotate-90" />
               </CollapsibleTrigger>
               <CollapsibleContent className="px-4 pb-4">
@@ -126,10 +126,7 @@ const CreateTagModal: React.FC<CreateTagModalProps> = ({ visible, onCancel, onSu
                   <FormField
                     control={form.control}
                     name="max_budget"
-                    label={labelWithHint(
-                      "Max Budget (USD)",
-                      "Maximum amount in USD this tag can spend. When reached, requests with this tag will be blocked",
-                    )}
+                    label={labelWithHint(t("tagMgmt.maxBudgetUsd"), t("tagMgmt.maxBudgetHintBlocked"))}
                   >
                     {({ ref, value, ...field }) => <NumericalInput {...field} value={value ?? ""} step={0.01} />}
                   </FormField>
@@ -137,10 +134,7 @@ const CreateTagModal: React.FC<CreateTagModalProps> = ({ visible, onCancel, onSu
                   <FormField
                     control={form.control}
                     name="budget_duration"
-                    label={labelWithHint(
-                      "Reset Budget",
-                      "How often the budget should reset. For example, setting 'daily' will reset the budget every 24 hours",
-                    )}
+                    label={labelWithHint(t("tagMgmt.resetBudget"), t("tagMgmt.resetBudgetHintExample"))}
                   >
                     {({ id, value, onChange }) => (
                       <BudgetDurationDropdown
@@ -154,14 +148,14 @@ const CreateTagModal: React.FC<CreateTagModalProps> = ({ visible, onCancel, onSu
 
                 <div className="mt-4 rounded-md border border-border bg-muted p-3">
                   <p className="text-sm text-muted-foreground">
-                    TPM/RPM limits for tags are not currently supported. If you need this feature, please{" "}
+                    {t("tagMgmt.limitsUnsupported")}{" "}
                     <a
                       href="https://github.com/BerriAI/litellm/issues/new"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-info underline hover:text-info/80"
                     >
-                      create a GitHub issue
+                      {t("tagMgmt.createIssue")}
                     </a>
                     .
                   </p>
@@ -170,7 +164,7 @@ const CreateTagModal: React.FC<CreateTagModalProps> = ({ visible, onCancel, onSu
             </Collapsible>
 
             <div className="mt-2.5 text-right">
-              <Button type="submit">Create Tag</Button>
+              <Button type="submit">{t("tagMgmt.createTag")}</Button>
             </div>
           </TooltipProvider>
         </form>

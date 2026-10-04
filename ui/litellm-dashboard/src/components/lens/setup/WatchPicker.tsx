@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { watches } from "../model/watches";
+import { watches } from "./watches";
+import { useTranslation } from "@/i18n";
 import { cn } from "@/lib/cva.config";
 
 const dotColors = ["#8b5cf6", "#22b3e8", "#e3a32b", "#eb6b93", "#22b3e8", "#8b5cf6", "#e3a32b", "#eb6b93"];
@@ -85,6 +86,7 @@ export function WatchPicker({
   onAddCustom: () => void;
 }) {
   const [cursor, setCursor] = useState(0);
+  const { t } = useTranslation();
   const items = useRef<(HTMLButtonElement | null)[]>([]);
   const toggle = (id: string) =>
     onChange(new Set(selected.has(id) ? [...selected].filter((item) => item !== id) : [...selected, id]));
@@ -110,15 +112,21 @@ export function WatchPicker({
   return (
     <fieldset className="space-y-2.5">
       <div className="flex items-end justify-between gap-3">
-        <legend className="text-sm font-medium">Watch for</legend>
+        <legend className="text-sm font-medium">{t("lens.setup.watch.legend")}</legend>
         <span className="text-xs tabular-nums text-muted-foreground">
-          {selected.size} of {watches.length} selected
+          {t("lens.setup.watch.selectedCount", { selected: selected.size, total: watches.length })}
         </span>
       </div>
       <DotFlow active={activeColors} />
-      <div role="group" aria-label="Watch for" onKeyDown={onKey} className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+      <div
+        role="group"
+        aria-label={t("lens.setup.watch.legend")}
+        onKeyDown={onKey}
+        className="grid grid-cols-2 gap-2.5 sm:grid-cols-4"
+      >
         {watches.map((watch, index) => {
           const on = selected.has(watch.id);
+          const summary = t(watch.summaryKey);
           return (
             <button
               key={watch.id}
@@ -127,7 +135,7 @@ export function WatchPicker({
               }}
               type="button"
               aria-pressed={on}
-              title={watch.summary}
+              title={summary}
               tabIndex={index === cursor ? 0 : -1}
               data-state={on ? "active" : "inactive"}
               onFocus={() => setCursor(index)}
@@ -139,7 +147,7 @@ export function WatchPicker({
               )}
             >
               <span className="flex items-center justify-between gap-1">
-                <span className="text-sm font-medium">{watch.name}</span>
+                <span className="text-sm font-medium">{t(watch.nameKey)}</span>
                 <svg
                   viewBox="0 0 16 16"
                   aria-hidden="true"
@@ -156,7 +164,7 @@ export function WatchPicker({
                   />
                 </svg>
               </span>
-              <span className="line-clamp-2 text-xs leading-snug text-muted-foreground">{watch.summary}</span>
+              <span className="line-clamp-2 text-xs leading-snug text-muted-foreground">{summary}</span>
             </button>
           );
         })}
@@ -172,8 +180,8 @@ export function WatchPicker({
         >
           +
         </span>
-        <span className="font-medium">Add your own</span>
-        <span className="text-muted-foreground">describe anything else in plain English</span>
+        <span className="font-medium">{t("lens.setup.watch.addOwn")}</span>
+        <span className="text-muted-foreground">{t("lens.setup.watch.addOwnHint")}</span>
       </button>
     </fieldset>
   );

@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { DurationInput } from "@/components/shared/DurationInput";
+import { useTranslation } from "@/i18n";
 import { type Settings } from "../model/types";
 
 const monitoringSchema = z.object({
@@ -30,6 +31,7 @@ export function MonitoringDialog({
   onClose: () => void;
 }) {
   const [error, setError] = useState("");
+  const { t } = useTranslation();
   const form = useZodForm(monitoringSchema, {
     defaultValues: { interval_minutes: settings.interval_minutes ?? 30 },
     mode: "onChange",
@@ -41,7 +43,7 @@ export function MonitoringDialog({
       await onSave({ ...settings, enabled: true, interval_minutes });
       onClose();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not enable monitoring");
+      setError(cause instanceof Error ? cause.message : t("lens.setup.monitoring.enableFailed"));
     }
   });
   return (
@@ -53,16 +55,19 @@ export function MonitoringDialog({
     >
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl">Keep monitoring</DialogTitle>
-          <DialogDescription>
-            Repeat this investigation with the saved scope, sample, model, and budget.
-          </DialogDescription>
+          <DialogTitle className="text-xl">{t("lens.setup.monitoring.title")}</DialogTitle>
+          <DialogDescription>{t("lens.setup.monitoring.description")}</DialogDescription>
         </DialogHeader>
         <Controller
           control={control}
           name="interval_minutes"
           render={({ field }) => (
-            <DurationInput label="Check every" value={field.value} onChange={field.onChange} base="minutes" />
+            <DurationInput
+              label={t("lens.setup.checkEvery")}
+              value={field.value}
+              onChange={field.onChange}
+              base="minutes"
+            />
           )}
         />
         {formState.errors.interval_minutes?.message && (
@@ -70,12 +75,10 @@ export function MonitoringDialog({
             {formState.errors.interval_minutes.message}
           </p>
         )}
-        <p className="text-xs leading-5 text-muted-foreground">
-          Each investigation looks back over the saved time range. The interval starts after the previous run finishes.
-        </p>
+        <p className="text-xs leading-5 text-muted-foreground">{t("lens.setup.monitoring.hint")}</p>
         {!ready && (
-          <p role="status" className="text-sm text-warning">
-            Reconnect the worker before enabling monitoring.
+          <p role="status" className="text-sm text-amber-700">
+            {t("lens.setup.monitoring.reconnect")}
           </p>
         )}
         {error && (
@@ -85,10 +88,10 @@ export function MonitoringDialog({
         )}
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button disabled={!formState.isValid || formState.isSubmitting || !ready} onClick={() => void save()}>
-            {formState.isSubmitting ? "Saving…" : "Enable monitoring"}
+            {formState.isSubmitting ? t("lens.setup.saving") : t("lens.setup.monitoring.enable")}
           </Button>
         </DialogFooter>
       </DialogContent>

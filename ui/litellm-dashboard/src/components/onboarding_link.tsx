@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
 import { copyToClipboard } from "@/utils/dataUtils";
+import { useTranslation } from "@/i18n";
 
 export interface InvitationLink {
   id: string;
@@ -61,6 +62,7 @@ export default function OnboardingModal({
 }: OnboardingProps) {
   const linkFieldId = useId();
   const copyButtonRef = useRef<HTMLButtonElement>(null);
+  const { t } = useTranslation();
   const isInvitation = modalType === "invitation";
   const invitationUrl = buildOnboardingUrl({
     baseUrl,
@@ -76,32 +78,32 @@ export default function OnboardingModal({
     >
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-xl" initialFocus={copyButtonRef}>
         <DialogHeader>
-          <DialogTitle>{isInvitation ? "Invitation Link" : "Reset Password Link"}</DialogTitle>
+          <DialogTitle>
+            {isInvitation ? t("onboarding.invitationLinkTitle") : t("onboarding.resetPasswordLinkTitle")}
+          </DialogTitle>
           <DialogDescription>
-            {isInvitation
-              ? "Copy and send the generated link to onboard this user to the proxy."
-              : "Copy and send the generated link to the user to reset their password."}
+            {isInvitation ? t("onboarding.invitationDescription") : t("onboarding.resetPasswordDescription")}
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <p className="text-xs text-muted-foreground">User ID</p>
+            <p className="text-xs text-muted-foreground">{t("onboarding.userId")}</p>
             <p className="font-mono text-sm break-all">{invitationLinkData?.user_id}</p>
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor={linkFieldId} className="text-xs font-normal text-muted-foreground">
-              {isInvitation ? "Invitation link" : "Reset password link"}
+              {isInvitation ? t("onboarding.invitationLink") : t("onboarding.resetPasswordLink")}
             </Label>
             <InputGroup>
               <InputGroupInput id={linkFieldId} readOnly value={invitationUrl} className="font-mono text-xs" />
               <InputGroupAddon align="inline-end">
                 <InputGroupButton
                   ref={copyButtonRef}
-                  aria-label={isInvitation ? "Copy invitation link" : "Copy password reset link"}
+                  aria-label={isInvitation ? t("onboarding.copyInvitationLink") : t("onboarding.copyPasswordResetLink")}
                   onClick={() => copyToClipboard(invitationUrl)}
                 >
                   <Copy />
-                  Copy
+                  {t("common.copy")}
                 </InputGroupButton>
               </InputGroupAddon>
             </InputGroup>

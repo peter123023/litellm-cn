@@ -2,6 +2,7 @@
 
 import { useNow } from "@/hooks/useNow";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   analysisElapsed,
@@ -11,13 +12,19 @@ import {
   analysisStages,
   remainingLabel,
   stageDurations,
+  type ProgressSample,
 } from "../model/progress";
-import { useProgressSamples } from "./useProgressSamples";
 import { durationText } from "../model/format";
-import { type Job } from "../model/types";
+import { nextCheckStatus } from "../model/status";
+import { type Lens, type Job } from "../model/types";
 import { cn } from "@/lib/cva.config";
+import { useTranslation } from "@/i18n";
 
-const steps = ["review runs", "find patterns", "check evidence"];
+const steps = [
+  "lens.investigations.stepReviewRuns",
+  "lens.investigations.stepFindPatterns",
+  "lens.investigations.stepCheckEvidence",
+];
 const markers = { done: "✓", active: "▸", todo: "·" };
 const blocks = 32;
 
@@ -27,10 +34,15 @@ function stageState(index: number, current: number): keyof typeof markers {
 }
 
 export function InvestigationProgress({ job, onCancel }: { job: Job; onCancel?: () => void }) {
+  const { t } = useTranslation();
   const now = useNow(1000);
-  const progress = analysisProgress(job);
+  const progress = analysisProgress(job, t);
   const fraction = analysisFraction(progress);
-  const samples = useProgressSamples(progress);
+  const [samples, setSamples] = useState<ProgressSample[]>([]);
+  const latest = samples.at(-1);
+  if (!latest || latest.step !== progress.step || latest.done !== progress.done) {
+    setSamples([...samples, { at: now, step: progress.step, done: progress.done, fraction }].slice(-120));
+  }
   const pace = analysisPace(samples, now);
   const percent = Math.round(fraction * 100);
   const queued = progress.step < 0;
@@ -38,13 +50,19 @@ export function InvestigationProgress({ job, onCancel }: { job: Job; onCancel?: 
   const durations = stageDurations(samples, job.created_at, now);
   const filled = Math.round(fraction * blocks);
   const stats = [
-    ["eta", remainingLabel(pace.secondsLeft)],
-    ["rate", pace.perMinute === null ? "–" : `${Math.round(pace.perMinute)}/min`],
-    ["elapsed", analysisElapsed(job.created_at, now)],
+    ["lens.investigations.statEta", remainingLabel(pace.secondsLeft, t)],
+    [
+      "lens.investigations.statRate",
+      pace.perMinute === null ? "–" : t("lens.investigations.perMinute", { count: Math.round(pace.perMinute) }),
+    ],
+    ["lens.investigations.statElapsed", analysisElapsed(job.created_at, now, t)],
   ];
 
   return (
-    <section aria-label="Analysis progress" className="space-y-3 rounded-md border bg-muted/40 px-4 py-3 text-sm">
+    <section
+      aria-label={t("lens.investigations.progressRegion")}
+      className="space-y-3 rounded-md border bg-muted/40 px-4 py-3 text-sm"
+    >
       <div className="flex items-center justify-between gap-2">
         <span className="truncate" role="status">
           <span className="font-medium">{progress.title}</span>
@@ -52,7 +70,7 @@ export function InvestigationProgress({ job, onCancel }: { job: Job; onCancel?: 
         </span>
         {onCancel && (
           <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={onCancel}>
-            Cancel
+            {t("common.cancel")}
           </Button>
         )}
       </div>
@@ -63,7 +81,7 @@ export function InvestigationProgress({ job, onCancel }: { job: Job; onCancel?: 
           </span>
           <div
             role="progressbar"
-            aria-label="Investigation progress"
+            aria-label={t("lens.investigations.progressBar")}
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={percent}
@@ -87,24 +105,24 @@ export function InvestigationProgress({ job, onCancel }: { job: Job; onCancel?: 
           </span>
           <span className="w-10 text-right tabular-nums">{percent}%</span>
         </div>
-        <ol aria-label="Analysis stages" className="space-y-0.5">
-          {steps.map((label, index) => {
+        <ol aria-label={t("lens.investigations.stagesRegion")} className="space-y-0.5">
+          {steps.map((labelKey, index) => {
             const state = stageState(index, progress.step);
             const { done, total } = counts[index];
             const seconds = durations[index];
             return (
               <li
-                key={label}
+                key={labelKey}
                 data-state={state}
                 aria-current={state === "active" ? "step" : undefined}
                 className="grid grid-cols-[1rem_minmax(0,9rem)_6rem_auto] items-baseline gap-2 tabular-nums data-[state=done]:text-foreground data-[state=active]:font-medium data-[state=active]:text-foreground data-[state=todo]:text-muted-foreground"
               >
                 <span aria-hidden="true">{markers[state]}</span>
-                <span className="truncate">{label}</span>
+                <span className="truncate">{t(labelKey)}</span>
                 <span className="text-right text-muted-foreground">
                   {state === "todo" || !total ? "–" : `${Math.min(done, total)}/${total}`}
                 </span>
-                <span className="text-muted-foreground">{seconds === null ? "" : durationText(seconds)}</span>
+                <span className="text-muted-foreground">{seconds === null ? "" : durationText(seconds, t)}</span>
               </li>
             );
           })}
@@ -113,14 +131,32 @@ export function InvestigationProgress({ job, onCancel }: { job: Job; onCancel?: 
           {queued ? (
             <span className="text-muted-foreground">{progress.detail}</span>
           ) : (
-            stats.map(([key, value]) => (
-              <span key={key}>
-                <span className="text-muted-foreground">{key}</span> {value}
+            stats.map(([labelKey, value]) => (
+              <span key={labelKey}>
+                <span className="text-muted-foreground">{t(labelKey)}</span> {value}
               </span>
             ))
           )}
         </div>
       </div>
     </section>
+  );
+}
+
+export function NextCheck({ lens }: { lens: Lens }) {
+  const { t } = useTranslation();
+  const now = useNow(15000);
+  const label = nextCheckStatus(lens, now, t);
+  if (!label) return null;
+  return <p className="mt-1 text-xs text-muted-foreground">{label}</p>;
+}
+
+export function ScanDuration({ job }: { job: Job }) {
+  const { t } = useTranslation();
+  if (!job.finished_at) return null;
+  return (
+    <span title={t("lens.investigations.tookTitle")}>
+      {t("lens.investigations.tookPrefix")} {analysisElapsed(job.created_at, Date.parse(job.finished_at), t)}
+    </span>
   );
 }

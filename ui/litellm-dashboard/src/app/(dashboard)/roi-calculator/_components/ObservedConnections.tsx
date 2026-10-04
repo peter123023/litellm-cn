@@ -14,6 +14,7 @@ import {
   type ObservedSettings,
   type ObservedConnection,
 } from "./observedData";
+import { useTranslation } from "@/i18n";
 
 const appFields = {
   configured: z.boolean(),
@@ -50,10 +51,11 @@ function TokenFields({
   onUrl: (value: string) => void;
   hasToken: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <>
       <label htmlFor="roi-source-token" className="block text-sm font-medium">
-        {label} access token
+        {t("roi.connect.tokenLabel", { label })}
       </label>
       <Input
         id="roi-source-token"
@@ -61,17 +63,15 @@ function TokenFields({
         autoComplete="off"
         value={token}
         onChange={(event) => onToken(event.target.value)}
-        placeholder={hasToken ? "Leave blank to keep the saved token" : "Optional for public repositories"}
+        placeholder={t(hasToken ? "roi.connect.tokenKeepPlaceholder" : "roi.connect.tokenOptionalPlaceholder")}
       />
       <p className="text-xs text-muted-foreground">
-        {provider === "github"
-          ? "Fine-grained token: read access to pull requests, issues, and metadata"
-          : "Token with read_api scope"}
+        {t(provider === "github" ? "roi.connect.githubTokenHint" : "roi.connect.gitlabTokenHint")}
       </p>
       <details className="text-sm">
-        <summary className="cursor-pointer">Self-hosted instance</summary>
+        <summary className="cursor-pointer">{t("roi.connect.selfHosted")}</summary>
         <label htmlFor="roi-source-url" className="mt-3 block text-xs">
-          API URL
+          {t("roi.connect.apiUrl")}
         </label>
         <Input id="roi-source-url" value={apiUrl} onChange={(event) => onUrl(event.target.value)} />
       </details>
@@ -79,11 +79,10 @@ function TokenFields({
   );
 }
 function AppMessage({ configured, label }: { configured: boolean; label: string }) {
+  const { t } = useTranslation();
   return (
     <p className="text-sm text-muted-foreground">
-      {configured
-        ? `You’ll authorize ${label}, then choose repositories`
-        : `Register the ${label} app in gateway settings, or connect with a token`}
+      {configured ? t("roi.connect.appAuthorize", { label }) : t("roi.connect.appRegister", { label })}
     </p>
   );
 }
@@ -105,25 +104,26 @@ function RepositoryChoices({
   page: number;
   setPage: (value: number) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <>
       <Input
-        aria-label="Find repositories"
+        aria-label={t("roi.connect.findReposAria")}
         value={query}
         onChange={(event) => {
           setQuery(event.target.value);
           setPage(1);
         }}
-        placeholder="Find repositories…"
+        placeholder={t("roi.connect.findReposPlaceholder")}
       />
       <div className="max-h-48 overflow-y-auto rounded-lg border divide-y">
         {!available && (
           <p role="status" className="p-3 text-sm text-muted-foreground">
-            Loading repositories…
+            {t("roi.connect.loadingRepos")}
           </p>
         )}
         {available?.repositories.length === 0 && (
-          <p className="p-3 text-sm text-muted-foreground">No repositories found</p>
+          <p className="p-3 text-sm text-muted-foreground">{t("roi.connect.noRepos")}</p>
         )}
         {available?.repositories
           .filter((repo) => !repo.archived)
@@ -148,10 +148,10 @@ function RepositoryChoices({
       </div>
       <div className="flex justify-between">
         <Button size="sm" variant="ghost" disabled={page === 1} onClick={() => setPage(page - 1)}>
-          Previous
+          {t("common.previous")}
         </Button>
         <Button size="sm" variant="ghost" disabled={!available?.has_more} onClick={() => setPage(page + 1)}>
-          Next
+          {t("common.next")}
         </Button>
       </div>
     </>
@@ -185,7 +185,8 @@ function ConnectionMethod({
   busy: boolean;
   connect: () => void;
 }) {
-  const connectLabel = method === "app" ? `Connect ${label}` : "Continue";
+  const { t } = useTranslation();
+  const connectLabel = method === "app" ? t("roi.connect.connectProvider", { label }) : t("common.continue");
   const sameSource = connected.source_provider === provider && connected.api_url === apiUrl;
   const hasSavedToken = sameSource && connected.has_token && connected.connection_type === "token";
   return (
@@ -196,7 +197,7 @@ function ConnectionMethod({
           aria-pressed={method === "app"}
           onClick={() => setMethod("app")}
         >
-          Connect with app
+          {t("roi.connect.withApp")}
         </Button>
         <Button
           variant={method === "token" ? "secondary" : "outline"}
@@ -204,7 +205,7 @@ function ConnectionMethod({
           onClick={() => setMethod("token")}
         >
           <KeyRound />
-          Access token
+          {t("roi.connect.accessToken")}
         </Button>
       </div>
       {method === "token" && (
@@ -224,14 +225,23 @@ function ConnectionMethod({
         disabled={busy || (method === "app" && !apps?.[provider].configured)}
         onClick={connect}
       >
-        {busy ? "Connecting…" : connectLabel}
+        {busy ? t("roi.connect.connecting") : connectLabel}
       </Button>
     </>
   );
 }
 
 type ConnectionStep = "list" | "connect" | "repos";
-const stepTitles = { list: "Connections", connect: "Connect your code", repos: "Choose repositories" };
+const stepTitleKeys = {
+  list: "roi.connections",
+  connect: "roi.connect.stepConnectTitle",
+  repos: "roi.connect.stepReposTitle",
+} as const;
+const stepDescriptionKeys = {
+  list: "roi.connect.stepListDescription",
+  connect: "roi.connect.stepConnectDescription",
+  repos: "roi.connect.stepReposDescription",
+} as const;
 
 function initialStep(settings: ObservedSettings, afterAuthorization: boolean): ConnectionStep {
   if (afterAuthorization) return "repos";
@@ -239,15 +249,9 @@ function initialStep(settings: ObservedSettings, afterAuthorization: boolean): C
   return settings.has_token || settings.ready ? "repos" : "connect";
 }
 
-function stepDescription(step: ConnectionStep, label: string) {
-  if (step === "list") return "All selected repositories appear in one report";
-  if (step === "connect") return "Connect GitHub and GitLab with an app or access token";
-  return `Select ${label} repositories to compare`;
-}
-
-function connectionMethodLabel(entry: ObservedConnection) {
-  if (entry.connection_type === "app") return "App";
-  return entry.has_token ? "Token" : "Public access";
+function connectionMethodKey(entry: ObservedConnection) {
+  if (entry.connection_type === "app") return "roi.connect.methodApp";
+  return entry.has_token ? "roi.connect.methodToken" : "roi.connect.methodPublic";
 }
 
 function ConnectionList({
@@ -259,6 +263,7 @@ function ConnectionList({
   onEdit: (entry: ObservedConnection) => void;
   onAdd: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <>
       {connections.map((entry) => (
@@ -270,21 +275,24 @@ function ConnectionList({
             </p>
             <p className="mt-1 truncate text-xs text-muted-foreground">{new URL(entry.api_url).host}</p>
             <p className="mt-2 text-xs text-muted-foreground">
-              {entry.repos.length} repositories · {connectionMethodLabel(entry)}
+              {t("roi.connect.repoCountAndMethod", { count: entry.repos.length, method: t(connectionMethodKey(entry)) })}
             </p>
           </div>
           <Button
             variant="outline"
             size="sm"
             onClick={() => onEdit(entry)}
-            aria-label={`Edit ${entry.source_provider === "github" ? "GitHub" : "GitLab"} ${new URL(entry.api_url).host}`}
+            aria-label={t("roi.connect.editAria", {
+              provider: entry.source_provider === "github" ? "GitHub" : "GitLab",
+              host: new URL(entry.api_url).host,
+            })}
           >
-            Edit
+            {t("common.edit")}
           </Button>
         </div>
       ))}
       <Button className="w-full" variant="outline" onClick={onAdd}>
-        Add connection
+        {t("roi.connect.addConnection")}
       </Button>
     </>
   );
@@ -319,6 +327,7 @@ export default function ObservedConnections({
   initialError?: string;
   afterAuthorization?: boolean;
 }) {
+  const { t } = useTranslation();
   const [savedSettings, setSavedSettings] = useState(settings);
   const [connected, setConnected] = useState<ObservedConnection>(settings);
   const [provider, setProvider] = useState(settings.source_provider);
@@ -335,7 +344,7 @@ export default function ObservedConnections({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(initialError);
   const label = provider === "github" ? "GitHub" : "GitLab";
-  const saveLabel = repositoryNames(repos).length ? "Save and sync" : "Save repositories";
+  const saveLabel = repositoryNames(repos).length ? t("roi.connect.saveAndSync") : t("roi.connect.saveRepositories");
   const manageApp = canManageApp(connected, apps);
   const showConnections = hasConnections(savedSettings);
   useEffect(() => {
@@ -495,8 +504,8 @@ export default function ObservedConnections({
     >
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{stepTitles[step]}</DialogTitle>
-          <DialogDescription>{stepDescription(step, label)}</DialogDescription>
+          <DialogTitle>{t(stepTitleKeys[step])}</DialogTitle>
+          <DialogDescription>{t(stepDescriptionKeys[step], { label })}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-2">
           {step === "list" && (
@@ -516,10 +525,10 @@ export default function ObservedConnections({
               {showConnections && (
                 <Button variant="ghost" size="sm" onClick={() => setStep("list")}>
                   <ArrowLeft />
-                  All connections
+                  {t("roi.connect.allConnections")}
                 </Button>
               )}
-              <div className="grid grid-cols-2 gap-3" role="group" aria-label="Code provider">
+              <div className="grid grid-cols-2 gap-3" role="group" aria-label={t("roi.connect.providerGroup")}>
                 {(["github", "gitlab"] as const).map((value) => (
                   <Button
                     key={value}
@@ -553,28 +562,28 @@ export default function ObservedConnections({
               {showConnections && (
                 <Button variant="ghost" size="sm" onClick={() => setStep("list")}>
                   <ArrowLeft />
-                  All connections
+                  {t("roi.connect.allConnections")}
                 </Button>
               )}
               <Button variant="ghost" size="sm" onClick={() => setStep("connect")}>
                 <ArrowLeft />
-                Change connection
+                {t("roi.connect.changeConnection")}
               </Button>
               {manageApp && (
                 <Button variant="outline" size="sm" disabled={busy} onClick={() => connect(true)}>
-                  Manage GitHub repositories
+                  {t("roi.connect.manageGitHub")}
                 </Button>
               )}
               <label htmlFor="roi-repositories" className="block text-sm font-medium">
-                Repositories
+                {t("roi.connect.repositoriesLabel")}
               </label>
               <Input
                 id="roi-repositories"
                 value={repos}
                 onChange={(event) => setRepos(event.target.value)}
-                placeholder={
-                  provider === "github" ? "owner/repo, owner/another-repo" : "group/project, group/subgroup/project"
-                }
+                placeholder={t(
+                  provider === "github" ? "roi.connect.repoPlaceholderGithub" : "roi.connect.repoPlaceholderGitLab",
+                )}
               />
               {(connected.has_token || connected.source_provider === "gitlab") && (
                 <>
@@ -590,7 +599,7 @@ export default function ObservedConnections({
                 </>
               )}
               <Button className="w-full" disabled={busy} onClick={save}>
-                {busy ? "Saving…" : saveLabel}
+                {busy ? t("roi.connect.saving") : saveLabel}
               </Button>
             </>
           )}

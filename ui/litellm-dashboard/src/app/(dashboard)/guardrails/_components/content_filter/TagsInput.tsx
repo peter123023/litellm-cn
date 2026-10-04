@@ -14,6 +14,7 @@ import {
   ComboboxValue,
   useComboboxAnchor,
 } from "@/components/ui/combobox";
+import { useTranslation } from "@/i18n";
 
 export interface TagsInputOption {
   label: string;
@@ -46,12 +47,13 @@ export const TagsInput = ({
   onValueChange,
   options = [],
   placeholder,
-  emptyText = "No matching options",
+  emptyText,
   tokenSeparators = [],
   loading = false,
   disabled = false,
   id,
 }: TagsInputProps) => {
+  const { t } = useTranslation();
   const anchor = useComboboxAnchor();
   const [query, setQuery] = useState("");
 
@@ -118,7 +120,7 @@ export const TagsInput = ({
               ))}
               <ComboboxChipsInput
                 id={id}
-                placeholder={loading ? "Loading..." : placeholder}
+                placeholder={loading ? t("common.loading") : placeholder}
                 className="min-w-24"
                 onBlur={commitPending}
                 onKeyDown={handleKeyDown}
@@ -128,7 +130,7 @@ export const TagsInput = ({
         </ComboboxValue>
       </ComboboxChips>
       <ComboboxContent anchor={anchor}>
-        <ComboboxEmpty>{emptyText}</ComboboxEmpty>
+        <ComboboxEmpty>{emptyText ?? t("contentFilter.noMatchingOptions")}</ComboboxEmpty>
         <ComboboxList>
           {(option: TagsInputOption) => (
             <ComboboxItem key={option.value} value={option} title={option.label}>

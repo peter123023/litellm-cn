@@ -106,6 +106,8 @@ export const en: Record<string, string> = {
   "playground.chat.ci.loadingImage": "Loading image...",
   "playground.chat.ci.generatedChart": "Generated chart",
   "playground.chat.ci.imageUnavailable": "Image not available",
+  "playground.chat.ci.runningPython": "Running Python code...",
+  "playground.chat.ci.active": "Code Interpreter Active",
 
   // chat_ui/ChatUI.tsx
   "playground.chat.requestCancelled": "Request cancelled",
@@ -150,6 +152,7 @@ export const en: Record<string, string> = {
   "playground.chat.selectMcpServerPlaceholder": "Select MCP server",
   "playground.chat.selectMcpServersPlaceholder": "Select MCP servers",
   "playground.chat.loading": "Loading...",
+  "playground.chat.loadingLabel": "Loading",
   "playground.chat.noMcpServers": "No MCP servers",
   "playground.chat.customHeaders": "Custom Headers",
   "playground.chat.toolsetCount": "Toolset ({count} tools)",
@@ -221,7 +224,6 @@ export const en: Record<string, string> = {
   "playground.chat.noAgentsFound": "No agents found. Create agents via /v1/agents endpoint.",
   "playground.chat.tags": "Tags",
   "playground.chat.vectorStore": "Vector Store",
-  "playground.chat.guardrail": "Guardrail",
   "playground.chat.requiresYourApiKey": "{server} requires your API key",
   "playground.chat.connected": "Connected",
   "playground.chat.reconnect": "Reconnect",
@@ -564,99 +566,6 @@ export const en: Record<string, string> = {
   "playground.compliance.blockedWithReason": "Blocked — {reason}",
   "playground.compliance.allowedNoViolations": "Allowed — no policy or guardrail violations detected.",
   "playground.compliance.errorPrefix": "Error: {message}",
-
-  // app/(dashboard)/prompts/page.tsx
-  "prompts.featureName": "Prompt Management",
-
-  // app/(dashboard)/prompts/_components/index.tsx
-  "prompts.allEnvironments": "All Environments",
-  "prompts.environmentDevelopment": "Development",
-  "prompts.environmentStaging": "Staging",
-  "prompts.environmentProduction": "Production",
-  "prompts.deletedSuccessfully": 'Prompt "{name}" deleted successfully from {environment}',
-  "prompts.deleteFailed": "Failed to delete prompt",
-  "prompts.addNewPrompt": "Add New Prompt",
-  "prompts.uploadPromptFile": "Upload .prompt File",
-  "prompts.deletePrompt": "Delete Prompt",
-  "prompts.deleteConfirmDescription":
-    "Are you sure you want to delete the {environment} copy of prompt: {name}? This action cannot be undone.",
-
-  // app/(dashboard)/prompts/_components/add_prompt_form.tsx
-  "prompts.enterPromptId": "Please enter a prompt ID",
-  "prompts.promptIdFormat": "Prompt ID can only contain letters, numbers, underscores, and hyphens",
-  "prompts.uploadPromptFileRequired": "Please upload a .prompt file",
-  "prompts.convertFailed": "Failed to convert prompt file to JSON",
-  "prompts.accessTokenRequired": "Access token is required",
-  "prompts.createdSuccessfully": "Prompt created successfully!",
-  "prompts.createFailed": "Failed to create prompt",
-  "prompts.promptId": "Prompt ID",
-  "prompts.promptIdPlaceholder": "Enter unique prompt ID (e.g., my_prompt_id)",
-  "prompts.promptIntegration": "Prompt Integration",
-  "prompts.promptFile": "Prompt File",
-  "prompts.promptFileAria": "Prompt file",
-  "prompts.selectPromptFile": "Select .prompt File",
-  "prompts.selectedFile": "Selected: {name}",
-  "prompts.removeFile": "Remove {name}",
-  "prompts.promptFileDescription": "Upload a .prompt file that follows the Dotprompt specification",
-  "prompts.createPrompt": "Create Prompt",
-
-  // app/(dashboard)/prompts/_components/variable_textarea.tsx
-  "prompts.detectedVariables": "Detected variables:",
-  "prompts.editVariableName": "Edit variable name",
-  "prompts.variableName": "Variable name",
-
-  // app/(dashboard)/prompts/_components/PromptTableColumns.tsx
-  "prompts.openActions": "Open prompt actions",
-  "prompts.promptIdCopied": "Prompt ID copied",
-  "prompts.copyPromptId": "Copy prompt ID",
-  "prompts.unknownPrompt": "Unknown Prompt",
-  "prompts.model": "Model",
-  "prompts.createdAt": "Created At",
-  "prompts.updatedAt": "Updated At",
-  "prompts.environment": "Environment",
-  "prompts.createdBy": "Created By",
-
-  // app/(dashboard)/prompts/_components/PromptTable.tsx
-  "prompts.emptyTitle": "No prompts yet",
-  "prompts.emptyDescription": "Add a prompt to start managing reusable templates.",
-  "prompts.loadingPrompts": "Loading prompts…",
-
-  // app/(dashboard)/prompts/_components/tool_modal.tsx
-  "prompts.toolModalInvalidJson": "Invalid JSON format. Please check your syntax.",
-  "prompts.addTool": "Add Tool",
-  "prompts.toolJsonAria": "Tool JSON",
-  "prompts.toolJsonPlaceholder": "Paste your tool JSON here...",
-
-  // app/(dashboard)/prompts/_components/prompt_info.tsx
-  "prompts.loadInfoFailed": "Failed to load prompt information",
-  "prompts.notFound": "Prompt not found",
-  "prompts.deletedSuccessfullySimple": 'Prompt "{name}" deleted successfully',
-  "prompts.loadVersionFailed": "Failed to load version v{version}",
-  "prompts.backToPrompts": "Back to Prompts",
-  "prompts.detailsTitle": "Prompt Details",
-  "prompts.promptStudio": "Prompt Studio",
-  "prompts.viewingOldVersion": "Viewing v{version} — not the latest version (v{latest})",
-  "prompts.goToLatest": "Go to latest",
-  "prompts.tabOverview": "Overview",
-  "prompts.tabPromptTemplate": "Prompt Template",
-  "prompts.tabRawJson": "Raw JSON",
-  "prompts.version": "Version",
-  "prompts.promptType": "Prompt Type",
-  "prompts.updatedLabel": "Updated: {date}",
-  "prompts.versionHistoryTitle": "Version History — {environment}",
-  "prompts.loadingVersions": "Loading versions...",
-  "prompts.latestBadge": "latest",
-  "prompts.noVersions": "No versions found in {environment}",
-  "prompts.copied": "Copied!",
-  "prompts.copyContent": "Copy Content",
-  "prompts.templateId": "Template ID",
-  "prompts.content": "Content",
-  "prompts.templateMetadata": "Template Metadata",
-  "prompts.rawApiResponse": "Raw API Response",
-  "prompts.copyJson": "Copy JSON",
-  "prompts.deleteAllPrefix": "Are you sure you want to delete prompt:",
-  "prompts.deleteAllSuffix": "from every environment?",
-  "prompts.cannotBeUndone": "This action cannot be undone.",
 };
 
 export const zh: Record<string, string> = {
@@ -760,6 +669,8 @@ export const zh: Record<string, string> = {
   "playground.chat.ci.loadingImage": "正在加载图片...",
   "playground.chat.ci.generatedChart": "生成的图表",
   "playground.chat.ci.imageUnavailable": "图片不可用",
+  "playground.chat.ci.runningPython": "正在运行 Python 代码...",
+  "playground.chat.ci.active": "Code Interpreter 已启用",
 
   // chat_ui/ChatUI.tsx
   "playground.chat.requestCancelled": "请求已取消",
@@ -803,6 +714,7 @@ export const zh: Record<string, string> = {
   "playground.chat.selectMcpServerPlaceholder": "选择 MCP 服务器",
   "playground.chat.selectMcpServersPlaceholder": "选择 MCP 服务器",
   "playground.chat.loading": "加载中...",
+  "playground.chat.loadingLabel": "加载中",
   "playground.chat.noMcpServers": "暂无 MCP 服务器",
   "playground.chat.customHeaders": "自定义请求头",
   "playground.chat.toolsetCount": "工具集（{count} 个工具）",
@@ -874,7 +786,6 @@ export const zh: Record<string, string> = {
   "playground.chat.noAgentsFound": "未找到 Agent，可通过 /v1/agents 端点创建。",
   "playground.chat.tags": "标签",
   "playground.chat.vectorStore": "向量库",
-  "playground.chat.guardrail": "防护栏",
   "playground.chat.requiresYourApiKey": "{server} 需要你自己的 API Key",
   "playground.chat.connected": "已连接",
   "playground.chat.reconnect": "重新连接",
@@ -1212,96 +1123,4 @@ export const zh: Record<string, string> = {
   "playground.compliance.blockedWithReason": "已拦截 — {reason}",
   "playground.compliance.allowedNoViolations": "已放行 — 未发现策略或防护栏违规。",
   "playground.compliance.errorPrefix": "错误：{message}",
-
-  // app/(dashboard)/prompts/page.tsx
-  "prompts.featureName": "提示词管理",
-
-  // app/(dashboard)/prompts/_components/index.tsx
-  "prompts.allEnvironments": "所有环境",
-  "prompts.environmentDevelopment": "开发",
-  "prompts.environmentStaging": "预发布",
-  "prompts.environmentProduction": "生产",
-  "prompts.deletedSuccessfully": '提示词 "{name}" 已成功从 {environment} 删除',
-  "prompts.deleteFailed": "删除提示词失败",
-  "prompts.addNewPrompt": "新增提示词",
-  "prompts.uploadPromptFile": "上传 .prompt 文件",
-  "prompts.deletePrompt": "删除提示词",
-  "prompts.deleteConfirmDescription": "确定要删除提示词 {name} 的 {environment} 环境副本吗？此操作无法撤销。",
-
-  // app/(dashboard)/prompts/_components/add_prompt_form.tsx
-  "prompts.enterPromptId": "请输入提示词 ID",
-  "prompts.promptIdFormat": "提示词 ID 只能包含字母、数字、下划线和连字符",
-  "prompts.uploadPromptFileRequired": "请上传 .prompt 文件",
-  "prompts.convertFailed": "提示词文件转换为 JSON 失败",
-  "prompts.accessTokenRequired": "缺少访问令牌",
-  "prompts.createdSuccessfully": "提示词创建成功！",
-  "prompts.createFailed": "创建提示词失败",
-  "prompts.promptId": "提示词 ID",
-  "prompts.promptIdPlaceholder": "输入唯一的提示词 ID（例如 my_prompt_id）",
-  "prompts.promptIntegration": "提示词集成",
-  "prompts.promptFile": "提示词文件",
-  "prompts.promptFileAria": "提示词文件",
-  "prompts.selectPromptFile": "选择 .prompt 文件",
-  "prompts.selectedFile": "已选择：{name}",
-  "prompts.removeFile": "移除 {name}",
-  "prompts.promptFileDescription": "请上传符合 Dotprompt 规范的 .prompt 文件",
-  "prompts.createPrompt": "创建提示词",
-
-  // app/(dashboard)/prompts/_components/variable_textarea.tsx
-  "prompts.detectedVariables": "检测到的变量：",
-  "prompts.editVariableName": "编辑变量名",
-  "prompts.variableName": "变量名",
-
-  // app/(dashboard)/prompts/_components/PromptTableColumns.tsx
-  "prompts.openActions": "打开提示词操作",
-  "prompts.promptIdCopied": "提示词 ID 已复制",
-  "prompts.copyPromptId": "复制提示词 ID",
-  "prompts.unknownPrompt": "未知提示词",
-  "prompts.model": "模型",
-  "prompts.createdAt": "创建时间",
-  "prompts.updatedAt": "更新时间",
-  "prompts.environment": "环境",
-  "prompts.createdBy": "创建者",
-
-  // app/(dashboard)/prompts/_components/PromptTable.tsx
-  "prompts.emptyTitle": "暂无提示词",
-  "prompts.emptyDescription": "添加提示词以开始管理可复用模板。",
-  "prompts.loadingPrompts": "正在加载提示词…",
-
-  // app/(dashboard)/prompts/_components/tool_modal.tsx
-  "prompts.toolModalInvalidJson": "JSON 格式无效，请检查语法。",
-  "prompts.addTool": "添加工具",
-  "prompts.toolJsonAria": "工具 JSON",
-  "prompts.toolJsonPlaceholder": "在此粘贴工具 JSON...",
-
-  // app/(dashboard)/prompts/_components/prompt_info.tsx
-  "prompts.loadInfoFailed": "加载提示词信息失败",
-  "prompts.notFound": "未找到提示词",
-  "prompts.deletedSuccessfullySimple": '提示词 "{name}" 已成功删除',
-  "prompts.loadVersionFailed": "加载 v{version} 版本失败",
-  "prompts.backToPrompts": "返回提示词列表",
-  "prompts.detailsTitle": "提示词详情",
-  "prompts.promptStudio": "提示词 Studio",
-  "prompts.viewingOldVersion": "正在查看 v{version}，不是最新版本（v{latest}）",
-  "prompts.goToLatest": "前往最新版本",
-  "prompts.tabOverview": "概览",
-  "prompts.tabPromptTemplate": "提示词模板",
-  "prompts.tabRawJson": "原始 JSON",
-  "prompts.version": "版本",
-  "prompts.promptType": "提示词类型",
-  "prompts.updatedLabel": "更新于：{date}",
-  "prompts.versionHistoryTitle": "版本历史 — {environment}",
-  "prompts.loadingVersions": "正在加载版本...",
-  "prompts.latestBadge": "最新",
-  "prompts.noVersions": "{environment} 中未找到版本",
-  "prompts.copied": "已复制！",
-  "prompts.copyContent": "复制内容",
-  "prompts.templateId": "模板 ID",
-  "prompts.content": "内容",
-  "prompts.templateMetadata": "模板元数据",
-  "prompts.rawApiResponse": "原始 API 响应",
-  "prompts.copyJson": "复制 JSON",
-  "prompts.deleteAllPrefix": "确定要删除提示词：",
-  "prompts.deleteAllSuffix": "的所有环境副本吗？",
-  "prompts.cannotBeUndone": "此操作无法撤销。",
 };

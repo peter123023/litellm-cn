@@ -1,3 +1,4 @@
+import type { Translate } from "@/i18n";
 import { z } from "zod";
 
 const windowSchema = z.object({ start: z.string(), end: z.string() });
@@ -289,10 +290,25 @@ export function reportPeople(snapshot: ObservedSnapshot, matchedOnly: boolean): 
   return [...matched, ...unmatched];
 }
 
-export function changeTerms(provider: ObservedSnapshot["source_provider"]) {
+export function changeTerms(provider: ObservedSnapshot["source_provider"], t: Translate) {
   if (provider === "mixed")
-    return { singular: "change", plural: "changes", requests: "Merged changes", lower: "merged changes" };
+    return {
+      singular: t("roi.term.change"),
+      plural: t("roi.term.changes"),
+      requests: t("roi.term.mergedChanges"),
+      lower: t("roi.term.mergedChangesLower"),
+    };
   return provider === "gitlab"
-    ? { singular: "MR", plural: "MRs", requests: "Merge requests", lower: "merge requests" }
-    : { singular: "PR", plural: "PRs", requests: "Pull requests", lower: "pull requests" };
+    ? {
+        singular: t("roi.term.mergeRequestAbbreviation"),
+        plural: t("roi.term.mergeRequestsAbbreviation"),
+        requests: t("roi.term.mergeRequests"),
+        lower: t("roi.term.mergeRequestsLower"),
+      }
+    : {
+        singular: t("roi.term.pullRequestAbbreviation"),
+        plural: t("roi.term.pullRequestsAbbreviation"),
+        requests: t("roi.term.pullRequests"),
+        lower: t("roi.term.pullRequestsLower"),
+      };
 }

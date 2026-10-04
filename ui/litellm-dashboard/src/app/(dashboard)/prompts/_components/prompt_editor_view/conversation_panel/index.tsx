@@ -7,6 +7,7 @@ import VariableInput from "./VariableInput";
 import MessageList from "./MessageList";
 import VariableWarning from "./VariableWarning";
 import MessageInput from "./MessageInput";
+import { useTranslation } from "@/i18n";
 
 const ConversationPanel: React.FC<ConversationPanelProps> = ({ prompt, accessToken }) => {
   const {
@@ -25,6 +26,7 @@ const ConversationPanel: React.FC<ConversationPanelProps> = ({ prompt, accessTok
     handleKeyDown,
     handleVariableChange,
   } = useConversation(prompt, accessToken);
+  const { t } = useTranslation();
 
   return (
     <div className="flex flex-col h-full bg-background">
@@ -40,7 +42,7 @@ const ConversationPanel: React.FC<ConversationPanelProps> = ({ prompt, accessTok
         <div className="p-3 border-b border-border bg-background flex justify-end">
           <Button type="button" variant="outline" size="sm" onClick={handleClearConversation}>
             <Trash2 aria-hidden="true" />
-            Clear Chat
+            {t("prompts.chat.clear")}
           </Button>
         </div>
       )}

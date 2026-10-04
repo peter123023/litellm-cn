@@ -2,6 +2,7 @@
 
 import type { ComponentProps } from "react";
 
+import { useTranslation } from "@/i18n";
 import { cn } from "@/lib/cva.config";
 
 export function PageHeader({ className, ...props }: ComponentProps<"div">) {
@@ -25,10 +26,12 @@ export function PageHeaderDescription({ className, ...props }: ComponentProps<"p
 }
 
 export function PageHeaderControls({ className, ...props }: ComponentProps<"div">) {
+  const { t } = useTranslation();
+
   return (
     <div
       role="group"
-      aria-label="Page controls"
+      aria-label={t("pageHeader.controls")}
       className={cn("mt-5 flex min-h-9 items-center gap-2", className)}
       {...props}
     />

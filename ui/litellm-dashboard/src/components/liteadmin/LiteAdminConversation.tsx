@@ -10,14 +10,15 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
+import { useTranslation } from "@/i18n";
 import type { ActionEntry, ConversationEntry } from "./useLiteAdmin";
 
 const ACTION_STATUS: Record<ActionEntry["status"], string> = {
-  review: "Review change",
-  applying: "Applying…",
-  completed: "Completed",
-  cancelled: "Cancelled",
-  unknown: "Check result",
+  review: "liteAdmin.actionStatus.review",
+  applying: "liteAdmin.actionStatus.applying",
+  completed: "liteAdmin.actionStatus.completed",
+  cancelled: "liteAdmin.actionStatus.cancelled",
+  unknown: "liteAdmin.actionStatus.unknown",
 };
 
 interface ConversationProps {
@@ -29,12 +30,13 @@ interface ConversationProps {
 }
 
 export function LiteAdminConversation({ entries, thinking, open, reviewRef, onAnswer }: ConversationProps) {
+  const { t } = useTranslation();
   return (
     <MessageScroller.Provider autoScroll>
       <MessageScroller.Root className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
         <MessageScroller.Viewport
           className="min-h-0 flex-1 overflow-y-auto overscroll-contain data-pending-scroll:invisible"
-          aria-label="LiteAdmin conversation"
+          aria-label={t("liteAdmin.conversationLabel")}
         >
           <MessageScroller.Content className="flex flex-col gap-4 p-4" aria-busy={thinking}>
             {entries.map((entry) => (
@@ -59,10 +61,10 @@ export function LiteAdminConversation({ entries, thinking, open, reviewRef, onAn
             ))}
             {thinking && (
               <MessageScroller.Item messageId="thinking">
-                <div role="status" aria-label="LiteAdmin is working" className="space-y-2">
+                <div role="status" aria-label={t("liteAdmin.workingAria")} className="space-y-2">
                   <Skeleton className="h-3 w-3/4" />
                   <Skeleton className="h-3 w-1/2" />
-                  <span className="sr-only">Working…</span>
+                  <span className="sr-only">{t("liteAdmin.working")}</span>
                 </div>
               </MessageScroller.Item>
             )}
@@ -70,14 +72,12 @@ export function LiteAdminConversation({ entries, thinking, open, reviewRef, onAn
         </MessageScroller.Viewport>
         {entries.length === 0 && (
           <div className="pointer-events-none absolute inset-0 flex flex-col justify-center gap-2 p-6">
-            <p className="font-medium">How can I help?</p>
-            <p className="text-sm text-muted-foreground">
-              Check budgets, inspect usage, or manage keys and teams. You review every change before it runs.
-            </p>
+            <p className="font-medium">{t("liteAdmin.emptyTitle")}</p>
+            <p className="text-sm text-muted-foreground">{t("liteAdmin.emptyBody")}</p>
           </div>
         )}
         <MessageScroller.Button
-          aria-label="Jump to latest"
+          aria-label={t("liteAdmin.jumpToLatest")}
           className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full shadow-sm data-[active=false]:pointer-events-none data-[active=false]:opacity-0"
           render={<Button variant="outline" size="icon-sm" />}
         >
@@ -94,6 +94,7 @@ function ActionCard({
   reviewRef,
   onAnswer,
 }: Pick<ConversationProps, "open" | "reviewRef" | "onAnswer"> & { entry: ActionEntry }) {
+  const { t } = useTranslation();
   const { scrollToEnd } = useMessageScroller();
   const review = entry.status === "review";
   useEffect(() => {
@@ -135,7 +136,7 @@ function ActionCard({
         <CardTitle>{entry.action.title}</CardTitle>
         <Badge variant={entry.status === "unknown" ? "destructive" : "secondary"} role="status">
           {entry.status === "completed" && <Check className="size-3" />}
-          {ACTION_STATUS[entry.status]}
+          {t(ACTION_STATUS[entry.status])}
         </Badge>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -145,7 +146,7 @@ function ActionCard({
           <Collapsible>
             <CollapsibleTrigger render={<Button variant="ghost" size="xs" />}>
               <ChevronDown className="size-3" />
-              Details
+              {t("liteAdmin.details")}
             </CollapsibleTrigger>
             <CollapsibleContent>{fields}</CollapsibleContent>
           </Collapsible>
@@ -159,19 +160,19 @@ function ActionCard({
           <div className="space-y-2">
             <div className="flex items-start gap-2">
               <code className="min-w-0 flex-1 break-all text-xs">{entry.key}</code>
-              <CopyButton value={entry.key} label="Copy generated key" />
+              <CopyButton value={entry.key} label={t("liteAdmin.copyGeneratedKey")} />
             </div>
-            <p className="text-xs text-muted-foreground">Copy this key now. It stays only in this chat session.</p>
+            <p className="text-xs text-muted-foreground">{t("liteAdmin.copyKeyHint")}</p>
           </div>
         )}
       </CardContent>
       {review && (
         <CardFooter className="justify-end gap-2">
           <Button variant="outline" onClick={() => answer(false)}>
-            Cancel
+            {t("liteAdmin.cancel")}
           </Button>
           <Button variant={entry.action.destructive ? "destructive" : "default"} onClick={() => answer(true)}>
-            Confirm change
+            {t("liteAdmin.confirmChange")}
           </Button>
         </CardFooter>
       )}

@@ -29,6 +29,7 @@ import {
   type ObservedSnapshot,
   type PeopleSort,
 } from "./observedData";
+import { useTranslation } from "@/i18n";
 
 function Delta({
   current,
@@ -39,16 +40,18 @@ function Delta({
   baseline: number | null;
   neutral?: boolean;
 }) {
+  const { t } = useTranslation();
   const delta = current === null || baseline === null ? null : change(current, baseline);
-  if (delta === null) return <span className="text-xs text-muted-foreground">No baseline</span>;
+  if (delta === null) return <span className="text-xs text-muted-foreground">{t("roi.report.noBaseline")}</span>;
   const Icon = delta >= 0 ? ArrowUp : ArrowDown;
+  const magnitude = `${number(Math.abs(delta))}%`;
   return (
     <span
-      aria-label={`${number(Math.abs(delta))}% ${delta >= 0 ? "increase" : "decrease"}`}
+      aria-label={t(delta >= 0 ? "roi.report.increaseAria" : "roi.report.decreaseAria", { value: magnitude })}
       className={`inline-flex items-center gap-1 text-xs tabular-nums ${neutral ? "text-muted-foreground" : "text-foreground"}`}
     >
       <Icon className="size-3" />
-      {number(Math.abs(delta))}%
+      {magnitude}
     </span>
   );
 }
@@ -79,22 +82,23 @@ function Metric({
 }
 
 function ShippingTrend({ snapshot, comparison }: { snapshot: ObservedSnapshot; comparison: Comparison }) {
-  const terms = changeTerms(snapshot.source_provider);
+  const { t } = useTranslation();
+  const terms = changeTerms(snapshot.source_provider, t);
   const current = weeklyMerges(snapshot, "current");
   const baseline = weeklyMerges(snapshot, comparison);
   const max = Math.max(1, ...current, ...baseline);
   return (
     <div className="rounded-xl border p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-sm font-medium">Repository shipping activity</h2>
+        <h2 className="text-sm font-medium">{t("roi.trend.title")}</h2>
         <div className="flex gap-4 text-xs text-muted-foreground">
           <span className="flex items-center gap-1.5">
             <span className="size-2 rounded-sm bg-blue-500" />
-            Current period
+            {t("roi.period.currentPeriod")}
           </span>
           <span className="flex items-center gap-1.5">
             <span className="size-2 rounded-sm bg-slate-300 dark:bg-slate-600" />
-            {comparison === "previous" ? "Previous period" : "Last year"}
+            {comparison === "previous" ? t("roi.period.previous") : t("roi.period.lastYear")}
           </span>
         </div>
       </div>
@@ -102,7 +106,11 @@ function ShippingTrend({ snapshot, comparison }: { snapshot: ObservedSnapshot; c
         className="mt-5 grid gap-2"
         style={{ gridTemplateColumns: `repeat(${current.length}, minmax(0, 1fr))` }}
         role="img"
-        aria-label={`Merged ${terms.plural} by week. Current: ${current.join(", ")}. Comparison: ${baseline.join(", ")}`}
+        aria-label={t("roi.trend.ariaLabel", {
+          term: terms.plural,
+          current: current.join(", "),
+          comparison: baseline.join(", "),
+        })}
       >
         {current.map((value, week) => (
           <div key={week} className="min-w-0">
@@ -122,7 +130,7 @@ function ShippingTrend({ snapshot, comparison }: { snapshot: ObservedSnapshot; c
                 <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] font-medium">{value}</span>
               </div>
             </div>
-            <p className="mt-2 text-center text-[11px] text-muted-foreground">W{week + 1}</p>
+            <p className="mt-2 text-center text-[11px] text-muted-foreground">{t("roi.trend.week", { week: week + 1 })}</p>
           </div>
         ))}
       </div>
@@ -143,21 +151,26 @@ function PeopleTable({
   comparison: Comparison;
   onSelect: (person: ReportPerson) => void;
 }) {
-  const terms = changeTerms(provider);
+  const { t } = useTranslation();
+  const terms = changeTerms(provider, t);
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<PeopleSort>("merged");
   const people = visiblePeople(rows, query, sort);
-  const emptyMessage = matchedOnly
-    ? "No matched people. Link accounts or turn off the filter to see all contributors"
-    : "No contributors in these periods";
+  const sortLabels = {
+    merged: t("roi.people.sortMerged", { term: terms.plural }),
+    spend: t("roi.people.sortSpend"),
+    cost: t("roi.people.sortCost", { term: terms.singular }),
+    name: t("common.name"),
+  };
+  const emptyMessage = matchedOnly ? t("roi.people.emptyMatched") : t("roi.people.empty");
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="relative w-72">
           <Search className="absolute top-2.5 left-3 size-4 text-muted-foreground" />
           <Input
-            aria-label="Search engineers"
-            placeholder="Search engineers…"
+            aria-label={t("roi.people.searchAria")}
+            placeholder={t("roi.people.searchPlaceholder")}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             className="pl-9"
@@ -165,7 +178,9 @@ function PeopleTable({
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs text-muted-foreground">
-            {people.length} {people.length === 1 ? "engineer" : "engineers"}
+            {t(people.length === 1 ? "roi.people.engineerCountOne" : "roi.people.engineerCountOther", {
+              count: people.length,
+            })}
           </span>
           <Select
             value={sort}
@@ -173,20 +188,20 @@ function PeopleTable({
               if (value) setSort(value);
             }}
             items={[
-              { value: "merged", label: `Most merged ${terms.plural}` },
-              { value: "spend", label: "Highest spend" },
-              { value: "cost", label: `Highest cost / ${terms.singular}` },
-              { value: "name", label: "Name" },
+              { value: "merged", label: sortLabels.merged },
+              { value: "spend", label: sortLabels.spend },
+              { value: "cost", label: sortLabels.cost },
+              { value: "name", label: sortLabels.name },
             ]}
           >
-            <SelectTrigger aria-label="Sort engineers">
+            <SelectTrigger aria-label={t("roi.people.sortBy")}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="merged">Most merged {terms.plural}</SelectItem>
-              <SelectItem value="spend">Highest spend</SelectItem>
-              <SelectItem value="cost">Highest cost / {terms.singular}</SelectItem>
-              <SelectItem value="name">Name</SelectItem>
+              <SelectItem value="merged">{sortLabels.merged}</SelectItem>
+              <SelectItem value="spend">{sortLabels.spend}</SelectItem>
+              <SelectItem value="cost">{sortLabels.cost}</SelectItem>
+              <SelectItem value="name">{sortLabels.name}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -195,17 +210,17 @@ function PeopleTable({
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/30">
-              <TableHead className="pl-5">Engineer</TableHead>
-              <TableHead className="text-right">Merged {terms.plural}</TableHead>
-              <TableHead>Authored / agent</TableHead>
+              <TableHead className="pl-5">{t("roi.people.colEngineer")}</TableHead>
+              <TableHead className="text-right">{t("roi.people.colMerged", { term: terms.plural })}</TableHead>
+              <TableHead>{t("roi.people.colAuthoredAgent")}</TableHead>
               <TableHead className="text-right">
-                {comparison === "previous" ? "vs. previous" : "vs. last year"}
+                {comparison === "previous" ? t("roi.period.vsPrevious") : t("roi.period.vsLastYear")}
               </TableHead>
-              <TableHead className="text-right">Median merge</TableHead>
-              <TableHead className="text-right">Recorded spend</TableHead>
-              <TableHead className="text-right">Spend / {terms.singular}</TableHead>
+              <TableHead className="text-right">{t("roi.people.colMedianMerge")}</TableHead>
+              <TableHead className="text-right">{t("roi.people.colRecordedSpend")}</TableHead>
+              <TableHead className="text-right">{t("roi.people.colSpendPer", { term: terms.singular })}</TableHead>
               <TableHead>
-                <span className="sr-only">Details</span>
+                <span className="sr-only">{t("common.details")}</span>
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -226,7 +241,7 @@ function PeopleTable({
                       <span>
                         <span className="block font-medium">{person.name}</span>
                         <span className="text-xs text-muted-foreground">
-                          {person.email || `Not linked · ${person.host}`}
+                          {person.email || t("roi.people.notLinked", { host: person.host })}
                         </span>
                       </span>
                     </button>
@@ -268,7 +283,7 @@ function PeopleTable({
                     <Button
                       size="icon-xs"
                       variant="ghost"
-                      aria-label={`View ${person.name}'s ${terms.lower}`}
+                      aria-label={t("roi.people.viewAria", { name: person.name, term: terms.lower })}
                       onClick={() => onSelect(person)}
                     >
                       <ChevronRight />
@@ -281,47 +296,47 @@ function PeopleTable({
         </Table>
         {people.length === 0 && (
           <div className="p-10 text-center text-sm text-muted-foreground">
-            {query ? `No engineers match “${query}”` : emptyMessage}
+            {query ? t("roi.people.emptySearch", { query }) : emptyMessage}
           </div>
         )}
       </div>
       <p className="text-xs text-muted-foreground">
         <span className="mr-3 inline-flex items-center gap-1.5">
           <span className="size-2 rounded-sm bg-blue-500" />
-          Authored
+          {t("roi.people.legendAuthored")}
         </span>
         <span className="mr-3 inline-flex items-center gap-1.5">
           <span className="size-2 rounded-sm bg-violet-400" />
-          Agent, explicit requester
+          {t("roi.people.legendAgent")}
         </span>
-        Spend / {terms.singular} is recorded period spend divided by matched {terms.plural}
+        {t("roi.people.legendNote", { singular: terms.singular, plural: terms.plural })}
       </p>
     </div>
   );
 }
-
 function Quality({ snapshot, comparison }: { snapshot: ObservedSnapshot; comparison: Comparison }) {
-  const terms = changeTerms(snapshot.source_provider);
+  const { t } = useTranslation();
+  const terms = changeTerms(snapshot.source_provider, t);
   const current = snapshot.periods.current;
   const baseline = snapshot.periods[comparison];
   const rows = [
     {
-      label: "New bug-labeled issues",
+      label: t("roi.quality.bugIssues"),
       current: current.new_bug_labeled_issues,
       baseline: baseline.new_bug_labeled_issues,
-      detail: "Opened during the period, with bug or kind:bug labels at collection",
+      detail: t("roi.quality.bugIssuesDetail"),
     },
     {
-      label: "New regression-labeled issues",
+      label: t("roi.quality.regressionIssues"),
       current: current.new_regression_labeled_issues,
       baseline: baseline.new_regression_labeled_issues,
-      detail: "Opened during the period and labeled as regressions",
+      detail: t("roi.quality.regressionIssuesDetail"),
     },
     {
-      label: `Revert-titled ${terms.plural}`,
+      label: t("roi.quality.revertTitled", { term: terms.plural }),
       current: current.explicitly_titled_revert_prs,
       baseline: baseline.explicitly_titled_revert_prs,
-      detail: `Merged ${terms.plural} whose titles explicitly indicate a revert`,
+      detail: t("roi.quality.revertTitledDetail", { term: terms.plural }),
     },
   ];
   return (
@@ -330,10 +345,10 @@ function Quality({ snapshot, comparison }: { snapshot: ObservedSnapshot; compari
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="pl-5">Repository signal</TableHead>
-              <TableHead className="text-right">Current</TableHead>
-              <TableHead className="text-right">Comparison</TableHead>
-              <TableHead className="pr-5 text-right">Change</TableHead>
+              <TableHead className="pl-5">{t("roi.quality.colSignal")}</TableHead>
+              <TableHead className="text-right">{t("roi.quality.colCurrent")}</TableHead>
+              <TableHead className="text-right">{t("roi.quality.colComparison")}</TableHead>
+              <TableHead className="pr-5 text-right">{t("roi.quality.colChange")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -353,10 +368,7 @@ function Quality({ snapshot, comparison }: { snapshot: ObservedSnapshot; compari
           </TableBody>
         </Table>
       </div>
-      <p className="max-w-3xl text-xs leading-relaxed text-muted-foreground">
-        These signals help check whether more shipping comes with more bugs. Labels and revert titles are incomplete
-        proxies; they do not establish a change-failure rate or attribute bugs to an engineer.
-      </p>
+      <p className="max-w-3xl text-xs leading-relaxed text-muted-foreground">{t("roi.quality.disclaimer")}</p>
     </div>
   );
 }
@@ -387,6 +399,7 @@ export default function ObservedReport({
   syncing: boolean;
   onPeriod?: (days: number) => void;
 }) {
+  const { t } = useTranslation();
   const [comparison, setComparison] = useState<Comparison>("previous");
   const [activeTab, setActiveTab] = useState(
     snapshot.people.length && snapshot.periods.current.merged_prs > 0 ? "people" : "pulls",
@@ -397,7 +410,7 @@ export default function ObservedReport({
   const pulls = useMemo(() => filterObservedPulls(snapshot, "current", matchedOnly), [snapshot, matchedOnly]);
   const [personId, setPersonId] = useState<string | null>(null);
   const person = people.find((entry) => entry.id === personId) ?? null;
-  const terms = changeTerms(snapshot.source_provider);
+  const terms = changeTerms(snapshot.source_provider, t);
   const current = snapshot.periods.current;
   const baseline = snapshot.periods[comparison];
   const days = Math.round((Date.parse(current.window.end) - Date.parse(current.window.start)) / 86400000) + 1;
@@ -407,13 +420,13 @@ export default function ObservedReport({
   return (
     <Page className="mx-auto max-w-[1500px] gap-3 pb-10 sm:pt-4">
       <PageHeader className="flex flex-wrap items-center justify-between gap-3">
-        <PageHeaderTitle className="text-xl">ROI Calculator</PageHeaderTitle>
+        <PageHeaderTitle className="text-xl">{t("roi.title")}</PageHeaderTitle>
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           {actions}
           {!readOnly && (
             <Button size="sm" variant="outline" onClick={onConnect}>
               <Link2 />
-              Connections
+              {t("roi.connections")}
             </Button>
           )}
         </div>
@@ -421,12 +434,21 @@ export default function ObservedReport({
       {notice}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Popover>
-          <PopoverTrigger render={<Button size="sm" variant="outline" className="self-start" />}>
-            {number(snapshot.repos.length)} {snapshot.repos.length === 1 ? "repository" : "repositories"}
-            <ChevronDown className="size-3.5" />
-          </PopoverTrigger>
+          <PopoverTrigger
+            render={
+              <Button size="sm" variant="outline" className="self-start">
+                {t(
+                  snapshot.repos.length === 1
+                    ? "roi.report.repositoryCountOne"
+                    : "roi.report.repositoryCountOther",
+                  { count: snapshot.repos.length },
+                )}
+                <ChevronDown className="size-3.5" />
+              </Button>
+            }
+          />
           <PopoverContent align="start" className="w-80 max-w-[calc(100vw-2rem)] gap-2 p-3">
-            <PopoverTitle>Repositories</PopoverTitle>
+            <PopoverTitle>{t("roi.report.repositories")}</PopoverTitle>
             <ul className="max-h-64 space-y-2 overflow-y-auto text-xs break-words">
               {snapshot.repos.map((repo) => (
                 <li key={repo}>{repo}</li>
@@ -441,15 +463,15 @@ export default function ObservedReport({
             onValueChange={(value) => {
               if (value && Number(value) !== days) onPeriod?.(Number(value));
             }}
-            items={rangeOptions.map((value) => ({ value: String(value), label: `Last ${value} days` }))}
+            items={rangeOptions.map((value) => ({ value: String(value), label: t("roi.period.lastDays", { days: value }) }))}
           >
-            <SelectTrigger size="sm" aria-label="Reporting period">
+            <SelectTrigger size="sm" aria-label={t("roi.period.reporting")}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {rangeOptions.map((value) => (
                 <SelectItem key={value} value={String(value)}>
-                  Last {value} days
+                  {t("roi.period.lastDays", { days: value })}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -464,49 +486,49 @@ export default function ObservedReport({
               if (value) setComparison(value);
             }}
             items={[
-              { value: "previous", label: "vs. previous period" },
-              { value: "last_year", label: "vs. same period last year" },
+              { value: "previous", label: t("roi.period.vsPreviousPeriod") },
+              { value: "last_year", label: t("roi.period.vsSamePeriodLastYear") },
             ]}
           >
-            <SelectTrigger size="sm" aria-label="Comparison period">
+            <SelectTrigger size="sm" aria-label={t("roi.period.comparison")}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="previous">vs. previous period</SelectItem>
-              <SelectItem value="last_year">vs. same period last year</SelectItem>
+              <SelectItem value="previous">{t("roi.period.vsPreviousPeriod")}</SelectItem>
+              <SelectItem value="last_year">{t("roi.period.vsSamePeriodLastYear")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border bg-border lg:grid-cols-4">
         <Metric
-          label={`Merged ${terms.plural}`}
+          label={t("roi.people.colMerged", { term: terms.plural })}
           value={number(current.merged_prs)}
           current={current.merged_prs}
           baseline={baseline.merged_prs}
-          detail={`${number(baseline.merged_prs)} in comparison`}
+          detail={t("roi.metric.inComparison", { count: number(baseline.merged_prs) })}
         />
         <Metric
-          label="Median time to merge"
-          value={current.merged_prs === 0 ? "No merges" : duration(current.median_merge_hours)}
+          label={t("roi.metric.medianMergeTime")}
+          value={current.merged_prs === 0 ? t("roi.metric.noMerges") : duration(current.median_merge_hours)}
           current={current.median_merge_hours ?? undefined}
           baseline={baseline.median_merge_hours ?? undefined}
-          detail={`${duration(baseline.median_merge_hours)} in comparison`}
+          detail={t("roi.metric.durationInComparison", { duration: duration(baseline.median_merge_hours) })}
         />
         <Metric
-          label="New bugs"
+          label={t("roi.metric.newBugs")}
           value={number(current.new_bug_labeled_issues)}
           current={current.new_bug_labeled_issues}
           baseline={baseline.new_bug_labeled_issues}
-          detail={`${number(baseline.new_bug_labeled_issues)} in comparison · bug-labeled issues`}
+          detail={t("roi.metric.newBugsDetail", { count: number(baseline.new_bug_labeled_issues) })}
         />
         <Metric
-          label={`Recorded spend / matched ${terms.singular}`}
+          label={t("roi.metric.spendPerMatched", { term: terms.singular })}
           value={money(cost)}
           detail={
             baselineCost === null
-              ? "No gateway records for comparison"
-              : `${money(baselineCost)} in comparison · gateway only`
+              ? t("roi.metric.noGatewayRecords")
+              : t("roi.metric.spendDetail", { amount: money(baselineCost) })
           }
         />
       </div>
@@ -514,23 +536,23 @@ export default function ObservedReport({
         <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2 border-b">
           <PageTabsList className="min-w-0 flex-1 basis-full gap-4 border-0 xl:basis-auto">
             <PageTabsTrigger value="people">
-              Engineers <span className="ml-1.5 text-muted-foreground">{people.length}</span>
+              {t("roi.report.tabPeople")} <span className="ml-1.5 text-muted-foreground">{people.length}</span>
             </PageTabsTrigger>
             <PageTabsTrigger value="pulls">{terms.requests}</PageTabsTrigger>
-            <PageTabsTrigger value="quality">Quality</PageTabsTrigger>
-            <PageTabsTrigger value="branches">Branch spend</PageTabsTrigger>
+            <PageTabsTrigger value="quality">{t("roi.report.tabQuality")}</PageTabsTrigger>
+            <PageTabsTrigger value="branches">{t("roi.report.tabBranchSpend")}</PageTabsTrigger>
           </PageTabsList>
           {activeTab !== "quality" && <MatchedPeopleToggle checked={matchedOnly} onChange={setMatchedOnly} />}
           {!readOnly && (
             <Button
               size="sm"
               variant="outline"
-              aria-label="Link accounts"
-              title="Link accounts"
+              aria-label={t("roi.accounts.link")}
+              title={t("roi.accounts.link")}
               onClick={() => setAccountEmail("")}
             >
               <Users />
-              <span className="hidden sm:inline">Link accounts</span>
+              <span className="hidden sm:inline">{t("roi.accounts.link")}</span>
             </Button>
           )}
         </div>
@@ -549,39 +571,41 @@ export default function ObservedReport({
               <ShippingTrend snapshot={snapshot} comparison={comparison} />
               <div className="flex flex-col justify-between rounded-xl border p-5">
                 <div>
-                  <h2 className="text-sm font-medium">Behind the numbers</h2>
+                  <h2 className="text-sm font-medium">{t("roi.report.behindNumbers")}</h2>
                   <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                    {number(current.agent_authored)} of {number(current.merged_prs)} {terms.plural} were authored by
-                    agents or bots.
+                    {t("roi.report.agentAuthored", {
+                      count: number(current.agent_authored),
+                      total: number(current.merged_prs),
+                      term: terms.plural,
+                    })}
                   </p>
                   <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-                    Human-authored median merge time:{" "}
+                    {t("roi.report.humanMedianLabel")}{" "}
                     <span className="font-medium text-foreground">
                       {duration(current.human_summary.median_merge_hours)}
                     </span>
-                    , compared with {duration(baseline.human_summary.median_merge_hours)}.
+                    {t("roi.report.comparedWith", { duration: duration(baseline.human_summary.median_merge_hours) })}
                   </p>
                 </div>
                 <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t pt-4">
                   <span className="text-xs text-muted-foreground">
-                    {number(current.agents_without_requester)} agent {terms.plural} have no requester
+                    {t("roi.report.agentNoRequester", {
+                      count: number(current.agents_without_requester),
+                      term: terms.plural,
+                    })}
                   </span>
                 </div>
               </div>
             </div>
           ) : (
             <div className="rounded-xl border p-8 text-center">
-              <h2 className="text-base font-medium">No merged changes yet</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Your repositories are connected. New activity will appear after the next sync
-              </p>
+              <h2 className="text-base font-medium">{t("roi.report.noMergedYet")}</h2>
+              <p className="mt-2 text-sm text-muted-foreground">{t("roi.report.noMergedYetBody")}</p>
             </div>
           )}
 
           <p className="mb-4 text-xs text-muted-foreground">
-            {matchedOnly
-              ? "Changes from people linked to internal accounts"
-              : `All repository ${terms.plural}, including agent work without a known requester`}
+            {matchedOnly ? t("roi.report.pullsMatchedNote") : t("roi.report.pullsAllNote", { term: terms.plural })}
           </p>
           <PullList pulls={pulls} provider={snapshot.source_provider} matchedOnly={matchedOnly} />
         </TabsContent>
@@ -594,11 +618,15 @@ export default function ObservedReport({
       </Tabs>
       <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3 text-xs text-muted-foreground">
         <span className="w-full">
-          {number(current.matched_internal_prs)} {terms.plural} matched to {snapshot.people.length} engineers ·{" "}
-          {number(current.agents_without_requester)} agent {terms.plural} without a requester
+          {t("roi.report.footerMatched", {
+            count: number(current.matched_internal_prs),
+            term: terms.plural,
+            people: snapshot.people.length,
+            agentCount: number(current.agents_without_requester),
+          })}
         </span>
-        <span>Comparing with {dateRange(baseline.window)} · All dates UTC</span>
-        <span>Spend recorded by this gateway · Merge time is elapsed time, not effort</span>
+        <span>{t("roi.report.footerComparing", { range: dateRange(baseline.window) })}</span>
+        <span>{t("roi.report.footerSpend")}</span>
       </div>
       {accountEmail !== null && (
         <ObservedAccounts

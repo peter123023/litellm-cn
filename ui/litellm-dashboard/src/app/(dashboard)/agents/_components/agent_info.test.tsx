@@ -5,6 +5,7 @@ import AgentInfoView from "./agent_info";
 import AgentFormFields from "./agent_form_fields";
 import * as networking from "@/components/networking";
 import type { Agent } from "@/components/agents/types";
+import { I18nProvider } from "@/i18n";
 
 vi.mock("@/components/networking", () => ({
   getAgentInfo: vi.fn(),
@@ -92,7 +93,11 @@ describe("AgentInfoView settings", () => {
   });
 
   it("submits the edited agent when Save Changes is pressed", async () => {
-    render(<AgentInfoView agentId="agent-1" onClose={vi.fn()} accessToken="sk-test" isAdmin={true} />);
+    render(
+      <I18nProvider>
+        <AgentInfoView agentId="agent-1" onClose={vi.fn()} accessToken="sk-test" isAdmin={true} />
+      </I18nProvider>,
+    );
 
     fireEvent.click(await screen.findByRole("tab", { name: "Settings" }));
     fireEvent.click(screen.getByRole("button", { name: "Edit Settings" }));
@@ -117,7 +122,11 @@ describe("AgentInfoView settings", () => {
     vi.mocked(AgentFormFields).mockImplementation(actual.default);
     const { description: _description, ...card } = agent.agent_card_params ?? {};
     vi.mocked(networking.getAgentInfo).mockResolvedValue({ ...agent, agent_card_params: card });
-    render(<AgentInfoView agentId="agent-1" onClose={vi.fn()} accessToken="sk-test" isAdmin={true} />);
+    render(
+      <I18nProvider>
+        <AgentInfoView agentId="agent-1" onClose={vi.fn()} accessToken="sk-test" isAdmin={true} />
+      </I18nProvider>,
+    );
     fireEvent.click(await screen.findByRole("tab", { name: "Settings" }));
     fireEvent.click(screen.getByRole("button", { name: "Edit Settings" }));
     expect(await screen.findByLabelText("Description")).toHaveValue("");
@@ -130,7 +139,11 @@ describe("AgentInfoView settings", () => {
   });
 
   it("sends the newly attached access group in the update payload", async () => {
-    render(<AgentInfoView agentId="agent-1" onClose={vi.fn()} accessToken="sk-test" isAdmin={true} />);
+    render(
+      <I18nProvider>
+        <AgentInfoView agentId="agent-1" onClose={vi.fn()} accessToken="sk-test" isAdmin={true} />
+      </I18nProvider>,
+    );
 
     fireEvent.click(await screen.findByRole("tab", { name: "Settings" }));
     fireEvent.click(screen.getByRole("button", { name: "Edit Settings" }));
@@ -146,7 +159,11 @@ describe("AgentInfoView settings", () => {
 
   it("loads the attached access groups into the editor and sends an empty list once detached", async () => {
     vi.mocked(networking.getAgentInfo).mockResolvedValue({ ...agent, access_group_ids: ["ag-1"] });
-    render(<AgentInfoView agentId="agent-1" onClose={vi.fn()} accessToken="sk-test" isAdmin={true} />);
+    render(
+      <I18nProvider>
+        <AgentInfoView agentId="agent-1" onClose={vi.fn()} accessToken="sk-test" isAdmin={true} />
+      </I18nProvider>,
+    );
 
     fireEvent.click(await screen.findByRole("tab", { name: "Settings" }));
     fireEvent.click(screen.getByRole("button", { name: "Edit Settings" }));
@@ -166,7 +183,11 @@ describe("AgentInfoView settings", () => {
       object_permission: { mcp_servers: ["srv-1"] },
     } as unknown as Agent);
 
-    render(<AgentInfoView agentId="agent-1" onClose={vi.fn()} accessToken="sk-test" isAdmin={true} />);
+    render(
+      <I18nProvider>
+        <AgentInfoView agentId="agent-1" onClose={vi.fn()} accessToken="sk-test" isAdmin={true} />
+      </I18nProvider>,
+    );
 
     expect(await screen.findByText("github (srv-1)")).toBeInTheDocument();
   });
@@ -174,14 +195,22 @@ describe("AgentInfoView settings", () => {
   it("shows attached access groups with their names on the overview tab", async () => {
     vi.mocked(networking.getAgentInfo).mockResolvedValue({ ...agent, access_group_ids: ["ag-1", "ag-unknown"] });
 
-    render(<AgentInfoView agentId="agent-1" onClose={vi.fn()} accessToken="sk-test" isAdmin={true} />);
+    render(
+      <I18nProvider>
+        <AgentInfoView agentId="agent-1" onClose={vi.fn()} accessToken="sk-test" isAdmin={true} />
+      </I18nProvider>,
+    );
 
     expect(await screen.findByText("support-tools (ag-1)")).toBeInTheDocument();
     expect(screen.getByText("ag-unknown")).toBeInTheDocument();
   });
 
   it("shows None when the agent has no access groups attached", async () => {
-    render(<AgentInfoView agentId="agent-1" onClose={vi.fn()} accessToken="sk-test" isAdmin={true} />);
+    render(
+      <I18nProvider>
+        <AgentInfoView agentId="agent-1" onClose={vi.fn()} accessToken="sk-test" isAdmin={true} />
+      </I18nProvider>,
+    );
 
     expect(await screen.findByText("Access Groups")).toBeInTheDocument();
     expect(screen.getByText("None")).toBeInTheDocument();
@@ -192,7 +221,11 @@ describe("AgentInfoView settings", () => {
       ...agent,
       kill_switch: { url: "https://ops.example.com/kill", method: "DELETE" },
     });
-    render(<AgentInfoView agentId="agent-1" onClose={vi.fn()} accessToken="sk-test" isAdmin={true} />);
+    render(
+      <I18nProvider>
+        <AgentInfoView agentId="agent-1" onClose={vi.fn()} accessToken="sk-test" isAdmin={true} />
+      </I18nProvider>,
+    );
 
     const dangerZone = await screen.findByRole("region", { name: "Danger Zone" });
     expect(dangerZone).toHaveTextContent("DELETE https://ops.example.com/kill");
@@ -205,7 +238,11 @@ describe("AgentInfoView settings", () => {
       ...agent,
       kill_switch: { url: "https://ops.example.com/kill", method: "POST" },
     });
-    render(<AgentInfoView agentId="agent-1" onClose={vi.fn()} accessToken="sk-test" isAdmin={false} />);
+    render(
+      <I18nProvider>
+        <AgentInfoView agentId="agent-1" onClose={vi.fn()} accessToken="sk-test" isAdmin={false} />
+      </I18nProvider>,
+    );
 
     expect(await screen.findByRole("heading", { name: "support-agent" })).toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "Danger Zone" })).not.toBeInTheDocument();

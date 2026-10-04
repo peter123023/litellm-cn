@@ -1,6 +1,7 @@
 import { zodFunction } from "openai/helpers/zod";
 import { z } from "zod";
 import { apiClient } from "@/components/networking";
+import type { Translate } from "@/i18n";
 import { ApiError } from "@/lib/http/client";
 import type { components } from "@/lib/http/schema";
 import { generatedKey, projectToolResult, type ResultKind } from "./toolResults";
@@ -18,6 +19,7 @@ export type ActionResult = { status: "completed"; key?: string } | { status: "un
 export interface OperationContext {
   accessToken: string;
   signal: AbortSignal;
+  t?: Translate;
   assertCurrent: () => void;
   beforeTool: () => void;
   confirm: (action: LiteAdminAction) => Promise<boolean>;
@@ -26,7 +28,6 @@ export interface OperationContext {
 
 type Schemas = components["schemas"];
 const text = z.string().min(1).max(200);
-const hash = z.string().regex(/^[a-f0-9]{64}$/i, "Use the key hash from a lookup, not a raw API key.");
 const optional = <Schema extends z.ZodType<unknown>>(schema: Schema) => schema.nullable();
 type NullsStripped<T> = { [K in keyof T]: Exclude<T[K], null> };
 const stripNulls = <T extends Record<string, unknown>>(args: T): NullsStripped<T> =>
@@ -58,12 +59,12 @@ const userFields = {
   ...limits,
 };
 const object = <Shape extends z.ZodRawShape>(shape: Shape) => z.strictObject(shape);
-const dated = <Shape extends z.ZodRawShape>(shape: Shape) =>
+const dated = <Shape extends z.ZodRawShape>(shape: Shape, rangeError: string) =>
   object({ start_date: z.iso.date(), end_date: z.iso.date(), ...shape }).refine((value: Record<string, unknown>) => {
     if (typeof value.start_date !== "string" || typeof value.end_date !== "string") return false;
     const days = (Date.parse(value.end_date) - Date.parse(value.start_date)) / 86_400_000;
     return days >= 0 && days <= 366;
-  }, "Choose an ordered date range of at most 366 days.");
+  }, rangeError);
 
 const keysListFields = {
   page,
@@ -88,13 +89,13 @@ const teamMemberUpdateFields = {
   rpm_limit: limit,
   tpm_limit: limit,
 };
-const spendReportFields = {
+const spendReportFields = (keyHash: z.ZodType<string>) => ({
   group_by: z.enum(["team", "customer", "api_key"]),
-  api_key: optional(hash),
+  api_key: optional(keyHash),
   team_id: optionalText,
   internal_user_id: optionalText,
   customer_id: optionalText,
-};
+});
 const requestLogsFields = {
   page,
   page_size: pageSize,
@@ -111,6 +112,15 @@ export function createLiteAdminOperations(context: OperationContext) {
     context.assertCurrent();
   };
   const auth = { accessToken: context.accessToken, signal: context.signal };
+  const translateMsg = (key: string, fallback: string): string => context.t?.(key) ?? fallback;
+  const hash = z
+    .string()
+    .regex(
+      /^[a-f0-9]{64}$/i,
+      translateMsg("liteAdmin.useKeyHash", "Use the key hash from a lookup, not a raw API key."),
+    );
+  const datedRange = <Shape extends z.ZodRawShape>(shape: Shape) =>
+    dated(shape, translateMsg("liteAdmin.dateRangeLimit", "Choose an ordered date range of at most 366 days."));
   const operation =
     (mode: "read" | "write" | "delete", kind: ResultKind, extraArguments?: Record<string, unknown>) =>
     <Schema extends z.ZodType<Record<string, unknown>>>(
@@ -143,7 +153,8 @@ export function createLiteAdminOperations(context: OperationContext) {
           if (action) {
             const approved = await context.confirm(action);
             active();
-            if (!approved) throw new Error("Action cancelled. No change was sent.");
+            if (!approved)
+              throw new Error(translateMsg("liteAdmin.actionCancelled", "Action cancelled. No change was sent."));
           }
           const outcome = await Promise.resolve()
             .then(() => {
@@ -159,7 +170,10 @@ export function createLiteAdminOperations(context: OperationContext) {
             if (action) {
               const result: ActionResult = {
                 status: "unknown",
-                message: "The change could not be verified. Check the resource before trying again.",
+                message: translateMsg(
+                  "liteAdmin.changeUnverified",
+                  "The change could not be verified. Check the resource before trying again.",
+                ),
               };
               context.onResult(action, result);
               throw new Error(result.message);
@@ -168,7 +182,7 @@ export function createLiteAdminOperations(context: OperationContext) {
               operation: name,
               success: false,
               status: outcome.error instanceof ApiError ? outcome.error.status : undefined,
-              message: "The gateway could not complete this lookup.",
+              message: translateMsg("liteAdmin.lookupFailed", "The gateway could not complete this lookup."),
             };
           }
           const key = name === "key_create" || name === "user_create" ? generatedKey(outcome.value) : undefined;
@@ -176,7 +190,7 @@ export function createLiteAdminOperations(context: OperationContext) {
           return {
             operation: name,
             success: true,
-            result: projectToolResult(kind, outcome.value, [context.accessToken, ...(key ? [key] : [])]),
+            result: projectToolResult(kind, outcome.value, [context.accessToken, ...(key ? [key] : [])], context.t),
           };
         },
       };
@@ -307,25 +321,25 @@ export function createLiteAdminOperations(context: OperationContext) {
     operation("read", "spend")(
       "spend_report",
       "View spend by date and group (requires an enterprise license)",
-      dated(spendReportFields),
+      datedRange(spendReportFields(hash)),
       (a) => apiClient.get<unknown>("/global/spend/report", { ...auth, query: a }),
     ),
     operation("read", "spend")(
       "team_spend_report",
       "View a team's spend by model and key (requires an enterprise license)",
-      dated({ team_id: text }),
+      datedRange({ team_id: text }),
       (a) => apiClient.get<unknown>("/team/spend/report", { ...auth, query: a }),
     ),
     operation("read", "spend")(
       "key_spend_report",
       "View a key's spend by model (requires an enterprise license)",
-      dated({ api_key: hash }),
+      datedRange({ api_key: hash }),
       (a) => apiClient.get<unknown>("/key/spend/report", { ...auth, query: a }),
     ),
     operation("read", "log")(
       "request_logs",
       "List request cost, timing and status, excluding prompts and responses",
-      dated(requestLogsFields),
+      datedRange(requestLogsFields),
       (a) =>
         apiClient.get<unknown>("/spend/logs/ui", {
           ...auth,

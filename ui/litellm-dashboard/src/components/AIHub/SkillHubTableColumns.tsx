@@ -13,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { translate, useTranslation, type Language, type Translate } from "@/i18n";
 import { cn } from "@/lib/cva.config";
 import { copyToClipboard } from "@/utils/dataUtils";
 import { Plugin } from "@/components/claude_code_plugins/types";
@@ -38,10 +39,11 @@ interface SkillHubRowActionsProps {
 }
 
 function SkillHubRowActions({ skill, onSkillClick }: SkillHubRowActionsProps) {
+  const { t } = useTranslation();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label="Open skill actions"
+        aria-label={t("aiHub.skills.openActions")}
         data-testid={`skill-hub-actions-${skill.id}`}
         className={cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), "text-muted-foreground")}
       >
@@ -50,14 +52,14 @@ function SkillHubRowActions({ skill, onSkillClick }: SkillHubRowActionsProps) {
       <DropdownMenuContent align="end" className="w-52">
         <DropdownMenuItem data-testid="skill-hub-action-details" onClick={() => onSkillClick(skill)}>
           <Info />
-          View details
+          {t("aiHub.viewDetails")}
         </DropdownMenuItem>
         <DropdownMenuItem
           data-testid="skill-hub-action-copy"
-          onClick={() => void copyToClipboard(skill.name, "Skill name copied")}
+          onClick={() => void copyToClipboard(skill.name, t("aiHub.skills.nameCopied"))}
         >
           <Copy />
-          Copy skill name
+          {t("aiHub.skills.copyName")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -66,107 +68,114 @@ function SkillHubRowActions({ skill, onSkillClick }: SkillHubRowActionsProps) {
 
 interface SkillHubTableColumnsDeps {
   onSkillClick: (skill: Plugin) => void;
+  language?: Language;
 }
 
-export const getSkillHubTableColumns = ({ onSkillClick }: SkillHubTableColumnsDeps): ColumnDef<Plugin>[] => [
-  {
-    id: "name",
-    accessorKey: "name",
-    meta: { title: "Skill Name" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Skill Name" />,
-    size: 200,
-    enableSorting: true,
-    sortingFn: "alphanumeric",
-    cell: ({ row }) => (
-      <IdentityCell title={row.original.name} className="max-w-72" onClick={() => onSkillClick(row.original)} />
-    ),
-  },
-  {
-    id: "description",
-    accessorKey: "description",
-    meta: { title: "Description" },
-    header: "Description",
-    size: 260,
-    enableSorting: false,
-    cell: ({ row }) => (
-      <span className="block max-w-72 truncate text-xs" title={row.original.description || undefined}>
-        {row.original.description || "-"}
-      </span>
-    ),
-  },
-  {
-    id: "category",
-    accessorKey: "category",
-    meta: { title: "Category", skeleton: "badge" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Category" />,
-    size: 130,
-    enableSorting: true,
-    sortingFn: "alphanumeric",
-    cell: ({ row }) =>
-      row.original.category ? (
-        <Badge variant="secondary">{row.original.category}</Badge>
-      ) : (
-        <span className="text-xs text-muted-foreground">-</span>
+export const getSkillHubTableColumns = ({
+  onSkillClick,
+  language = "en",
+}: SkillHubTableColumnsDeps): ColumnDef<Plugin>[] => {
+  const t: Translate = (key, params) => translate(language, key, params);
+  return [
+    {
+      id: "name",
+      accessorKey: "name",
+      meta: { title: t("aiHub.skills.name") },
+      header: ({ column }) => <DataTableSortHeader column={column} title={t("aiHub.skills.name")} />,
+      size: 200,
+      enableSorting: true,
+      sortingFn: "alphanumeric",
+      cell: ({ row }) => (
+        <IdentityCell title={row.original.name} className="max-w-72" onClick={() => onSkillClick(row.original)} />
       ),
-  },
-  {
-    id: "domain",
-    accessorKey: "domain",
-    meta: { title: "Domain" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Domain" />,
-    size: 130,
-    enableSorting: true,
-    sortingFn: "alphanumeric",
-    cell: ({ row }) => <span className="text-xs">{row.original.domain || "-"}</span>,
-  },
-  {
-    id: "source",
-    meta: { title: "Source" },
-    header: "Source",
-    size: 200,
-    enableSorting: false,
-    cell: ({ row }) => {
-      const link = getSkillSourceLink(row.original);
-      if (!link) return <span className="text-xs text-muted-foreground">-</span>;
-      return (
-        <a
-          href={link.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex max-w-60 items-center gap-1 text-xs text-primary hover:underline"
-          title={link.label}
-        >
-          <span className="truncate">{link.label}</span>
-          <ExternalLink className="size-3 shrink-0" />
-        </a>
-      );
     },
-  },
-  {
-    id: "enabled",
-    accessorKey: "enabled",
-    meta: { title: "Status", skeleton: "badge" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Status" />,
-    size: 100,
-    enableSorting: true,
-    cell: ({ row }) => (
-      <StatusBadge
-        tone={row.original.enabled ? "success" : "neutral"}
-        label={row.original.enabled ? "Public" : "Draft"}
-      />
-    ),
-  },
-  {
-    id: "actions",
-    meta: { className: "text-right", headerClassName: "text-right" },
-    header: () => <span className="sr-only">Actions</span>,
-    size: 64,
-    enableSorting: false,
-    enableHiding: false,
-    cell: ({ row }) => (
-      <div className="flex justify-end">
-        <SkillHubRowActions skill={row.original} onSkillClick={onSkillClick} />
-      </div>
-    ),
-  },
-];
+    {
+      id: "description",
+      accessorKey: "description",
+      meta: { title: t("common.description") },
+      header: t("common.description"),
+      size: 260,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <span className="block max-w-72 truncate text-xs" title={row.original.description || undefined}>
+          {row.original.description || "-"}
+        </span>
+      ),
+    },
+    {
+      id: "category",
+      accessorKey: "category",
+      meta: { title: t("aiHub.skills.category"), skeleton: "badge" },
+      header: ({ column }) => <DataTableSortHeader column={column} title={t("aiHub.skills.category")} />,
+      size: 130,
+      enableSorting: true,
+      sortingFn: "alphanumeric",
+      cell: ({ row }) =>
+        row.original.category ? (
+          <Badge variant="secondary">{row.original.category}</Badge>
+        ) : (
+          <span className="text-xs text-muted-foreground">-</span>
+        ),
+    },
+    {
+      id: "domain",
+      accessorKey: "domain",
+      meta: { title: t("aiHub.skills.domain") },
+      header: ({ column }) => <DataTableSortHeader column={column} title={t("aiHub.skills.domain")} />,
+      size: 130,
+      enableSorting: true,
+      sortingFn: "alphanumeric",
+      cell: ({ row }) => <span className="text-xs">{row.original.domain || "-"}</span>,
+    },
+    {
+      id: "source",
+      meta: { title: t("aiHub.skills.source") },
+      header: t("aiHub.skills.source"),
+      size: 200,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const link = getSkillSourceLink(row.original);
+        if (!link) return <span className="text-xs text-muted-foreground">-</span>;
+        return (
+          <a
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex max-w-60 items-center gap-1 text-xs text-primary hover:underline"
+            title={link.label}
+          >
+            <span className="truncate">{link.label}</span>
+            <ExternalLink className="size-3 shrink-0" />
+          </a>
+        );
+      },
+    },
+    {
+      id: "enabled",
+      accessorKey: "enabled",
+      meta: { title: t("common.status"), skeleton: "badge" },
+      header: ({ column }) => <DataTableSortHeader column={column} title={t("common.status")} />,
+      size: 100,
+      enableSorting: true,
+      cell: ({ row }) => (
+        <StatusBadge
+          tone={row.original.enabled ? "success" : "neutral"}
+          label={row.original.enabled ? t("aiHub.skills.public") : t("aiHub.skills.draft")}
+        />
+      ),
+    },
+    {
+      id: "actions",
+      meta: { className: "text-right", headerClassName: "text-right" },
+      header: () => <span className="sr-only">{t("common.actions")}</span>,
+      size: 64,
+      enableSorting: false,
+      enableHiding: false,
+      cell: ({ row }) => (
+        <div className="flex justify-end">
+          <SkillHubRowActions skill={row.original} onSkillClick={onSkillClick} />
+        </div>
+      ),
+    },
+  ];
+};

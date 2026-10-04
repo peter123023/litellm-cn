@@ -5,6 +5,7 @@ import MakeModelPublicForm from "@/components/AIHub/forms/MakeModelPublicForm";
 import { getMCPHubTableColumns, MCPServerData } from "@/components/AIHub/MCPHubTableColumns";
 import { getModelHubTableColumns, ModelHubData } from "@/components/AIHub/ModelHubTableColumns";
 import UsefulLinksManagement from "@/components/AIHub/UsefulLinksManagement";
+import { useTranslation } from "@/i18n";
 import { getClaudeCodePluginsList } from "@/components/networking";
 import { Plugin } from "@/components/claude_code_plugins/types";
 import SkillHubDashboard from "@/components/AIHub/SkillHubDashboard";
@@ -384,14 +385,24 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({ accessToken, publicPage, 
   const [modelSorting, setModelSorting] = useState<SortingState>([{ id: "model_group", desc: false }]);
   const [agentSorting, setAgentSorting] = useState<SortingState>([{ id: "name", desc: false }]);
   const [mcpSorting, setMcpSorting] = useState<SortingState>([{ id: "server_name", desc: false }]);
+  const { language, t } = useTranslation();
 
-  const modelColumns = useMemo(() => getModelHubTableColumns({ onModelClick: showModal }), [showModal]);
-  const agentColumns = useMemo(() => getAgentHubTableColumns({ onAgentClick: showAgentModal }), [showAgentModal]);
+  const modelColumns = useMemo(
+    () => getModelHubTableColumns({ onModelClick: showModal, language }),
+    [showModal, language],
+  );
+  const agentColumns = useMemo(
+    () => getAgentHubTableColumns({ onAgentClick: showAgentModal, language }),
+    [showAgentModal, language],
+  );
   const filteredAgentData = useMemo(
     () => filterBySearchTerm(agentHubData ?? [], agentSearchTerm, (agent) => [agent.name, agent.description]),
     [agentHubData, agentSearchTerm],
   );
-  const mcpColumns = useMemo(() => getMCPHubTableColumns({ onServerClick: showMcpModal }), [showMcpModal]);
+  const mcpColumns = useMemo(
+    () => getMCPHubTableColumns({ onServerClick: showMcpModal, language }),
+    [showMcpModal, language],
+  );
 
   // If this is a public page, use the dedicated PublicModelHub component
   if (publicPage && publicPageAllowed) {
@@ -407,23 +418,19 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({ accessToken, publicPage, 
             <div className="flex flex-col items-start">
               <h2 className="text-center text-xl font-semibold">AI Hub</h2>
               {isAdminRole(userRole || "") ? (
-                <p className="text-sm text-muted-foreground">
-                  Make models, agents, and MCP servers public for developers to know what&apos;s available.
-                </p>
+                <p className="text-sm text-muted-foreground">{t("aiHub.table.adminDescription")}</p>
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  A list of all public model names personally available to you.
-                </p>
+                <p className="text-sm text-muted-foreground">{t("aiHub.table.userDescription")}</p>
               )}
             </div>
             <div className="flex items-center space-x-4">
-              <p>Model Hub URL:</p>
+              <p>{t("aiHub.table.modelHubUrl")}</p>
               <div className="flex items-center bg-border px-2 py-1 rounded-sm">
                 <p className="mr-2">{`${getProxyBaseUrl()}/ui/model_hub_table`}</p>
                 <button
                   onClick={() => void copyToClipboard(`${getProxyBaseUrl()}/ui/model_hub_table`)}
                   className="p-1 hover:bg-accent rounded-sm transition-colors"
-                  title="Copy URL"
+                  title={t("aiHub.table.copyUrl")}
                 >
                   <Copy size={16} className="text-muted-foreground" />
                 </button>
@@ -442,16 +449,16 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({ accessToken, publicPage, 
           <Tabs defaultValue="models">
             <TabsList variant="line" className="mb-4 h-auto w-full justify-start rounded-none border-b p-0">
               <TabsTrigger value="models" className="flex-none rounded-none px-4 py-2">
-                Model Hub
+                {t("aiHub.table.tabs.models")}
               </TabsTrigger>
               <TabsTrigger value="agents" className="flex-none rounded-none px-4 py-2">
-                Agent Hub
+                {t("aiHub.table.tabs.agents")}
               </TabsTrigger>
               <TabsTrigger value="mcp" className="flex-none rounded-none px-4 py-2">
-                MCP Hub
+                {t("aiHub.table.tabs.mcp")}
               </TabsTrigger>
               <TabsTrigger value="skills" className="flex-none rounded-none px-4 py-2">
-                Skill Hub
+                {t("aiHub.table.tabs.skills")}
               </TabsTrigger>
             </TabsList>
 
@@ -463,7 +470,7 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({ accessToken, publicPage, 
                   {/* Header with Make Public Button */}
                   {publicPage == false && canModify && (
                     <div className="flex justify-end mb-4">
-                      <Button onClick={() => handleMakePublicPage()}>Select Models to Make Public</Button>
+                      <Button onClick={() => handleMakePublicPage()}>{t("aiHub.table.selectModelsPublic")}</Button>
                     </div>
                   )}
 
@@ -480,15 +487,11 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({ accessToken, publicPage, 
                     sorting={modelSorting}
                     onSortingChange={setModelSorting}
                     isLoading={loading}
-                    loadingMessage="Loading models…"
+                    loadingMessage={t("aiHub.table.loadingModels")}
                     noDataMessage={
                       <HubEmptyState
-                        title={modelHubData?.length ? "No matching models" : "No models yet"}
-                        body={
-                          modelHubData?.length
-                            ? "Adjust the filters to see more models."
-                            : "Models added to this proxy will appear here."
-                        }
+                        title={modelHubData?.length ? t("aiHub.table.noMatchingModels") : t("aiHub.table.noModelsYet")}
+                        body={modelHubData?.length ? t("aiHub.table.adjustFilters") : t("aiHub.table.modelsAppear")}
                       />
                     }
                     size="compact"
@@ -497,7 +500,7 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({ accessToken, publicPage, 
 
                 <div className="mt-4 text-center space-y-2">
                   <p className="text-sm text-muted-foreground">
-                    Showing {filteredData.length} of {modelHubData?.length || 0} models
+                    {t("aiHub.table.showingModels", { shown: filteredData.length, total: modelHubData?.length || 0 })}
                   </p>
                 </div>
               </TabsContent>
@@ -508,18 +511,18 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({ accessToken, publicPage, 
                   {/* Header with Make Public Button */}
                   {publicPage == false && canModify && (
                     <div className="flex justify-end mb-4">
-                      <Button onClick={() => handleMakeAgentPublicPage()}>Select Agents to Make Public</Button>
+                      <Button onClick={() => handleMakeAgentPublicPage()}>{t("aiHub.table.selectAgentsPublic")}</Button>
                     </div>
                   )}
 
                   <div className="mb-4">
-                    <p className="text-sm font-medium mb-2">Search Agents:</p>
+                    <p className="text-sm font-medium mb-2">{t("aiHub.table.searchAgents")}</p>
                     <InputGroup className="max-w-sm">
                       <InputGroupAddon>
                         <SearchIcon className="size-4 text-muted-foreground" />
                       </InputGroupAddon>
                       <InputGroupInput
-                        placeholder="Search agent names or descriptions..."
+                        placeholder={t("aiHub.table.searchAgentsPlaceholder")}
                         value={agentSearchTerm}
                         onChange={(e) => setAgentSearchTerm(e.target.value)}
                       />
@@ -527,7 +530,7 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({ accessToken, publicPage, 
                         <InputGroupAddon align="inline-end">
                           <InputGroupButton
                             size="icon-xs"
-                            aria-label="Clear search"
+                            aria-label={t("aiHub.skills.clearSearch")}
                             onClick={() => setAgentSearchTerm("")}
                           >
                             <X />
@@ -547,15 +550,11 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({ accessToken, publicPage, 
                     sorting={agentSorting}
                     onSortingChange={setAgentSorting}
                     isLoading={agentLoading}
-                    loadingMessage="Loading agents…"
+                    loadingMessage={t("aiHub.table.loadingAgents")}
                     noDataMessage={
                       <HubEmptyState
-                        title={agentHubData?.length ? "No matching agents" : "No agents yet"}
-                        body={
-                          agentHubData?.length
-                            ? "Adjust the search to see more agents."
-                            : "Agents added to this proxy will appear here."
-                        }
+                        title={agentHubData?.length ? t("aiHub.table.noMatchingAgents") : t("aiHub.table.noAgentsYet")}
+                        body={agentHubData?.length ? t("aiHub.table.adjustSearch") : t("aiHub.table.agentsAppear")}
                       />
                     }
                     size="compact"
@@ -564,7 +563,10 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({ accessToken, publicPage, 
 
                 <div className="mt-4 text-center space-y-2">
                   <p className="text-sm text-muted-foreground">
-                    Showing {filteredAgentData.length} of {agentHubData?.length || 0} agents
+                    {t("aiHub.table.showingAgents", {
+                      shown: filteredAgentData.length,
+                      total: agentHubData?.length || 0,
+                    })}
                   </p>
                 </div>
               </TabsContent>
@@ -579,7 +581,7 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({ accessToken, publicPage, 
                         onClick={() => handleMakeMcpPublicPage()}
                         disabled={isMCPHubVisibilityDisabled(mcpLoading, mcpHubData)}
                       >
-                        Manage MCP Hub Visibility
+                        {t("aiHub.table.manageMcpVisibility")}
                       </Button>
                     </div>
                   )}
@@ -594,11 +596,11 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({ accessToken, publicPage, 
                     sorting={mcpSorting}
                     onSortingChange={setMcpSorting}
                     isLoading={mcpLoading}
-                    loadingMessage="Loading MCP servers…"
+                    loadingMessage={t("aiHub.table.loadingMcp")}
                     noDataMessage={
                       <HubEmptyState
-                        title="No MCP servers yet"
-                        body="MCP servers added to this proxy will appear here."
+                        title={t("aiHub.table.noMcpServersYet")}
+                        body={t("aiHub.table.mcpServersAppear")}
                       />
                     }
                     size="compact"
@@ -607,7 +609,9 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({ accessToken, publicPage, 
 
                 <div className="mt-4 text-center space-y-2">
                   <p className="text-sm text-muted-foreground">
-                    Showing {mcpHubData?.length || 0} MCP server{mcpHubData?.length !== 1 ? "s" : ""}
+                    {mcpHubData?.length !== 1
+                      ? t("aiHub.table.showingMcpOther", { count: mcpHubData?.length || 0 })
+                      : t("aiHub.table.showingMcpOne", { count: mcpHubData?.length || 0 })}
                   </p>
                 </div>
               </TabsContent>
@@ -616,7 +620,9 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({ accessToken, publicPage, 
               <TabsContent value="skills" keepMounted>
                 {publicPage == false && canModify && (
                   <div className="flex justify-end mb-4">
-                    <Button onClick={() => setIsMakeSkillPublicModalVisible(true)}>Select Skills to Make Public</Button>
+                    <Button onClick={() => setIsMakeSkillPublicModalVisible(true)}>
+                      {t("aiHub.table.selectSkillsPublic")}
+                    </Button>
                   </div>
                 )}
                 <SkillHubDashboard
@@ -636,10 +642,8 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({ accessToken, publicPage, 
         </div>
       ) : (
         <Card className="mx-auto max-w-xl mt-10 px-6">
-          <p className="text-xl text-center mb-2 text-foreground">Public Model Hub not enabled.</p>
-          <p className="text-base text-center text-foreground">
-            Ask your proxy admin to enable this on their Admin UI.
-          </p>
+          <p className="text-xl text-center mb-2 text-foreground">{t("aiHub.table.hubNotEnabled")}</p>
+          <p className="text-base text-center text-foreground">{t("aiHub.table.askAdmin")}</p>
         </Card>
       )}
 
@@ -647,24 +651,24 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({ accessToken, publicPage, 
       <Dialog open={isModalVisible} onOpenChange={(open) => !open && handleCancel()}>
         <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[1000px]">
           <DialogHeader>
-            <DialogTitle>{selectedModel?.model_group || "Model Details"}</DialogTitle>
+            <DialogTitle>{selectedModel?.model_group || t("aiHub.table.modelDetails")}</DialogTitle>
           </DialogHeader>
           {selectedModel && (
             <div className="space-y-6">
               {/* Model Overview */}
               <div>
-                <p className="text-lg font-semibold mb-4">Model Overview</p>
+                <p className="text-lg font-semibold mb-4">{t("aiHub.table.modelOverview")}</p>
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
-                    <p className="font-medium">Model Group:</p>
+                    <p className="font-medium">{t("aiHub.table.modelGroup")}</p>
                     <p>{selectedModel.model_group}</p>
                   </div>
                   <div>
-                    <p className="font-medium">Mode:</p>
-                    <p>{selectedModel.mode || "Not specified"}</p>
+                    <p className="font-medium">{t("aiHub.table.modeLabel")}</p>
+                    <p>{selectedModel.mode || t("aiHub.table.notSpecified")}</p>
                   </div>
                   <div>
-                    <p className="font-medium">Providers:</p>
+                    <p className="font-medium">{t("aiHub.table.providersLabel")}</p>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {selectedModel.providers.map((provider) => (
                         <Badge key={provider} variant="secondary">
@@ -678,30 +682,30 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({ accessToken, publicPage, 
 
               {/* Token and Cost Information */}
               <div>
-                <p className="text-lg font-semibold mb-4">Token & Cost Information</p>
+                <p className="text-lg font-semibold mb-4">{t("aiHub.table.tokenCost")}</p>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="font-medium">Max Input Tokens:</p>
-                    <p>{selectedModel.max_input_tokens?.toLocaleString() || "Not specified"}</p>
+                    <p className="font-medium">{t("aiHub.table.maxInputTokens")}</p>
+                    <p>{selectedModel.max_input_tokens?.toLocaleString() || t("aiHub.table.notSpecified")}</p>
                   </div>
                   <div>
-                    <p className="font-medium">Max Output Tokens:</p>
-                    <p>{selectedModel.max_output_tokens?.toLocaleString() || "Not specified"}</p>
+                    <p className="font-medium">{t("aiHub.table.maxOutputTokens")}</p>
+                    <p>{selectedModel.max_output_tokens?.toLocaleString() || t("aiHub.table.notSpecified")}</p>
                   </div>
                   <div>
-                    <p className="font-medium">Input Cost per 1M Tokens:</p>
+                    <p className="font-medium">{t("aiHub.table.inputCost")}</p>
                     <p>
                       {selectedModel.input_cost_per_token
                         ? formatCost(selectedModel.input_cost_per_token)
-                        : "Not specified"}
+                        : t("aiHub.table.notSpecified")}
                     </p>
                   </div>
                   <div>
-                    <p className="font-medium">Output Cost per 1M Tokens:</p>
+                    <p className="font-medium">{t("aiHub.table.outputCost")}</p>
                     <p>
                       {selectedModel.output_cost_per_token
                         ? formatCost(selectedModel.output_cost_per_token)
-                        : "Not specified"}
+                        : t("aiHub.table.notSpecified")}
                     </p>
                   </div>
                 </div>
@@ -709,14 +713,14 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({ accessToken, publicPage, 
 
               {/* Capabilities */}
               <div>
-                <p className="text-lg font-semibold mb-4">Capabilities</p>
+                <p className="text-lg font-semibold mb-4">{t("aiHub.table.capabilities")}</p>
                 <div className="flex flex-wrap gap-2">
                   {(() => {
                     const capabilities = getModelCapabilities(selectedModel);
                     const colors = ["green", "blue", "purple", "orange", "red", "yellow"];
 
                     if (capabilities.length === 0) {
-                      return <p className="text-muted-foreground">No special capabilities listed</p>;
+                      return <p className="text-muted-foreground">{t("aiHub.table.noCapabilities")}</p>;
                     }
 
                     return capabilities.map((capability, index) => (
@@ -731,17 +735,17 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({ accessToken, publicPage, 
               {/* Rate Limits */}
               {(selectedModel.tpm || selectedModel.rpm) && (
                 <div>
-                  <p className="text-lg font-semibold mb-4">Rate Limits</p>
+                  <p className="text-lg font-semibold mb-4">{t("aiHub.table.rateLimits")}</p>
                   <div className="grid grid-cols-2 gap-4">
                     {selectedModel.tpm && (
                       <div>
-                        <p className="font-medium">Tokens per Minute:</p>
+                        <p className="font-medium">{t("aiHub.table.tokensPerMinute")}</p>
                         <p>{selectedModel.tpm.toLocaleString()}</p>
                       </div>
                     )}
                     {selectedModel.rpm && (
                       <div>
-                        <p className="font-medium">Requests per Minute:</p>
+                        <p className="font-medium">{t("aiHub.table.requestsPerMinute")}</p>
                         <p>{selectedModel.rpm.toLocaleString()}</p>
                       </div>
                     )}
@@ -752,7 +756,7 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({ accessToken, publicPage, 
               {/* Supported OpenAI Parameters */}
               {selectedModel.supported_openai_params && (
                 <div>
-                  <p className="text-lg font-semibold mb-4">Supported OpenAI Parameters</p>
+                  <p className="text-lg font-semibold mb-4">{t("aiHub.table.supportedParams")}</p>
                   <div className="flex flex-wrap gap-2">
                     {selectedModel.supported_openai_params.map((param) => (
                       <Badge key={param} variant="default">
@@ -765,7 +769,7 @@ const ModelHubTable: React.FC<ModelHubTableProps> = ({ accessToken, publicPage, 
 
               {/* Usage Example */}
               <div>
-                <p className="text-lg font-semibold mb-4">Usage Example</p>
+                <p className="text-lg font-semibold mb-4">{t("aiHub.table.usageExample")}</p>
                 <SyntaxHighlighter language="python" className="text-sm" style={syntaxTheme}>
                   {`import openai
 
@@ -796,28 +800,28 @@ print(response.choices[0].message.content)`}
       <Dialog open={isAgentModalVisible} onOpenChange={(open) => !open && handleCancel()}>
         <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[1000px]">
           <DialogHeader>
-            <DialogTitle>{selectedAgent?.name || "Agent Details"}</DialogTitle>
+            <DialogTitle>{selectedAgent?.name || t("aiHub.table.agentDetails")}</DialogTitle>
           </DialogHeader>
           {selectedAgent && (
             <div className="space-y-6">
               {/* Agent Overview */}
               <div>
-                <p className="text-lg font-semibold mb-4">Agent Overview</p>
+                <p className="text-lg font-semibold mb-4">{t("aiHub.table.agentOverview")}</p>
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
-                    <p className="font-medium">Name:</p>
+                    <p className="font-medium">{t("aiHub.table.nameLabel")}</p>
                     <p>{selectedAgent.name}</p>
                   </div>
                   <div>
-                    <p className="font-medium">Version:</p>
+                    <p className="font-medium">{t("aiHub.table.version")}</p>
                     <Badge variant="secondary">v{selectedAgent.version}</Badge>
                   </div>
                   <div>
-                    <p className="font-medium">Protocol Version:</p>
+                    <p className="font-medium">{t("aiHub.table.protocolVersion")}</p>
                     <p>{selectedAgent.protocolVersion}</p>
                   </div>
                   <div>
-                    <p className="font-medium">URL:</p>
+                    <p className="font-medium">{t("aiHub.table.urlLabel")}</p>
                     <div className="flex items-center space-x-2">
                       <p className="truncate min-w-0">{selectedAgent.url}</p>
                       <Copy
@@ -828,7 +832,7 @@ print(response.choices[0].message.content)`}
                   </div>
                 </div>
                 <div>
-                  <p className="font-medium">Description:</p>
+                  <p className="font-medium">{t("aiHub.table.descriptionLabel")}</p>
                   <p className="mt-1">{selectedAgent.description}</p>
                 </div>
               </div>
@@ -836,7 +840,7 @@ print(response.choices[0].message.content)`}
               {/* Capabilities */}
               {selectedAgent.capabilities && Object.keys(selectedAgent.capabilities).length > 0 && (
                 <div>
-                  <p className="text-lg font-semibold mb-4">Capabilities</p>
+                  <p className="text-lg font-semibold mb-4">{t("aiHub.table.capabilities")}</p>
                   <div className="flex flex-wrap gap-2">
                     {Object.entries(selectedAgent.capabilities)
                       .filter(([_, value]) => value === true)
@@ -851,26 +855,26 @@ print(response.choices[0].message.content)`}
 
               {/* Input/Output Modes */}
               <div>
-                <p className="text-lg font-semibold mb-4">Input/Output Modes</p>
+                <p className="text-lg font-semibold mb-4">{t("aiHub.table.inputOutputModes")}</p>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="font-medium">Input Modes:</p>
+                    <p className="font-medium">{t("aiHub.table.inputModes")}</p>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {selectedAgent.defaultInputModes?.map((mode) => (
                         <Badge key={mode} variant="secondary">
                           {mode}
                         </Badge>
-                      )) || <p>Not specified</p>}
+                      )) || <p>{t("aiHub.table.notSpecified")}</p>}
                     </div>
                   </div>
                   <div>
-                    <p className="font-medium">Output Modes:</p>
+                    <p className="font-medium">{t("aiHub.table.outputModes")}</p>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {selectedAgent.defaultOutputModes?.map((mode) => (
                         <Badge key={mode} variant="outline">
                           {mode}
                         </Badge>
-                      )) || <p>Not specified</p>}
+                      )) || <p>{t("aiHub.table.notSpecified")}</p>}
                     </div>
                   </div>
                 </div>
@@ -879,7 +883,7 @@ print(response.choices[0].message.content)`}
               {/* Skills */}
               {selectedAgent.skills && selectedAgent.skills.length > 0 && (
                 <div>
-                  <p className="text-lg font-semibold mb-4">Skills</p>
+                  <p className="text-lg font-semibold mb-4">{t("aiHub.table.skills")}</p>
                   <div className="space-y-4">
                     {selectedAgent.skills.map((skill) => (
                       <div key={skill.id} className="border border-border rounded-sm p-4">
@@ -901,7 +905,7 @@ print(response.choices[0].message.content)`}
                         <p className="text-sm mb-2">{skill.description}</p>
                         {skill.examples && skill.examples.length > 0 && (
                           <div>
-                            <p className="text-xs font-medium text-foreground">Examples:</p>
+                            <p className="text-xs font-medium text-foreground">{t("aiHub.table.examples")}</p>
                             <div className="flex flex-wrap gap-1 mt-1">
                               {skill.examples.map((example, idx) => (
                                 <Badge key={idx} variant="outline">
@@ -920,8 +924,8 @@ print(response.choices[0].message.content)`}
               {/* Additional Properties */}
               {selectedAgent.supportsAuthenticatedExtendedCard && (
                 <div>
-                  <p className="text-lg font-semibold mb-4">Additional Features</p>
-                  <Badge variant="default">Supports Authenticated Extended Card</Badge>
+                  <p className="text-lg font-semibold mb-4">{t("aiHub.table.additionalFeatures")}</p>
+                  <Badge variant="default">{t("aiHub.table.supportsExtendedCard")}</Badge>
                 </div>
               )}
             </div>
@@ -933,20 +937,20 @@ print(response.choices[0].message.content)`}
       <Dialog open={isMcpModalVisible} onOpenChange={(open) => !open && handleCancel()}>
         <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[1000px]">
           <DialogHeader>
-            <DialogTitle>{selectedMcpServer?.server_name || "MCP Server Details"}</DialogTitle>
+            <DialogTitle>{selectedMcpServer?.server_name || t("aiHub.table.serverDetails")}</DialogTitle>
           </DialogHeader>
           {selectedMcpServer && (
             <div className="space-y-6">
               {/* Server Overview */}
               <div>
-                <p className="text-lg font-semibold mb-4">Server Overview</p>
+                <p className="text-lg font-semibold mb-4">{t("aiHub.table.serverOverview")}</p>
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
-                    <p className="font-medium">Server Name:</p>
+                    <p className="font-medium">{t("aiHub.table.serverName")}</p>
                     <p>{selectedMcpServer.server_name}</p>
                   </div>
                   <div>
-                    <p className="font-medium">Server ID:</p>
+                    <p className="font-medium">{t("aiHub.table.serverId")}</p>
                     <div className="flex items-center space-x-2">
                       <p className="text-xs truncate min-w-0">{selectedMcpServer.server_id}</p>
                       <Copy
@@ -957,22 +961,22 @@ print(response.choices[0].message.content)`}
                   </div>
                   {selectedMcpServer.alias && (
                     <div>
-                      <p className="font-medium">Alias:</p>
+                      <p className="font-medium">{t("aiHub.table.alias")}</p>
                       <p>{selectedMcpServer.alias}</p>
                     </div>
                   )}
                   <div>
-                    <p className="font-medium">Transport:</p>
+                    <p className="font-medium">{t("aiHub.table.transport")}</p>
                     <Badge variant="secondary">{selectedMcpServer.transport}</Badge>
                   </div>
                   <div>
-                    <p className="font-medium">Auth Type:</p>
+                    <p className="font-medium">{t("aiHub.table.authType")}</p>
                     <Badge variant={selectedMcpServer.auth_type === "none" ? "outline" : "default"}>
                       {selectedMcpServer.auth_type}
                     </Badge>
                   </div>
                   <div>
-                    <p className="font-medium">Status:</p>
+                    <p className="font-medium">{t("aiHub.table.status")}</p>
                     <Badge
                       variant={
                         selectedMcpServer.status === "active" || selectedMcpServer.status === "healthy"
@@ -988,7 +992,7 @@ print(response.choices[0].message.content)`}
                 </div>
                 {selectedMcpServer.description && (
                   <div className="mt-2">
-                    <p className="font-medium">Description:</p>
+                    <p className="font-medium">{t("aiHub.table.descriptionLabel")}</p>
                     <p className="mt-1">{selectedMcpServer.description}</p>
                   </div>
                 )}
@@ -996,11 +1000,11 @@ print(response.choices[0].message.content)`}
 
               {/* Connection Details */}
               <div>
-                <p className="text-lg font-semibold mb-4">Connection Details</p>
+                <p className="text-lg font-semibold mb-4">{t("aiHub.table.connectionDetails")}</p>
                 <div className="space-y-2">
                   {selectedMcpServer.command && (
                     <div>
-                      <p className="font-medium">Command:</p>
+                      <p className="font-medium">{t("aiHub.table.command")}</p>
                       <p className="text-sm bg-muted p-2 rounded-sm mt-1 font-mono">{selectedMcpServer.command}</p>
                     </div>
                   )}
@@ -1010,7 +1014,7 @@ print(response.choices[0].message.content)`}
               {/* Tools */}
               {selectedMcpServer.allowed_tools && selectedMcpServer.allowed_tools.length > 0 && (
                 <div>
-                  <p className="text-lg font-semibold mb-4">Allowed Tools</p>
+                  <p className="text-lg font-semibold mb-4">{t("aiHub.table.allowedTools")}</p>
                   <div className="flex flex-wrap gap-2">
                     {selectedMcpServer.allowed_tools.map((tool, idx) => (
                       <Badge key={idx} variant="outline">
@@ -1024,7 +1028,7 @@ print(response.choices[0].message.content)`}
               {/* Teams */}
               {selectedMcpServer.teams && selectedMcpServer.teams.length > 0 && (
                 <div>
-                  <p className="text-lg font-semibold mb-4">Teams</p>
+                  <p className="text-lg font-semibold mb-4">{t("aiHub.table.teams")}</p>
                   <div className="flex flex-wrap gap-2">
                     {selectedMcpServer.teams.map((team, idx) => (
                       <Badge key={idx} variant="secondary">
@@ -1038,7 +1042,7 @@ print(response.choices[0].message.content)`}
               {/* Access Groups */}
               {selectedMcpServer.mcp_access_groups && selectedMcpServer.mcp_access_groups.length > 0 && (
                 <div>
-                  <p className="text-lg font-semibold mb-4">Access Groups</p>
+                  <p className="text-lg font-semibold mb-4">{t("aiHub.table.accessGroups")}</p>
                   <div className="flex flex-wrap gap-2">
                     {selectedMcpServer.mcp_access_groups.map((group, idx) => (
                       <Badge key={idx} variant="default">
@@ -1051,34 +1055,34 @@ print(response.choices[0].message.content)`}
 
               {/* Metadata */}
               <div>
-                <p className="text-lg font-semibold mb-4">Metadata</p>
+                <p className="text-lg font-semibold mb-4">{t("aiHub.table.metadata")}</p>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="font-medium">Created By:</p>
+                    <p className="font-medium">{t("aiHub.table.createdBy")}</p>
                     <p>{selectedMcpServer.created_by}</p>
                   </div>
                   <div>
-                    <p className="font-medium">Updated By:</p>
+                    <p className="font-medium">{t("aiHub.table.updatedBy")}</p>
                     <p>{selectedMcpServer.updated_by}</p>
                   </div>
                   <div>
-                    <p className="font-medium">Created At:</p>
+                    <p className="font-medium">{t("aiHub.table.createdAt")}</p>
                     <p className="text-sm">{new Date(selectedMcpServer.created_at).toLocaleString()}</p>
                   </div>
                   <div>
-                    <p className="font-medium">Updated At:</p>
+                    <p className="font-medium">{t("aiHub.table.updatedAt")}</p>
                     <p className="text-sm">{new Date(selectedMcpServer.updated_at).toLocaleString()}</p>
                   </div>
                   {selectedMcpServer.last_health_check && (
                     <div>
-                      <p className="font-medium">Last Health Check:</p>
+                      <p className="font-medium">{t("aiHub.table.lastHealthCheck")}</p>
                       <p className="text-sm">{new Date(selectedMcpServer.last_health_check).toLocaleString()}</p>
                     </div>
                   )}
                 </div>
                 {selectedMcpServer.health_check_error && (
                   <div className="mt-2 p-2 bg-destructive/10 rounded-sm">
-                    <p className="font-medium text-destructive">Health Check Error:</p>
+                    <p className="font-medium text-destructive">{t("aiHub.table.healthCheckError")}</p>
                     <p className="text-sm text-destructive mt-1">{selectedMcpServer.health_check_error}</p>
                   </div>
                 )}
@@ -1086,7 +1090,7 @@ print(response.choices[0].message.content)`}
 
               {/* Usage Example */}
               <div>
-                <p className="text-lg font-semibold mb-4">Usage Example</p>
+                <p className="text-lg font-semibold mb-4">{t("aiHub.table.usageExample")}</p>
                 <SyntaxHighlighter language="python" className="text-sm" style={syntaxTheme}>
                   {`from fastmcp import Client
 import asyncio

@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { WatchPicker } from "../WatchPicker";
 
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
+import { useTranslation } from "@/i18n";
 import type { InvestigationInput } from "../investigationSchema";
 
 export function ExpectationsFields() {
@@ -15,16 +16,13 @@ export function ExpectationsFields() {
     register,
     formState: { errors },
   } = useFormContext<InvestigationInput>();
+  const { t } = useTranslation();
   const { fields, append, remove } = useFieldArray({ control, name: "questions", keyName: "fieldId" });
   return (
     <div className="space-y-5">
       <label className="grid gap-2 text-sm font-medium">
-        What should the agent be doing?
-        <Textarea
-          {...register("context")}
-          rows={4}
-          placeholder="Answer the customer's question using verified sources and explain when information is missing."
-        />
+        {t("lens.setup.expectations.behaviorQuestion")}
+        <Textarea {...register("context")} rows={4} placeholder={t("lens.setup.expectations.behaviorPlaceholder")} />
       </label>
       {errors.context?.message && (
         <p role="alert" className="text-sm text-destructive">
@@ -43,15 +41,15 @@ export function ExpectationsFields() {
         )}
       />
       <fieldset className="space-y-2">
-        <legend className="sr-only">Custom checks</legend>
+        <legend className="sr-only">{t("lens.setup.expectations.customChecks")}</legend>
         {fields.map((check, index) => (
           <div key={check.fieldId} className="flex items-start gap-2">
             <div className="min-w-0 flex-1">
               <Textarea
-                aria-label={`Check ${index + 1}`}
+                aria-label={t("lens.setup.expectations.checkLabel", { index: index + 1 })}
                 {...register(`questions.${index}.instruction`)}
                 rows={2}
-                placeholder="e.g. Quotes a price without checking the pricing tool"
+                placeholder={t("lens.setup.expectations.checkPlaceholder")}
               />
               {errors.questions?.[index]?.instruction?.message && (
                 <p role="alert" className="mt-1 text-sm text-destructive">
@@ -59,7 +57,12 @@ export function ExpectationsFields() {
                 </p>
               )}
             </div>
-            <Button variant="ghost" size="icon" aria-label={`Remove check ${index + 1}`} onClick={() => remove(index)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={t("lens.setup.expectations.removeCheck", { index: index + 1 })}
+              onClick={() => remove(index)}
+            >
               <X className="size-4" />
             </Button>
           </div>

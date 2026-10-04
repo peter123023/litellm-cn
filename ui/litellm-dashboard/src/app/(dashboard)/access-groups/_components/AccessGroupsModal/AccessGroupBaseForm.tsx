@@ -13,6 +13,7 @@ import { MultiSelect } from "@/components/shared/MultiSelect";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { useTranslation } from "@/i18n";
 
 export const accessGroupFormSchema = z.object({
   name: z.string().min(1, "Please enter the access group name"),
@@ -44,6 +45,7 @@ export function AccessGroupBaseForm({
 }: AccessGroupBaseFormProps) {
   const { data: agentsData } = useAgents();
   const { data: mcpServersData } = useMCPServers();
+  const { t } = useTranslation();
 
   const mcpServerOptions = (mcpServersData ?? []).map((server) => ({
     value: server.server_id,
@@ -59,66 +61,71 @@ export function AccessGroupBaseForm({
       <TabsList className="w-full">
         <TabsTrigger value={GENERAL_TAB}>
           <InfoIcon size={16} />
-          General Info
+          {t("accessGroups.generalInfo")}
         </TabsTrigger>
         <TabsTrigger value={MODELS_TAB}>
           <LayersIcon size={16} />
-          Models
+          {t("accessGroups.models")}
         </TabsTrigger>
         <TabsTrigger value={MCP_SERVERS_TAB}>
           <ServerIcon size={16} />
-          MCP Servers
+          {t("accessGroups.mcpServers")}
         </TabsTrigger>
         <TabsTrigger value={AGENTS_TAB}>
           <BotIcon size={16} />
-          Agents
+          {t("accessGroups.agents")}
         </TabsTrigger>
       </TabsList>
 
       <TabsContent value={GENERAL_TAB} className="pt-4">
         <FieldGroup>
-          <FormField control={form.control} name="name" label="Group Name">
+          <FormField control={form.control} name="name" label={t("accessGroups.groupName")}>
             {({ ref, ...field }) => (
-              <Input {...field} ref={ref} placeholder="e.g. Engineering Team" disabled={isNameDisabled} />
+              <Input
+                {...field}
+                ref={ref}
+                placeholder={t("accessGroups.groupNamePlaceholder")}
+                disabled={isNameDisabled}
+              />
             )}
           </FormField>
-          <FormField control={form.control} name="description" label="Description">
+          <FormField control={form.control} name="description" label={t("common.description")}>
             {({ ref, ...field }) => (
-              <Textarea {...field} ref={ref} rows={4} placeholder="Describe the purpose of this access group..." />
+              <Textarea {...field} ref={ref} rows={4} placeholder={t("accessGroups.descriptionPlaceholder")} />
             )}
           </FormField>
         </FieldGroup>
       </TabsContent>
 
       <TabsContent value={MODELS_TAB} className="pt-4">
-        <FormField control={form.control} name="modelIds" label="Allowed Models">
+        <FormField control={form.control} name="modelIds" label={t("accessGroups.allowedModels")}>
           {(field) => <ModelSelect context="global" value={field.value} onChange={field.onChange} />}
         </FormField>
       </TabsContent>
 
       <TabsContent value={MCP_SERVERS_TAB} className="pt-4">
-        <FormField control={form.control} name="mcpServerIds" label="Allowed MCP Servers">
+        <FormField control={form.control} name="mcpServerIds" label={t("accessGroups.allowedMcpServers")}>
           {({ id, value, onChange }) => (
             <MultiSelect
               id={id}
               value={value}
               onValueChange={onChange}
               options={mcpServerOptions}
-              placeholder="Select MCP servers"
+              placeholder={t("accessGroups.selectMcpServers")}
             />
           )}
         </FormField>
       </TabsContent>
 
       <TabsContent value={AGENTS_TAB} className="pt-4">
-        <FormField control={form.control} name="agentIds" label="Allowed Agents">
+        <FormField control={form.control} name="agentIds" label={t("accessGroups.allowedAgents")}>
           {({ id, value, onChange }) => (
             <MultiSelect
               id={id}
               value={value}
               onValueChange={onChange}
               options={agentOptions}
-              placeholder="Select agents"
+              placeholder={t("accessGroups.selectAgents")}
             />
           )}
         </FormField>

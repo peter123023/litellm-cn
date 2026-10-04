@@ -12,6 +12,11 @@ import { en as keysEn } from "./extra/keys";
 import { en as modelsCoreEn } from "./extra/modelsCore";
 import { en as addModelEn } from "./extra/addModel";
 import { en as mcpEn } from "./extra/mcp";
+import { en as mcpToolsEn } from "./extra/mcpTools";
+import { en as mcpServersEn } from "./extra/mcpServers";
+import { en as settingsAdminEn } from "./extra/settingsAdmin";
+import { en as keyCreateEn } from "./extra/keyCreate";
+import { en as settingsNetEn } from "./extra/settingsNet";
 import { en as playgroundEn } from "./extra/playground";
 import { en as promptsEn } from "./extra/prompts";
 import { en as guardrailsEn } from "./extra/guardrails";
@@ -27,10 +32,10 @@ import { en as miscEn } from "./extra/misc";
 import { en as lensViewsEn } from "./extra/lensViews";
 import { en as sharedWidgetsEn } from "./extra/sharedWidgets";
 import { en as costAnalyticsEn } from "./extra/costAnalytics";
+import { en as roiCalculatorEn } from "./extra/roiCalculator";
 
 export const en: Record<string, string> = {
   // ---------------------------------------------------------------- language switcher
-  "language.label": "Language",
   "language.switchTo": "Switch to {language}",
   "language.current": "Current language: {language}",
 
@@ -43,27 +48,22 @@ export const en: Record<string, string> = {
   "common.edit": "Edit",
   "common.add": "Add",
   "common.remove": "Remove",
-  "common.create": "Create",
   "common.update": "Update",
   "common.copy": "Copy",
   "common.copied": "Copied",
   "common.search": "Search",
-  "common.filter": "Filter",
   "common.reset": "Reset",
   "common.clear": "Clear",
   "common.clearAll": "Clear all",
   "common.apply": "Apply",
-  "common.confirm": "Confirm",
   "common.loading": "Loading...",
   "common.yes": "Yes",
   "common.no": "No",
   "common.back": "Back",
   "common.next": "Next",
   "common.previous": "Previous",
-  "common.submit": "Submit",
   "common.optional": "Optional",
   "common.required": "Required",
-  "common.all": "All",
   "common.none": "None",
   "common.status": "Status",
   "common.name": "Name",
@@ -71,12 +71,10 @@ export const en: Record<string, string> = {
   "common.actions": "Actions",
   "common.details": "Details",
   "common.view": "View",
-  "common.download": "Download",
   "common.refresh": "Refresh",
   "common.retry": "Retry",
   "common.error": "Error",
   "common.success": "Success",
-  "common.warning": "Warning",
   "common.enabled": "Enabled",
   "common.disabled": "Disabled",
   "common.default": "Default",
@@ -84,24 +82,24 @@ export const en: Record<string, string> = {
   "common.type": "Type",
   "common.value": "Value",
   "common.date": "Date",
-  "common.time": "Time",
   "common.total": "Total",
-  "common.expand": "Expand",
-  "common.collapse": "Collapse",
-  "common.showMore": "Show more",
-  "common.showLess": "Show less",
   "common.learnMore": "Learn more",
-  "common.noResults": "No results found",
-  "common.dismiss": "Dismiss",
-  "common.undo": "Undo",
   "common.continue": "Continue",
-  "common.getStarted": "Get started",
+  "common.hide": "Hide",
+  "common.show": "Show",
+  "common.stop": "Stop",
+  "common.done": "Done",
+  "common.duplicate": "Duplicate",
+  "common.dangerZone": "Danger Zone",
+  "common.unlimited": "Unlimited",
+  "common.unlimitedLower": "unlimited",
+  "common.unavailable": "Unavailable",
 
   // ---------------------------------------------------------------- sidebar: groups
-  "navGroup.AI GATEWAY": "AI Gateway",
+  "navGroup.AI_GATEWAY": "AI Gateway",
   "navGroup.OBSERVABILITY": "Observability",
   "navGroup.ACCESS_CONTROL": "Access Control",
-  "navGroup.DEVELOPER TOOLS": "Developer Tools",
+  "navGroup.DEVELOPER_TOOLS": "Developer Tools",
   "navGroup.SETTINGS": "Settings",
 
   // ---------------------------------------------------------------- sidebar: items
@@ -148,6 +146,35 @@ export const en: Record<string, string> = {
   "nav.admin-panel": "Admin Settings",
   "nav.cost-tracking": "Cost Tracking",
   "nav.ui-theme": "UI Theme",
+  "nav.account.fallback": "Account",
+  "nav.account.tier": "Tier",
+  "nav.account.role": "Role",
+  "nav.account.email": "Email",
+  "nav.account.userId": "User ID",
+  "nav.account.premium": "Premium",
+  "nav.account.standard": "Standard",
+  "nav.account.upgradeToPremium": "Upgrade to Premium for advanced features",
+  "nav.account.copyEmail": "Copy email",
+  "nav.account.copyUserId": "Copy user ID",
+  "nav.account.copyUserIdTitle": "Copy User ID",
+  "nav.account.triggerLabel": "Account menu — {role} — signed in as {user}",
+  "nav.account.unknownRole": "Unknown role",
+  "nav.account.hideNewFeatureIndicators": "Hide New Feature Indicators",
+  "nav.account.hideNewFeatureIndicatorsToggle": "Toggle hide new feature indicators",
+  "nav.account.hideAllPrompts": "Hide All Prompts",
+  "nav.account.hideAllPromptsToggle": "Toggle hide all prompts",
+  "nav.account.hideBlogPosts": "Hide Blog Posts",
+  "nav.account.hideBlogPostsToggle": "Toggle hide blog posts",
+  "nav.account.hideBouncingIcon": "Hide Bouncing Icon",
+  "nav.account.hideBouncingIconToggle": "Toggle hide bouncing icon",
+  "nav.account.hideLiteAdmin": "Hide LiteAdmin",
+  "nav.account.hideLiteAdminToggle": "Toggle hide LiteAdmin",
+  "nav.account.changePassword": "Change Password",
+  "nav.account.logout": "Logout",
+  "nav.community.joinSlack": "Join Slack",
+  "nav.community.slackTooltip": "LiteLLM Slack community",
+  "nav.community.github": "LiteLLM on GitHub",
+  "nav.community.links": "Community links",
 
   // ---------------------------------------------------------------- navbar
   "navbar.expandSidebar": "Expand sidebar",
@@ -160,10 +187,18 @@ export const en: Record<string, string> = {
   "navbar.home": "LiteLLM home",
   "navbar.theme.light": "Switch to light mode",
   "navbar.theme.dark": "Switch to dark mode (beta)",
-  "navbar.userMenu": "User menu",
-  "navbar.viewSwitcher": "Switch view",
   "navbar.workerSwitcher": "Switch worker",
-  "navbar.signOut": "Sign out",
+  "navbar.aiGateway": "AI Gateway",
+  "navbar.chat": "Chat",
+  "navbar.chatDisabledHint": "Admins can enable in Settings",
+  "navbar.noMatchingWorkers": "No matching workers",
+  "navbar.blogLoadFailed": "Failed to load posts",
+  "navbar.blogEmpty": "No posts available",
+  "navbar.blogViewAll": "View all posts",
+  "navbar.loading": "loading",
+  "navbar.autoRouterBody": "Route every request to the cheapest model that can handle it, no prompt changes needed.",
+  "navbar.autoRouterReadDocs": "Read the docs",
+  "navbar.autoRouterMarkRead": "Mark as read",
 
   // ---------------------------------------------------------------- login page
   "login.title": "Login",
@@ -186,8 +221,10 @@ export const en: Record<string, string> = {
   "login.worker": "Worker",
   "login.chooseWorker": "Choose a worker to connect to",
   "login.adminUIDisabled": "Admin UI Disabled",
-  "login.adminUIDisabledBody": "The Admin UI has been disabled by the administrator. To re-enable it, please update the following environment variable:",
-  "login.ssoNotice": "Single Sign-On (SSO) is enabled. LiteLLM no longer automatically redirects to the SSO login flow upon loading this page. To re-enable auto-redirect-to-SSO, set",
+  "login.adminUIDisabledBody":
+    "The Admin UI has been disabled by the administrator. To re-enable it, please update the following environment variable:",
+  "login.ssoNotice":
+    "Single Sign-On (SSO) is enabled. LiteLLM no longer automatically redirects to the SSO login flow upon loading this page. To re-enable auto-redirect-to-SSO, set",
   "login.ssoNoticeTail": "in your environment configuration.",
   "login.close": "Close",
 
@@ -269,6 +306,11 @@ export const en: Record<string, string> = {
   ...modelsCoreEn,
   ...addModelEn,
   ...mcpEn,
+  ...mcpToolsEn,
+  ...mcpServersEn,
+  ...settingsAdminEn,
+  ...keyCreateEn,
+  ...settingsNetEn,
   ...playgroundEn,
   ...promptsEn,
   ...guardrailsEn,
@@ -284,4 +326,5 @@ export const en: Record<string, string> = {
   ...lensViewsEn,
   ...sharedWidgetsEn,
   ...costAnalyticsEn,
+  ...roiCalculatorEn,
 };

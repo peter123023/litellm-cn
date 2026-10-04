@@ -2,6 +2,7 @@
 
 import { InheritedBudgetHint, type InheritedBudgetGate } from "@/components/shared/InheritedBudgetHint";
 import { Meter, MeterIndicator, MeterTrack } from "@/components/shared/Meter";
+import { useTranslation } from "@/i18n";
 import { formatNumberWithCommas, getSpendString } from "@/utils/dataUtils";
 
 interface SpendBudgetCellProps {
@@ -25,13 +26,16 @@ export function SpendBudgetCell({
   spendDecimals = 4,
   budgetDecimals = 0,
 }: SpendBudgetCellProps) {
+  const { t } = useTranslation();
   const spendValue = typeof spend === "number" && !Number.isNaN(spend) ? spend : 0;
   const budget = maxBudget ?? null;
   const hasBudget = typeof budget === "number" && budget > 0;
   const pct = hasBudget ? (spendValue / budget) * 100 : 0;
 
+  const budgetText = budget === null ? null : `$${formatNumberWithCommas(budget, budgetDecimals)}`;
   const spendText = spendValue > 0 ? getSpendString(spendValue, spendDecimals) : "$0.00";
-  const budgetLabel = budget === null ? "· Unlimited" : `of $${formatNumberWithCommas(budget, budgetDecimals)}`;
+  const budgetLabel =
+    budgetText === null ? `· ${t("common.unlimited")}` : t("tableCells.spendOfBudget", { amount: budgetText });
 
   return (
     <div className="flex min-w-[130px] flex-col gap-1">
@@ -40,11 +44,11 @@ export function SpendBudgetCell({
         <span className="text-muted-foreground">{budgetLabel}</span>
         {budget === null && <InheritedBudgetHint gates={inheritedGates} />}
       </div>
-      {hasBudget && (
+      {hasBudget && budgetText !== null && (
         <Meter
           value={spendValue}
           max={budget}
-          aria-valuetext={`${spendText} of $${formatNumberWithCommas(budget, budgetDecimals)}`}
+          aria-valuetext={`${spendText} ${t("tableCells.spendOfBudget", { amount: budgetText })}`}
         >
           <MeterTrack>
             <MeterIndicator tone={meterTone(pct)} />

@@ -1,3 +1,5 @@
+import { translate } from "@/i18n";
+
 type Metadata = Record<string, unknown> | null | undefined;
 
 type FormValues = Record<string, unknown>;
@@ -31,18 +33,27 @@ export const estimateFields = (metadata: Metadata) => ({
   [PER_MODEL_FIELD]: perModelEstimateToText(metadata?.[PER_MODEL_FIELD]),
 });
 
-const ADMIN_ONLY_TOOLTIP =
-  "Only a proxy admin can change this. It sets how many output tokens the rate limiter reserves for a request " +
-  "that omits max_tokens, which is charged against the team and organization TPM windows.";
+export type EstimateTooltipCopy = { key: string; params: Record<string, string> };
+export type EstimateTooltipPair = { estimate: EstimateTooltipCopy; perModel: EstimateTooltipCopy };
 
-export const estimateTooltips = (canEdit: boolean, entity: "key" | "team" = "key") => ({
+const ADMIN_ONLY_TOOLTIP_KEY = "keyEdit.estimates.adminOnlyTooltip";
+
+export const estimateTooltipContent = (canEdit: boolean, entity: "key" | "team" = "key"): EstimateTooltipPair => ({
   estimate: canEdit
-    ? `Expected output tokens reserved for TPM limiting when a request omits max_tokens. Overrides the built-in estimate for this ${entity}.`
-    : ADMIN_ONLY_TOOLTIP,
+    ? { key: "keyEdit.estimates.estimateTooltip", params: { entity } }
+    : { key: ADMIN_ONLY_TOOLTIP_KEY, params: {} },
   perModel: canEdit
-    ? `Per-model expected output tokens reserved for TPM limiting when a request omits max_tokens. Takes precedence over the ${entity}-wide estimate.`
-    : ADMIN_ONLY_TOOLTIP,
+    ? { key: "keyEdit.estimates.perModelTooltip", params: { entity } }
+    : { key: ADMIN_ONLY_TOOLTIP_KEY, params: {} },
 });
+
+export const estimateTooltips = (canEdit: boolean, entity: "key" | "team" = "key") => {
+  const content = estimateTooltipContent(canEdit, entity);
+  return {
+    estimate: translate("en", content.estimate.key, content.estimate.params),
+    perModel: translate("en", content.perModel.key, content.perModel.params),
+  };
+};
 
 export const estimateChecks = {
   perModel: {

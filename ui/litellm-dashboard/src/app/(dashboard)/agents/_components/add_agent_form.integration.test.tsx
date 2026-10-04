@@ -6,6 +6,7 @@ import AddAgentForm from "./add_agent_form";
 import * as networking from "@/components/networking";
 import type { AgentCreateInfo } from "@/components/networking";
 import { chooseSelectOption, renderWithProviders as render } from "../../../../../tests/test-utils";
+import { I18nProvider } from "@/i18n";
 
 vi.mock("@/components/networking", () => ({
   apiClient: { get: vi.fn() },
@@ -52,7 +53,11 @@ const langgraphInfo: AgentCreateInfo = {
 };
 
 const renderForm = () =>
-  render(<AddAgentForm visible={true} onClose={vi.fn()} accessToken="tok" onSuccess={vi.fn()} />);
+  render(
+    <I18nProvider>
+      <AddAgentForm visible={true} onClose={vi.fn()} accessToken="tok" onSuccess={vi.fn()} />
+    </I18nProvider>,
+  );
 
 const panel = (name: RegExp) => screen.findByRole("button", { name });
 

@@ -5,11 +5,13 @@ import { useTheme } from "next-themes";
 import React from "react";
 
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/i18n";
 
 const ThemeToggle: React.FC = () => {
   const { setTheme, resolvedTheme } = useTheme();
+  const { t } = useTranslation();
   const isDark = resolvedTheme === "dark";
-  const label = isDark ? "Switch to light mode" : "Switch to dark mode (beta)";
+  const label = isDark ? t("navbar.theme.light") : t("navbar.theme.dark");
 
   return (
     <Button

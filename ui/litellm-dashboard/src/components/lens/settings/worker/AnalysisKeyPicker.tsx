@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useLensApi } from "../../data/LensServices";
 import { AnalysisKeyDetails } from "./AnalysisKeyDetails";
+import { useTranslation } from "@/i18n";
 import type { WorkerFormInput } from "./workerSchema";
 import {
   Combobox,
@@ -19,6 +20,7 @@ import {
 
 export function AnalysisKeyPicker() {
   const { control } = useFormContext<WorkerFormInput>();
+  const { t } = useTranslation();
   const value = useWatch({ control, name: "analysisKey" });
   const api = useLensApi();
   const [query, setQuery] = useState("");
@@ -31,11 +33,14 @@ export function AnalysisKeyPicker() {
 
   const choices = choice && !keys.some((key) => key.token === choice.token) ? [choice, ...keys] : keys;
   const items = keyPages.hasNextPage
-    ? [...choices, { token: "load-more", key_alias: loading ? "Loading…" : "Load more keys" }]
+    ? [
+        ...choices,
+        { token: "load-more", key_alias: loading ? t("lens.worker.loading") : t("lens.worker.loadMoreKeys") },
+      ]
     : choices;
   return (
     <div className="space-y-2">
-      <p className="text-sm">Charge analysis to</p>
+      <p className="text-sm">{t("lens.worker.chargeAnalysisTo")}</p>
       <div className="flex flex-wrap items-start gap-2">
         <div className="min-w-0 flex-1">
           <Controller
@@ -65,9 +70,14 @@ export function AnalysisKeyPicker() {
                   }}
                   onValueChange={handleValueChange}
                 >
-                  <ComboboxInput aria-label="Charge analysis to" placeholder="Search existing keys" />
+                  <ComboboxInput
+                    aria-label={t("lens.worker.chargeAnalysisTo")}
+                    placeholder={t("lens.worker.searchExistingKeys")}
+                  />
                   <ComboboxContent>
-                    <ComboboxEmpty>{loading ? "Loading keys…" : "No matching keys"}</ComboboxEmpty>
+                    <ComboboxEmpty>
+                      {loading ? t("lens.worker.loadingKeys") : t("lens.worker.noMatchingKeys")}
+                    </ComboboxEmpty>
                     <ComboboxList>
                       {(key: Key) => (
                         <ComboboxItem key={key.token} value={key}>

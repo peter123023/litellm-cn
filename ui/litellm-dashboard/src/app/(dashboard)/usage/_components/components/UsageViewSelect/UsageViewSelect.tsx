@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { hasCapability, type Capability } from "@/utils/capabilities";
 import { all_admin_roles } from "@/utils/roles";
+import { useTranslation, type Translate } from "@/i18n";
 export type UsageOption =
   | "global"
   | "my-usage"
@@ -31,77 +32,74 @@ interface OptionConfig {
   icon: React.ReactNode;
   capability?: Capability;
   adminOnly?: boolean;
-  showForAdmin?: string;
-  showForNonAdmin?: string;
-  descriptionForAdmin?: string;
-  descriptionForNonAdmin?: string;
   badgeText?: string;
 }
-const OPTIONS: OptionConfig[] = [
+
+const buildOptions = (t: Translate, isAdmin: boolean): OptionConfig[] => [
   {
     value: "global",
-    label: "Global Usage",
-    showForAdmin: "Global Usage",
-    showForNonAdmin: "Your Usage",
-    description: "View usage across all resources",
-    descriptionForAdmin: "View usage across all resources",
-    descriptionForNonAdmin: "View your usage",
     icon: <Globe className="size-4" />,
+    label: isAdmin
+      ? t("usage.viewSelect.options.global.adminLabel")
+      : t("usage.viewSelect.options.global.nonAdminLabel"),
+    description: isAdmin
+      ? t("usage.viewSelect.options.global.adminDescription")
+      : t("usage.viewSelect.options.global.nonAdminDescription"),
   },
   {
     value: "my-usage",
-    label: "Your Usage",
-    description: "View your own usage",
     icon: <User className="size-4" />,
     adminOnly: true,
+    label: t("usage.viewSelect.options.myUsage.label"),
+    description: t("usage.viewSelect.options.myUsage.description"),
   },
   {
     value: "organization",
-    label: "Organization Usage",
-    description: "View usage across all organizations",
     icon: <Building2 className="size-4" />,
     capability: "viewOrganizationUsage",
+    label: t("usage.viewSelect.options.organization.label"),
+    description: t("usage.viewSelect.options.organization.description"),
   },
   {
     value: "team",
-    label: "Team Usage",
-    description: "View usage by team",
     icon: <Users className="size-4" />,
+    label: t("usage.viewSelect.options.team.label"),
+    description: t("usage.viewSelect.options.team.description"),
   },
   {
     value: "customer",
-    label: "Customer Usage",
-    description: "View usage by customer accounts",
     icon: <ShoppingCart className="size-4" />,
     adminOnly: true,
+    label: t("usage.viewSelect.options.customer.label"),
+    description: t("usage.viewSelect.options.customer.description"),
   },
   {
     value: "tag",
-    label: "Tag Usage",
-    description: "View usage grouped by tags",
     icon: <Tags className="size-4" />,
     adminOnly: true,
+    label: t("usage.viewSelect.options.tag.label"),
+    description: t("usage.viewSelect.options.tag.description"),
   },
   {
     value: "agent",
-    label: "Agent Usage (A2A)",
-    description: "View usage by AI agents",
     icon: <Bot className="size-4" />,
     capability: "viewAgentUsage",
+    label: t("usage.viewSelect.options.agent.label"),
+    description: t("usage.viewSelect.options.agent.description"),
   },
   {
     value: "user",
-    label: "User Usage",
-    description: "View usage by individual users",
     icon: <User className="size-4" />,
     adminOnly: true,
+    label: t("usage.viewSelect.options.user.label"),
+    description: t("usage.viewSelect.options.user.description"),
   },
   {
     value: "user-agent-activity",
-    label: "User Agent Activity",
-    description: "View detailed user agent activity logs",
     icon: <LineChart className="size-4" />,
     adminOnly: true,
+    label: t("usage.viewSelect.options.userAgentActivity.label"),
+    description: t("usage.viewSelect.options.userAgentActivity.description"),
   },
 ];
 export const UsageViewSelect: React.FC<UsageViewSelectProps> = ({
@@ -110,42 +108,27 @@ export const UsageViewSelect: React.FC<UsageViewSelectProps> = ({
   userRole,
   canViewTagUsage = false,
   isOrgAdmin = false,
-  title = "Usage View",
-  description = "Select the usage data you want to view",
+  title,
+  description,
   "data-id": dataId,
 }) => {
+  const { t } = useTranslation();
   const isAdmin = all_admin_roles.includes(userRole ?? "");
-  const getFilteredOptions = () => {
-    return OPTIONS.filter((option) => {
-      if (option.capability) {
-        return hasCapability(userRole, option.capability, isOrgAdmin);
-      }
-      if (option.value === "tag" && canViewTagUsage) {
-        return true;
-      }
-      if (option.adminOnly && !isAdmin) {
-        return false;
-      }
+  const heading = title ?? t("usage.viewSelect.title");
+  const subheading = description ?? t("usage.viewSelect.description");
+
+  const filteredOptions = buildOptions(t, isAdmin).filter((option) => {
+    if (option.capability) {
+      return hasCapability(userRole, option.capability, isOrgAdmin);
+    }
+    if (option.value === "tag" && canViewTagUsage) {
       return true;
-    }).map((option) => {
-      let label = option.label;
-      let desc = option.description;
-      if (option.showForAdmin && option.showForNonAdmin) {
-        label = isAdmin ? option.showForAdmin : option.showForNonAdmin;
-      }
-      if (option.descriptionForAdmin && option.descriptionForNonAdmin) {
-        desc = isAdmin ? option.descriptionForAdmin : option.descriptionForNonAdmin;
-      }
-      return {
-        value: option.value,
-        label,
-        description: desc,
-        icon: option.icon,
-        badgeText: option.badgeText,
-      };
-    });
-  };
-  const filteredOptions = getFilteredOptions();
+    }
+    if (option.adminOnly && !isAdmin) {
+      return false;
+    }
+    return true;
+  });
   const selectedOption = filteredOptions.find((option) => option.value === value);
   return (
     <div className="w-full" data-id={dataId}>
@@ -155,8 +138,8 @@ export const UsageViewSelect: React.FC<UsageViewSelectProps> = ({
             <BarChart3 className="size-8" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-semibold text-foreground mb-0.5 leading-tight">{title}</h3>
-            <p className="text-xs text-muted-foreground leading-tight">{description}</p>
+            <h3 className="text-sm font-semibold text-foreground mb-0.5 leading-tight">{heading}</h3>
+            <p className="text-xs text-muted-foreground leading-tight">{subheading}</p>
           </div>
         </div>
         <div className="shrink-0">

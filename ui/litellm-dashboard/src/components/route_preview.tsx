@@ -4,6 +4,7 @@ import { ArrowRight, Info } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { getProxyBaseUrl } from "./networking";
+import { useTranslation } from "@/i18n";
 
 interface RoutePreviewProps {
   pathValue: string;

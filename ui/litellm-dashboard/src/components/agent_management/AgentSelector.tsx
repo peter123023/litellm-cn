@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { MultiSelect, type MultiSelectOption } from "@/components/shared/MultiSelect";
 import { getAgentsList } from "../networking";
+import { useTranslation } from "@/i18n";
 
 interface Agent {
   agent_id: string;
@@ -26,9 +27,10 @@ const AgentSelector: React.FC<AgentSelectorProps> = ({
   value,
   className,
   accessToken,
-  placeholder = "Select agents",
+  placeholder,
   disabled = false,
 }) => {
+  const { t } = useTranslation();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [accessGroups, setAccessGroups] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -90,8 +92,8 @@ const AgentSelector: React.FC<AgentSelectorProps> = ({
         options={options}
         value={selectedValues}
         onValueChange={handleChange}
-        placeholder={placeholder}
-        emptyText="No agents found"
+        placeholder={placeholder ?? t("skills.hub.agentsPlaceholder")}
+        emptyText={t("skills.hub.agentsEmpty")}
         loading={loading}
         disabled={disabled}
         className={`w-full ${className ?? ""}`}

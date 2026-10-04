@@ -23,12 +23,14 @@ import EditBudgetModal from "./edit_budget_modal";
 import { CREATE_END_USER_CURL_COMMAND, CHAT_COMPLETIONS_CURL_COMMAND, OPENAI_SDK_PYTHON_CODE } from "./constants";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
 import { isProxyAdminRole } from "@/utils/roles";
+import { useTranslation } from "@/i18n";
 
 interface BudgetSettingsPageProps {
   accessToken: string | null;
 }
 
 const BudgetPanel: React.FC<BudgetSettingsPageProps> = ({ accessToken }) => {
+  const { t } = useTranslation();
   const syntaxTheme = useSyntaxTheme(prism);
   const [isCreateModelVisible, setIsCreateModelVisible] = useState(false);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -65,10 +67,10 @@ const BudgetPanel: React.FC<BudgetSettingsPageProps> = ({ accessToken }) => {
     }
     try {
       await deleteBudget.mutateAsync(selectedBudget.budget_id);
-      toast.success("Budget deleted.");
+      toast.success(t("budgets.toast.deleted"));
     } catch (error) {
       console.error("Error deleting budget:", error);
-      toast.fromError("Failed to delete budget");
+      toast.fromError(t("budgets.toast.deleteFailed"));
     } finally {
       setIsDeleteModalVisible(false);
       setSelectedBudget(null);
@@ -85,22 +87,22 @@ const BudgetPanel: React.FC<BudgetSettingsPageProps> = ({ accessToken }) => {
         <PageHeader>
           <PageHeaderTitle>
             <Wallet />
-            Budgets
+            {t("budgets.title")}
           </PageHeaderTitle>
-          <PageHeaderDescription>Spend, TPM and RPM limits you can assign to customers.</PageHeaderDescription>
+          <PageHeaderDescription>{t("budgets.description")}</PageHeaderDescription>
           <PageHeaderControls>
             <PageTabsList>
               {canModify && (
                 <>
                   <Button onClick={() => setIsCreateModelVisible(true)}>
                     <Plus className="size-4" />
-                    Create Budget
+                    {t("budgets.createBudget")}
                   </Button>
                   <ToolbarSeparator className="mx-0 h-6" />
                 </>
               )}
-              <PageTabsTrigger value="budgets">Budgets</PageTabsTrigger>
-              <PageTabsTrigger value="examples">Examples</PageTabsTrigger>
+              <PageTabsTrigger value="budgets">{t("budgets.tab.budgets")}</PageTabsTrigger>
+              <PageTabsTrigger value="examples">{t("budgets.tab.examples")}</PageTabsTrigger>
             </PageTabsList>
           </PageHeaderControls>
         </PageHeader>
@@ -122,15 +124,15 @@ const BudgetPanel: React.FC<BudgetSettingsPageProps> = ({ accessToken }) => {
             />
             <DeleteResourceModal
               isOpen={isDeleteModalVisible}
-              title="Delete Budget?"
-              message="Are you sure you want to delete this budget? This action cannot be undone."
-              resourceInformationTitle="Budget Information"
+              title={t("budgets.delete.title")}
+              message={t("budgets.delete.message")}
+              resourceInformationTitle={t("budgets.delete.infoTitle")}
               resourceInformation={[
-                { label: "Budget ID", value: selectedBudget?.budget_id, code: true },
-                { label: "Max Budget", value: selectedBudget?.max_budget },
-                { label: "TPM", value: selectedBudget?.tpm_limit },
-                { label: "RPM", value: selectedBudget?.rpm_limit },
-                { label: "TPD (batch)", value: selectedBudget?.tpd_limit },
+                { label: t("budgets.col.budgetId"), value: selectedBudget?.budget_id, code: true },
+                { label: t("budgets.col.maxBudget"), value: selectedBudget?.max_budget },
+                { label: t("budgets.col.tpm"), value: selectedBudget?.tpm_limit },
+                { label: t("budgets.col.rpm"), value: selectedBudget?.rpm_limit },
+                { label: t("budgets.col.tpdBatch"), value: selectedBudget?.tpd_limit },
               ]}
               onCancel={handleDeleteCancel}
               onOk={handleDeleteConfirm}
@@ -140,17 +142,17 @@ const BudgetPanel: React.FC<BudgetSettingsPageProps> = ({ accessToken }) => {
         </TabsContent>
         <TabsContent value="examples" className="min-h-0 flex-1 overflow-y-auto" keepMounted>
           <div className="pt-6">
-            <p className="text-base text-muted-foreground">How to use budget id</p>
+            <p className="text-base text-muted-foreground">{t("budgets.examples.howToUse")}</p>
             <Tabs defaultValue="assign-budget">
               <TabsList variant="line" className="h-auto w-full justify-start rounded-none border-b p-0">
                 <TabsTrigger value="assign-budget" className="flex-none rounded-none px-4 py-2">
-                  Assign Budget to Customer
+                  {t("budgets.examples.assignToCustomer")}
                 </TabsTrigger>
                 <TabsTrigger value="curl" className="flex-none rounded-none px-4 py-2">
-                  Test it (Curl)
+                  {t("budgets.examples.testCurl")}
                 </TabsTrigger>
                 <TabsTrigger value="openai-sdk" className="flex-none rounded-none px-4 py-2">
-                  Test it (OpenAI SDK)
+                  {t("budgets.examples.testOpenAiSdk")}
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="assign-budget" keepMounted>

@@ -6,6 +6,7 @@ import { extractProxyErrorMessage } from "@/lib/http/client";
 import { toast } from "@/lib/toast";
 import { getCookie } from "@/utils/cookieUtils";
 import { checkTokenValidity } from "@/utils/jwtUtils";
+import { useTranslation } from "@/i18n";
 import { runLiteAdmin } from "./agent";
 import type { ActionResult, LiteAdminAction } from "./operations";
 
@@ -28,7 +29,6 @@ type ActiveTurn = {
   outcome: "none" | "submitted" | "completed" | "unknown";
   approval?: { id: string; resolve: (approved: boolean) => void };
 };
-const INTERRUPTED_WRITE = "A submitted change may have completed. Check the relevant page before trying again.";
 const RESOURCE_QUERIES = new Set([
   "keys",
   "infiniteKeys",
@@ -46,6 +46,7 @@ const RESOURCE_QUERIES = new Set([
 ]);
 
 export function useLiteAdmin(session: LiteAdminSession) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [entries, setEntries] = useState<ConversationEntry[]>([]);
   const [phase, setPhase] = useState<Phase>("idle");
@@ -55,7 +56,7 @@ export function useLiteAdmin(session: LiteAdminSession) {
     () => () => {
       const turn = active.current;
       active.current = null;
-      if (turn?.outcome === "submitted") toast.warning(INTERRUPTED_WRITE);
+      if (turn?.outcome === "submitted") toast.warning(t("liteAdmin.interruptedWrite"));
       turn?.controller.abort();
       turn?.approval?.resolve(false);
     },
@@ -118,7 +119,8 @@ export function useLiteAdmin(session: LiteAdminSession) {
       getProxyBaseUrl() === session.managementBaseUrl;
     const assertCurrent = () => {
       turn.controller.signal.throwIfAborted();
-      if (active.current !== turn || !sameSession()) throw new DOMException("Session changed", "AbortError");
+      if (active.current !== turn || !sameSession())
+        throw new DOMException(t("liteAdmin.sessionChanged"), "AbortError");
     };
     try {
       const options: Parameters<typeof runLiteAdmin>[0] = {
@@ -126,6 +128,7 @@ export function useLiteAdmin(session: LiteAdminSession) {
         model,
         messages: [...history, message],
         signal: turn.controller.signal,
+        t,
         assertCurrent,
         onMessage: (content) => {
           assertCurrent();
@@ -155,10 +158,10 @@ export function useLiteAdmin(session: LiteAdminSession) {
     } catch (error) {
       if (active.current !== turn) return;
       if (!sameSession()) {
-        if (turn.outcome === "submitted") toast.warning(INTERRUPTED_WRITE);
+        if (turn.outcome === "submitted") toast.warning(t("liteAdmin.interruptedWrite"));
         setEntries([]);
       } else if (!turn.controller.signal.aborted && turn.outcome !== "unknown") {
-        const context = turn.outcome === "completed" ? "Completed changes are shown above. " : "";
+        const context = turn.outcome === "completed" ? t("liteAdmin.completedAbove") : "";
         setEntries((current) => [
           ...current,
           { kind: "error", id: crypto.randomUUID(), text: context + extractProxyErrorMessage(error) },

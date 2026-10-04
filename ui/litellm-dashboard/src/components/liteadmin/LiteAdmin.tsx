@@ -17,6 +17,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { FieldError } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/cva.config";
+import { useTranslation } from "@/i18n";
 import { isProxyAdminRole } from "@/utils/roles";
 import { MAX_INPUT_LENGTH, resolveInferenceTarget } from "./agent";
 import { LiteAdminConversation } from "./LiteAdminConversation";
@@ -91,13 +92,14 @@ export default function LiteAdminTrigger() {
 }
 
 function DockedPanel({ session, open, close }: { session: ManagementSession; open: boolean; close: () => void }) {
+  const { t } = useTranslation();
   const settings = useProxySettingsQuery(session.accessToken);
   const candidate =
     settings.data?.LITELLM_UI_API_DOC_BASE_URL?.trim() ||
     settings.data?.PROXY_BASE_URL?.trim() ||
     session.managementBaseUrl;
   const target = settings.data
-    ? resolveInferenceTarget(candidate, session.managementBaseUrl, window.location.href)
+    ? resolveInferenceTarget(candidate, session.managementBaseUrl, window.location.href, t)
     : null;
   return (
     <Destination
@@ -128,6 +130,7 @@ function Destination({
   close: () => void;
 }) {
   const [approved, setApproved] = useState(false);
+  const { t } = useTranslation();
   if (target?.baseUrl && (!target.requiresConsent || approved)) {
     return <LiteAdminChat session={{ ...session, inferenceBaseUrl: target.baseUrl }} open={open} close={close} />;
   }
@@ -135,29 +138,26 @@ function Destination({
     <Panel open={open}>
       <PanelHeader close={close} />
       <div className="p-4">
-        {loading && <Skeleton className="h-24" aria-label="Loading gateway settings" />}
+        {loading && <Skeleton className="h-24" aria-label={t("liteAdmin.loadingGatewaySettings")} />}
         {!loading && !target?.baseUrl && (
           <Alert variant="destructive">
-            <AlertDescription>{target?.error || "Could not load gateway settings."}</AlertDescription>
+            <AlertDescription>{target?.error || t("liteAdmin.gatewaySettingsFailed")}</AlertDescription>
             <Button variant="link" onClick={retry}>
-              Retry
+              {t("liteAdmin.retry")}
             </Button>
           </Alert>
         )}
         {!loading && target?.baseUrl && (
           <Card size="sm">
             <CardHeader>
-              <CardTitle>Connect to the configured gateway</CardTitle>
+              <CardTitle>{t("liteAdmin.connectTitle")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="break-all font-mono text-xs">{target.baseUrl}</p>
-              <p className="text-muted-foreground">
-                This gateway uses a different address. LiteAdmin will send your existing session credential to the
-                address shown above.
-              </p>
+              <p className="text-muted-foreground">{t("liteAdmin.crossGatewayBody")}</p>
             </CardContent>
             <CardFooter>
-              <Button onClick={() => setApproved(true)}>Use configured gateway</Button>
+              <Button onClick={() => setApproved(true)}>{t("liteAdmin.useGateway")}</Button>
             </CardFooter>
           </Card>
         )}
@@ -201,6 +201,7 @@ function Panel({
 }
 
 function LiteAdminChat({ session, open, close }: { session: LiteAdminSession; open: boolean; close: () => void }) {
+  const { t } = useTranslation();
   const chat = useLiteAdmin(session);
   const [input, setInput] = useState("");
   const [model, setModel] = useState<string | null>(null);
@@ -229,8 +230,8 @@ function LiteAdminChat({ session, open, close }: { session: LiteAdminSession; op
         <Button
           variant="ghost"
           size="icon-sm"
-          aria-label="New chat"
-          title="New chat"
+          aria-label={t("liteAdmin.newChat")}
+          title={t("liteAdmin.newChat")}
           disabled={chat.phase === "applying"}
           onClick={() => {
             chat.reset();
@@ -249,14 +250,14 @@ function LiteAdminChat({ session, open, close }: { session: LiteAdminSession; op
       />
       <div className="space-y-3 border-t p-3">
         {models.isPending ? (
-          <Skeleton className="h-8" aria-label="Loading models" />
+          <Skeleton className="h-8" aria-label={t("liteAdmin.loadingModels")} />
         ) : (
           <SearchSelect
-            aria-label="LiteAdmin model"
+            aria-label={t("liteAdmin.modelLabel")}
             options={(models.data ?? []).map((item) => ({ value: item.model_group, label: item.model_group }))}
             value={selectedModel}
             onValueChange={setModel}
-            placeholder="Choose a chat model"
+            placeholder={t("liteAdmin.chooseModel")}
             disabled={busy}
             allowClear={false}
           />
@@ -264,36 +265,39 @@ function LiteAdminChat({ session, open, close }: { session: LiteAdminSession; op
         {models.isError && (
           <Alert variant="destructive">
             <AlertDescription>
-              Could not load models.{" "}
+              {t("liteAdmin.modelsFailed")}{" "}
               <Button variant="link" onClick={() => void models.refetch()}>
-                Retry
+                {t("liteAdmin.retry")}
               </Button>
             </AlertDescription>
           </Alert>
         )}
         {models.isSuccess && models.data.length === 0 && (
           <Alert role="status">
-            <AlertDescription>Add a chat model to your gateway to use LiteAdmin.</AlertDescription>
+            <AlertDescription>{t("liteAdmin.noChatModel")}</AlertDescription>
           </Alert>
         )}
-        {tooLong && <FieldError>Keep your message within {MAX_INPUT_LENGTH.toLocaleString()} characters.</FieldError>}
+        {tooLong && (
+          <FieldError>{t("liteAdmin.messageLength", { count: MAX_INPUT_LENGTH.toLocaleString() })}</FieldError>
+        )}
         <ChatComposer
           value={input}
           onChange={setInput}
           onSubmit={send}
           onCancel={chat.phase === "applying" ? undefined : chat.stop}
-          placeholder="Ask LiteAdmin…"
+          placeholder={t("liteAdmin.askPlaceholder")}
           disabled={busy || !selectedModel}
           isLoading={busy}
           submitDisabled={submitDisabled}
         />
-        <p className="text-xs text-muted-foreground">Use a model you trust with your gateway data.</p>
+        <p className="text-xs text-muted-foreground">{t("liteAdmin.trustModelHint")}</p>
       </div>
     </Panel>
   );
 }
 
 function PanelHeader({ close, children }: { close: () => void; children?: ReactNode }) {
+  const { t } = useTranslation();
   return (
     <div className="flex items-start justify-between gap-3 border-b p-4">
       <div className="flex flex-col gap-1 text-sm">
@@ -301,11 +305,11 @@ function PanelHeader({ close, children }: { close: () => void; children?: ReactN
           <Sparkles className="size-4 text-info" />
           LiteAdmin
         </h2>
-        <p className="text-muted-foreground">Ask about your gateway. Review changes in chat.</p>
+        <p className="text-muted-foreground">{t("liteAdmin.panelSubtitle")}</p>
       </div>
       <div className="flex shrink-0">
         {children}
-        <Button variant="ghost" size="icon-sm" aria-label="Close LiteAdmin" onClick={close}>
+        <Button variant="ghost" size="icon-sm" aria-label={t("liteAdmin.close")} onClick={close}>
           <X className="size-4" />
         </Button>
       </div>

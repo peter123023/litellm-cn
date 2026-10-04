@@ -1,53 +1,56 @@
 "use client";
 import { ListRow } from "@/components/shared/ListRow";
 
-import { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import { TabsContent } from "@/components/ui/tabs";
-import { HistoryTimeline } from "./HistoryTimeline";
-import { ScanDuration } from "./JobMeta";
-import { useRunHistory } from "./useRunHistory";
-import type { Lens } from "../../model/types";
-import { useRunRoute } from "../../route";
+import { ScanDuration } from "../InvestigationProgress";
+import type { Lens, Job } from "../../model/types";
 
 import { money, when } from "../../model/format";
+import { useTranslation } from "@/i18n";
 
-const PAGE = 50;
-
-export interface HistoryTabProps {
-  readonly lens: Lens;
-}
-
-export function HistoryTab({ lens }: HistoryTabProps) {
-  const [offset, setOffset] = useState(0);
-  const history = useRunHistory(lens, offset);
-  const { openRun } = useRunRoute();
-  const rows = history.data ?? lens.jobs;
+export function HistoryTab({
+  history,
+  historyError,
+  refetchHistory,
+  lens,
+  openBatch,
+  historyOffset,
+  setHistoryOffset,
+}: {
+  history: Job[] | undefined;
+  historyError: Error | null | undefined;
+  refetchHistory: () => void;
+  lens: Lens;
+  openBatch: (id: string) => void;
+  historyOffset: number;
+  setHistoryOffset: (offset: number) => void;
+}) {
+  const { t } = useTranslation();
   return (
     <TabsContent value="activity" className="pt-4 space-y-4">
-      {history.error && (
+      {historyError && (
         <p role="alert" className="text-sm text-destructive">
-          Could not load run history.{" "}
-          <Button variant="link" size="sm" onClick={() => void history.refetch()}>
-            Retry
+          {t("lens.investigations.historyLoadFailed")}{" "}
+          <Button variant="link" size="sm" onClick={() => void refetchHistory()}>
+            {t("common.retry")}
           </Button>
         </p>
       )}
-      {rows.length > 0 && <HistoryTimeline jobs={rows} slots={PAGE} onOpen={openRun} />}
       <div className="divide-y border-y">
-        {rows.map((j) => (
+        {(history ?? lens.jobs)?.map((j) => (
           <ListRow
             key={j.id}
-            onClick={() => openRun(j.id)}
+            onClick={() => openBatch(j.id)}
             className="flex w-full items-center gap-4 py-4 text-left hover:bg-muted/30 focus-visible:outline-2 focus-visible:outline-ring"
           >
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium">{when(j.created_at)}</p>
+              <p className="text-sm font-medium">{when(j.created_at, t)}</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                {j.coverage?.screened ?? 0} runs reviewed
-                {j.findings != null && <> · {j.findings.length} findings</>}
+                {t("lens.investigations.runsReviewed", { count: j.coverage?.screened ?? 0 })}
+                {j.findings != null && <> · {t("lens.investigations.findingsCount", { count: j.findings.length })}</>}
                 <ScanDuration job={j} />
               </p>
               {j.error && <p className="mt-2 line-clamp-2 text-xs text-destructive">{j.error}</p>}
@@ -65,18 +68,23 @@ export function HistoryTab({ lens }: HistoryTabProps) {
           </ListRow>
         ))}
       </div>
-      {(offset > 0 || (history.data?.length ?? 0) >= PAGE) && (
+      {(historyOffset > 0 || (history?.length ?? 0) >= 50) && (
         <div className="flex justify-between">
-          <Button variant="ghost" size="sm" disabled={!offset} onClick={() => setOffset(Math.max(0, offset - PAGE))}>
-            Newer runs
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={!historyOffset}
+            onClick={() => setHistoryOffset(Math.max(0, historyOffset - 50))}
+          >
+            {t("lens.investigations.newerRuns")}
           </Button>
           <Button
             variant="ghost"
             size="sm"
-            disabled={(history.data?.length ?? 0) < PAGE}
-            onClick={() => setOffset(offset + PAGE)}
+            disabled={(history?.length ?? 0) < 50}
+            onClick={() => setHistoryOffset(historyOffset + 50)}
           >
-            Older runs
+            {t("lens.investigations.olderRuns")}
           </Button>
         </div>
       )}

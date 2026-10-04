@@ -1,7 +1,8 @@
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { FormProvider, useForm } from "react-hook-form";
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { setLanguage } from "@/i18n";
 import { alertingSettingsCall, getCallbackConfigsCall, getCallbacksCall, setCallbacksCall } from "./networking";
 import Settings, { backendCallbackLogoSrc, CallbackSelector } from "./settings";
 
@@ -607,5 +608,94 @@ describe("CallbackSelector logos", () => {
     expect(screen.getByAltText("Hosted logo")).toHaveAttribute("src", "https://logos.example.com/hosted.png");
     expect(screen.queryByAltText("NoLogo logo")).not.toBeInTheDocument();
     expect(screen.getByText("N")).toBeInTheDocument();
+  });
+});
+
+describe("Settings localization", () => {
+  const defaultProps = {
+    accessToken: "token",
+    userRole: "admin",
+    userID: "user-123",
+    premiumUser: false,
+  };
+
+  beforeEach(() => {
+    vi.mocked(getCallbacksCall).mockResolvedValue({ callbacks: [], available_callbacks: [], alerts: [] });
+    vi.mocked(getCallbackConfigsCall).mockResolvedValue([]);
+  });
+
+  // The i18n store is module level, so reset it or every later test in this file renders Chinese.
+  afterAll(() => setLanguage("en"));
+
+  // Guards the tab strip and the Alerting Types panel, which sit next to the already-translated
+  // callbacks table. Asserting the Chinese copy directly fails if any label regresses to a literal.
+  it("renders the tab strip and the alerting types panel in the active language", async () => {
+    setLanguage("zh");
+    render(<Settings {...defaultProps} />);
+
+    expect(screen.getByText("日志回调")).toBeInTheDocument();
+    expect(screen.getByText("告警类型")).toBeInTheDocument();
+    expect(screen.getByText("告警设置")).toBeInTheDocument();
+    expect(screen.getByText("邮件告警")).toBeInTheDocument();
+    expect(screen.getByText("MS Teams 告警")).toBeInTheDocument();
+    expect(screen.queryByText("Logging Callbacks")).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByText("告警类型"));
+
+    // Alert type labels are translated, but the webhook header and link come from the dictionary too.
+    expect(await screen.findByText("LLM 异常")).toBeInTheDocument();
+    expect(screen.getByText("Webhook URL（兼容 Slack）")).toBeInTheDocument();
+    expect(screen.getByText("这里")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "保存更改" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "测试告警" })).toBeInTheDocument();
+
+    setLanguage("en");
+  });
+
+  // The field name comes from the backend config (ui_name), so only the sentence around it may be
+  // translated - the interpolated value has to survive verbatim, lowercased exactly as before.
+  it("keeps backend field names verbatim inside a translated placeholder", async () => {
+    vi.mocked(getCallbacksCall).mockResolvedValue({
+      callbacks: [{ name: "langfuse", type: "success", variables: { public_key: "pk" } }],
+      available_callbacks: [
+        { litellm_callback_name: "langfuse", litellm_callback_params: [], ui_callback_name: "Langfuse" },
+      ],
+      alerts: [],
+    });
+    vi.mocked(getCallbackConfigsCall).mockResolvedValue([
+      {
+        id: "langfuse",
+        displayName: "Langfuse",
+        dynamic_params: {
+          public_key: { type: "text", ui_name: "Public Key", required: true },
+          secret_key: { type: "password", ui_name: "Secret Key", required: false },
+          max_retries: { type: "number", ui_name: "Max Retries", required: false },
+          folder_partitioning: {
+            type: "select",
+            ui_name: "Folder Partitioning",
+            required: false,
+            options: ["http/json", "s3"],
+          },
+        },
+      },
+    ]);
+
+    setLanguage("zh");
+    render(<Settings {...defaultProps} />);
+
+    await userEvent.click(await screen.findByTestId("callback-actions-langfuse-success"));
+    await userEvent.click(await screen.findByTestId("callback-action-edit"));
+
+    // All three fieldLabel-derived placeholders have to be translated around the verbatim field name.
+    expect(await screen.findByPlaceholderText("请输入你的 public key")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("请输入你的 secret key")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("请输入 max retries")).toBeInTheDocument();
+    expect(screen.getByLabelText("Folder Partitioning")).toHaveTextContent("请选择 folder partitioning");
+
+    // The field labels themselves are backend data and must not be translated.
+    expect(screen.getByLabelText("Public Key")).toBeInTheDocument();
+    expect(screen.getByText("Secret Key")).toBeInTheDocument();
+
+    setLanguage("en");
   });
 });

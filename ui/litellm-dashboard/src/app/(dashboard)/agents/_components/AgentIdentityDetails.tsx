@@ -3,12 +3,14 @@ import type { components } from "@/lib/http/schema";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/components/networking";
 import { Button } from "@/components/ui/button";
+import { useTranslation, type Translate } from "@/i18n";
 import { readAgentIdentity } from "./agent_identity";
 
-const authenticationMessage = (error: boolean, lastAuthenticated?: string | null): string => {
-  if (error) return "Could not load authentication evidence";
-  if (lastAuthenticated) return `Last authenticated identity match: ${new Date(lastAuthenticated).toLocaleString()}`;
-  return "Configured, awaiting an authenticated request";
+const authenticationMessage = (t: Translate, error: boolean, lastAuthenticated?: string | null): string => {
+  if (error) return t("agents.identity.evidenceLoadFailed");
+  if (lastAuthenticated)
+    return t("agents.identity.lastAuthenticatedMatch", { date: new Date(lastAuthenticated).toLocaleString() });
+  return t("agents.identity.awaitingRequest");
 };
 
 export const AgentIdentityDetails = ({
@@ -22,6 +24,7 @@ export const AgentIdentityDetails = ({
   accessToken: string | null;
   isAdmin: boolean;
 }) => {
+  const { t } = useTranslation();
   const identity = readAgentIdentity(value);
   const { data, isError, isFetching, refetch } = useQuery({
     queryKey: ["agent-identity", agentId, identity],
@@ -36,31 +39,35 @@ export const AgentIdentityDetails = ({
   });
 
   if (!identity || !isAdmin) return null;
-  const executionLabel = data?.enabled ? "Enabled" : "Disabled";
+  const executionLabel = data?.enabled ? t("common.enabled") : t("common.disabled");
   return (
-    <section aria-label="Agent Identity" className="mb-6 space-y-2 rounded-lg border border-border p-4">
-      <h3 className="font-medium">Agent Identity: Microsoft Entra ID</h3>
+    <section
+      aria-label={t("agents.identity.sectionLabel")}
+      className="mb-6 space-y-2 rounded-lg border border-border p-4"
+    >
+      <h3 className="font-medium">{t("agents.identity.title")}</h3>
       <p className="text-sm">
-        Tenant: <span className="font-mono">{identity.tenant_id}</span>
+        {t("agents.identity.tenant")} <span className="font-mono">{identity.tenant_id}</span>
       </p>
       <>
         <p className="text-sm">
-          Application (Client) ID: <span className="font-mono">{identity.client_id}</span>
+          {t("agents.identity.clientId")} <span className="font-mono">{identity.client_id}</span>
         </p>
-        <p className="text-sm">Enterprise application Object ID: {identity.service_principal_id || "Not configured"}</p>
+        <p className="text-sm">
+          {t("agents.identity.enterpriseAppObjectId")}{" "}
+          {identity.service_principal_id || t("agents.identity.notConfigured")}
+        </p>
       </>
       <p className="text-sm">
-        Execution: {data ? executionLabel : "Loading"} · Mode: {data?.execution_mode ?? "Loading"}
+        {t("agents.identity.execution")} {data ? executionLabel : t("agents.identity.loading")} ·{" "}
+        {t("agents.identity.mode")} {data?.execution_mode ?? t("agents.identity.loading")}
       </p>
       <p className="text-sm">
         {data?.identity?.active === false
-          ? "Identity unbound; execution is disabled"
-          : authenticationMessage(isError, data?.last_authenticated_at)}
+          ? t("agents.identity.unbound")
+          : authenticationMessage(t, isError, data?.last_authenticated_at)}
       </p>
-      <p className="text-xs text-muted-foreground">
-        Recent evidence comes from a validated Entra token matching this binding. It is persisted across restarts and
-        cleared when the binding changes. Tool and model permissions are checked separately.
-      </p>
+      <p className="text-xs text-muted-foreground">{t("agents.identity.evidenceHint")}</p>
       <div className="flex items-center gap-4">
         <Button
           variant="outline"
@@ -70,10 +77,10 @@ export const AgentIdentityDetails = ({
             void refetch();
           }}
         >
-          Refresh authentication evidence
+          {t("agents.identity.refreshEvidence")}
         </Button>
         <a className="text-sm underline" href="/ui/logs/">
-          View request logs
+          {t("agents.identity.viewLogs")}
         </a>
       </div>
     </section>

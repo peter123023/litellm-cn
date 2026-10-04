@@ -4,6 +4,7 @@ import { ChevronDown } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { getAvailablePages } from "@/components/page_utils";
+import { useTranslation } from "@/i18n";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -16,12 +17,18 @@ interface PageVisibilitySettingsProps {
   onUpdate: (settings: { enabled_ui_pages_internal_users: string[] | null }) => void;
 }
 
+const SELECTED_COUNT_KEYS = {
+  one: "adminSettings.uiSettings.pageVisibility.selectedCount_one",
+  other: "adminSettings.uiSettings.pageVisibility.selectedCount_other",
+} as const;
+
 export default function PageVisibilitySettings({
   enabledPagesInternalUsers,
   enabledPagesPropertyDescription,
   isUpdating,
   onUpdate,
 }: PageVisibilitySettingsProps) {
+  const { t } = useTranslation();
   const isPageVisibilitySet = enabledPagesInternalUsers !== null && enabledPagesInternalUsers !== undefined;
   const availablePages = useMemo(() => getAvailablePages(), []);
   const pagesByGroup = useMemo(() => {
@@ -57,28 +64,25 @@ export default function PageVisibilitySettings({
     <div className="space-y-4">
       <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <p className="text-sm font-medium text-foreground">Internal User Page Visibility</p>
+          <p className="text-sm font-medium text-foreground">{t("adminSettings.uiSettings.pageVisibility.title")}</p>
           <Badge variant={isPageVisibilitySet ? "secondary" : "outline"}>
             {isPageVisibilitySet
-              ? `${selectedPages.length} page${selectedPages.length !== 1 ? "s" : ""} selected`
-              : "Not set (all pages visible)"}
+              ? t(SELECTED_COUNT_KEYS[selectedPages.length === 1 ? "one" : "other"], {
+                  count: selectedPages.length,
+                })
+              : t("adminSettings.uiSettings.pageVisibility.notSet")}
           </Badge>
         </div>
         {enabledPagesPropertyDescription && (
           <p className="text-sm text-muted-foreground">{enabledPagesPropertyDescription}</p>
         )}
-        <p className="text-xs italic text-muted-foreground">
-          By default, all pages are visible to internal users. Select specific pages to restrict visibility.
-        </p>
-        <p className="text-xs text-primary">
-          Note: Only pages accessible to internal user roles are shown here. Admin-only pages are excluded as they
-          cannot be made visible to internal users regardless of this setting.
-        </p>
+        <p className="text-xs italic text-muted-foreground">{t("adminSettings.uiSettings.pageVisibility.hint")}</p>
+        <p className="text-xs text-primary">{t("adminSettings.uiSettings.pageVisibility.note")}</p>
       </div>
 
       <Collapsible className="rounded-lg border border-border">
         <CollapsibleTrigger className="group flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium hover:bg-muted">
-          Configure Page Visibility
+          {t("adminSettings.uiSettings.pageVisibility.configure")}
           <ChevronDown className="size-4 transition-transform group-data-[panel-open]:rotate-180" />
         </CollapsibleTrigger>
         <CollapsibleContent className="border-t border-border p-4">
@@ -111,11 +115,11 @@ export default function PageVisibilitySettings({
 
             <div className="flex flex-wrap gap-2">
               <Button type="button" onClick={handleSavePageVisibility} disabled={isUpdating}>
-                Save Page Visibility Settings
+                {t("adminSettings.uiSettings.pageVisibility.save")}
               </Button>
               {isPageVisibilitySet && (
                 <Button type="button" variant="outline" onClick={handleResetToDefault} disabled={isUpdating}>
-                  Reset to Default (All Pages)
+                  {t("adminSettings.uiSettings.pageVisibility.reset")}
                 </Button>
               )}
             </div>

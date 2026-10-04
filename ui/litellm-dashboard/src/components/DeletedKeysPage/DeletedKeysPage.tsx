@@ -6,9 +6,11 @@ import { Info } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/shared/Alert";
 import { useDeletedKeys } from "@/app/(dashboard)/hooks/keys/useKeys";
 import useAuthorized from "@/app/(dashboard)/hooks/useAuthorized";
+import { useTranslation } from "@/i18n";
 import { DeletedKeysTable } from "./DeletedKeysTable/DeletedKeysTable";
 
 export default function DeletedKeysPage() {
+  const { t } = useTranslation();
   const { premiumUser } = useAuthorized();
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 50 });
 
@@ -19,10 +21,8 @@ export default function DeletedKeysPage() {
       {!premiumUser && (
         <Alert className="shrink-0">
           <Info />
-          <AlertTitle>Coming soon to Enterprise</AlertTitle>
-          <AlertDescription>
-            Deleted key auditing is graduating from beta into our Enterprise audit &amp; compliance suite.
-          </AlertDescription>
+          <AlertTitle>{t("deletedKeys.comingSoonTitle")}</AlertTitle>
+          <AlertDescription>{t("deletedKeys.comingSoonBody")}</AlertDescription>
         </Alert>
       )}
       <DeletedKeysTable

@@ -5,6 +5,7 @@ import { SimpleTooltip } from "@/components/ui/tooltip";
 import { Switch } from "@/components/ui/switch";
 import { MountedFormField } from "@/components/common_components/MountedFormField";
 import { isClientForwardedTokenMode } from "@/components/mcp_tools/types";
+import { useTranslation } from "@/i18n";
 import { switchControl } from "./mcpFieldRules";
 
 /**
@@ -23,13 +24,14 @@ export default function DcrBridgeToggle({
   authType?: string | null;
   initialChecked?: boolean;
 }) {
+  const { t } = useTranslation();
   if (!isClientForwardedTokenMode(authType)) return null;
   return (
     <MountedFormField
       label={
         <span className="text-sm font-medium text-foreground flex items-center">
-          Gateway-hosted sign-in (DCR bridge)
-          <SimpleTooltip content="Lets OAuth-only clients like Claude Desktop register and sign in through the gateway. Turn off to relay the upstream server's own OAuth metadata instead (for clients pre-registered with the upstream IdP).">
+          {t("mcp.form.dcrBridge")}
+          <SimpleTooltip content={t("mcp.form.dcrBridgeTooltip")}>
             <Info className="ml-2 size-4 text-info hover:text-info/80 cursor-help" />
           </SimpleTooltip>
         </span>

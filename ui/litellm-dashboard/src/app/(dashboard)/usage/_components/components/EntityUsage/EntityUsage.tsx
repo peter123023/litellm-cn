@@ -13,6 +13,7 @@ import { MoneyCell } from "@/components/shared/table_cells";
 import { Card as ShadcnCard, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { hasCapability, type Capability } from "@/utils/capabilities";
 import { formatNumberWithCommas } from "@/utils/dataUtils";
+import { useTranslation } from "@/i18n";
 import type { DateRangePickerValue } from "@/components/shared/date_picker_types";
 import { ChevronDown, ChevronRight, Info } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -91,6 +92,7 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
   isOrgAdmin = false,
 }) => {
   const { teams } = useTeams();
+  const { t } = useTranslation();
   const teamList = useMemo(() => teams ?? [], [teams]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [modelViewType, setModelViewType] = useState<ModelViewType>("groups");
@@ -282,11 +284,11 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
   };
 
   const getFilterLabel = (entityType: string) => {
-    return `Filter by ${entityType}`;
+    return t("usage.entity.filter.label", { entity: entityType });
   };
 
   const getFilterPlaceholder = (entityType: string) => {
-    return `Select ${entityType} to filter...`;
+    return t("usage.entity.filter.placeholder", { entity: entityType });
   };
 
   const entityFilterSlots: Partial<Record<EntityType, ReactNode>> = {
@@ -409,7 +411,8 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
   const breakdownTiles = showFlatCost && showCostBreakdown ? buildCostBreakdownTiles(spendData.metadata) : [];
   const summaryTiles = [...buildSummaryTiles(spendData.metadata, showFlatCost), ...breakdownTiles];
 
-  const modelViewTitle = modelViewType === "groups" ? "Top Public Model Names" : "Top Litellm Models";
+  const modelViewTitle =
+    modelViewType === "groups" ? t("usage.entity.topPublicModelNames") : t("usage.entity.topLitellmModels");
 
   const costPanel = loading ? (
     <ChartLoader />
@@ -428,7 +431,7 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
       <div className="col-span-2">
         <ShadcnCard>
           <CardHeader>
-            <CardTitle className="text-base font-semibold">Daily Spend</CardTitle>
+            <CardTitle className="text-base font-semibold">{t("usage.entity.dailySpend")}</CardTitle>
           </CardHeader>
           <CardContent>
             <BarChart
@@ -436,11 +439,15 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
                 .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
                 .map((row) => ({
                   ...row,
-                  "Request cost": row.metrics.spend ?? 0,
-                  "Flat cost": row.metrics.flat_cost ?? 0,
+                  [t("usage.entity.chart.requestCost")]: row.metrics.spend ?? 0,
+                  [t("usage.entity.chart.flatCost")]: row.metrics.flat_cost ?? 0,
                 }))}
               index="date"
-              categories={showFlatCost ? ["Request cost", "Flat cost"] : ["metrics.spend"]}
+              categories={
+                showFlatCost
+                  ? [t("usage.entity.chart.requestCost"), t("usage.entity.chart.flatCost")]
+                  : ["metrics.spend"]
+              }
               colors={showFlatCost ? ["cyan", "violet"] : ["cyan"]}
               stack={showFlatCost}
               valueFormatter={valueFormatterSpend}
@@ -578,7 +585,7 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
       <div>
         <ShadcnCard>
           <CardContent>
-            <h3 className="text-lg font-medium text-foreground">Top Virtual Keys</h3>
+            <h3 className="text-lg font-medium text-foreground">{t("usage.entity.topVirtualKeys")}</h3>
             <TopKeyView
               topKeys={getTopAPIKeys(spendData.results, topKeysLimit)}
               teams={null}
@@ -596,7 +603,7 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
           <CardContent>
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-medium text-foreground">
-                {entityType === "agent" ? "Top Agents" : modelViewTitle}
+                {entityType === "agent" ? t("usage.entity.topAgents") : modelViewTitle}
               </h3>
               <ModelViewToggle value={modelViewType} onChange={setModelViewType} />
             </div>
@@ -613,7 +620,7 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
         <div className="col-span-2">
           <ShadcnCard>
             <CardContent>
-              <h3 className="text-lg font-medium text-foreground">Top Agents Driving Spend</h3>
+              <h3 className="text-lg font-medium text-foreground">{t("usage.entity.topAgentsDrivingSpend")}</h3>
               {agentLoading ? (
                 <ChartLoader />
               ) : (
@@ -632,7 +639,7 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
       <div className="col-span-2">
         <ShadcnCard>
           <CardContent className="flex flex-col space-y-4">
-            <h3 className="text-lg font-medium text-foreground">Provider Usage</h3>
+            <h3 className="text-lg font-medium text-foreground">{t("usage.entity.providerUsage")}</h3>
             <div className="grid grid-cols-2">
               <div>
                 <DonutChart
@@ -652,7 +659,7 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
                   columns={providerSpendColumns}
                   data={providerSpend}
                   getRowId={(row) => row.provider}
-                  noDataMessage="No provider usage data"
+                  noDataMessage={t("usage.spendByProvider.noData")}
                   size="compact"
                 />
               </div>
@@ -664,10 +671,11 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
   );
 
   const tabs: readonly { key: string; label: string; content: ReactNode }[] = [
-    { key: "cost", label: "Cost", content: costPanel },
+    { key: "cost", label: t("usage.entity.tab.cost"), content: costPanel },
     {
       key: "models",
-      label: entityType === "agent" ? "Request / Token Consumption" : "Model Activity",
+      label:
+        entityType === "agent" ? t("usage.entity.tab.requestTokenConsumption") : t("usage.entity.tab.modelActivity"),
       content: (
         <>
           <div className="flex justify-end mt-2 mb-4">
@@ -685,14 +693,14 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
       ? [
           {
             key: "agents",
-            label: "Agent Activity",
+            label: t("usage.entity.tab.agentActivity"),
             content: <ActivityMetrics modelMetrics={agentMetrics} />,
           },
         ]
       : []),
     {
       key: "keys",
-      label: "Key Activity",
+      label: t("usage.entity.tab.keyActivity"),
       content: (
         <KeyActivityPanel
           summary={summaryMetrics}
@@ -705,25 +713,23 @@ const EntityUsage: React.FC<EntityUsageProps> = ({
         />
       ),
     },
-    { key: "endpoints", label: "Endpoint Activity", content: <EndpointUsage userSpendData={spendData} /> },
+    {
+      key: "endpoints",
+      label: t("usage.entity.tab.endpointActivity"),
+      content: <EndpointUsage userSpendData={spendData} />,
+    },
   ];
 
   return (
     <div style={{ width: "100%" }} className="relative">
       {failed && (
         <Alert variant="error" className="mb-2">
-          <AlertDescription className="text-inherit">
-            Fetching spend data failed, so the totals below may be empty rather than final. Reload the page to try
-            again.
-          </AlertDescription>
+          <AlertDescription className="text-inherit">{t("usage.entity.alert.spendFailed")}</AlertDescription>
         </Alert>
       )}
       {showAgentBreakdown && agentFailed && (
         <Alert variant="error" className="mb-2">
-          <AlertDescription className="text-inherit">
-            Fetching agent data failed, so the totals below may be empty rather than final. Reload the page to try
-            again.
-          </AlertDescription>
+          <AlertDescription className="text-inherit">{t("usage.entity.alert.agentFailed")}</AlertDescription>
         </Alert>
       )}
       <UsageExportHeader

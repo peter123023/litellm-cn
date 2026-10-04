@@ -20,6 +20,7 @@ import {
   type ObservedSnapshot,
   type Period,
 } from "./observedData";
+import { useTranslation } from "@/i18n";
 
 export function PullList({
   pulls,
@@ -30,10 +31,11 @@ export function PullList({
   pulls: ObservedPull[];
   provider: ObservedSnapshot["source_provider"];
 }) {
-  const terms = changeTerms(provider);
+  const { t } = useTranslation();
+  const terms = changeTerms(provider, t);
   const emptyMessage = matchedOnly
-    ? "No merged changes from matched people in this period"
-    : `No ${terms.lower} in this period`;
+    ? t("roi.pulls.emptyMatched")
+    : t("roi.pulls.emptyPeriod", { term: terms.lower });
   const [query, setQuery] = useState("");
   const [limit, setLimit] = useState(20);
   const filtered = pulls.filter((pull) =>
@@ -44,8 +46,8 @@ export function PullList({
   return (
     <div className="space-y-3">
       <Input
-        aria-label={`Search ${terms.lower}`}
-        placeholder={`Search ${terms.lower}…`}
+        aria-label={t("roi.pulls.searchAria", { term: terms.lower })}
+        placeholder={t("roi.pulls.searchPlaceholder", { term: terms.lower })}
         value={query}
         onChange={(event) => {
           setQuery(event.target.value);
@@ -57,9 +59,9 @@ export function PullList({
         <TableHeader>
           <TableRow>
             <TableHead>{terms.requests}</TableHead>
-            <TableHead>Author</TableHead>
-            <TableHead className="text-right">Opened to merged</TableHead>
-            <TableHead className="text-right">Tagged spend</TableHead>
+            <TableHead>{t("roi.pulls.author")}</TableHead>
+            <TableHead className="text-right">{t("roi.pulls.openedToMerged")}</TableHead>
+            <TableHead className="text-right">{t("roi.pulls.taggedSpend")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -82,10 +84,10 @@ export function PullList({
                 </a>
               </TableCell>
               <TableCell>
-                <span className="text-xs">{pull.author || "Deleted author"}</span>
+                <span className="text-xs">{pull.author || t("roi.pulls.deletedAuthor")}</span>
                 {pull.agent && (
                   <Badge variant="secondary" className="ml-2">
-                    Agent
+                    {t("roi.pulls.agentBadge")}
                   </Badge>
                 )}
               </TableCell>
@@ -94,8 +96,8 @@ export function PullList({
                 className="text-right tabular-nums"
                 title={
                   pull.branch_cost.status === "ambiguous"
-                    ? "Branch is shared by multiple changes"
-                    : "Spend tagged to this branch during the period"
+                    ? t("roi.pulls.sharedBranchTitle")
+                    : t("roi.pulls.taggedBranchSpendTitle")
                 }
               >
                 {money(pull.branch_cost.spend)}
@@ -104,21 +106,17 @@ export function PullList({
           ))}
         </TableBody>
       </Table>
-      <p className="text-xs text-muted-foreground">
-        Elapsed time from opening to merge, not engineering effort or time saved
-      </p>
+      <p className="text-xs text-muted-foreground">{t("roi.pulls.elapsedNote")}</p>
       {filtered.length === 0 && (
         <p className="py-8 text-center text-sm text-muted-foreground">
-          {query ? `No ${terms.lower} match this search` : emptyMessage}
+          {query ? t("roi.pulls.emptySearch", { term: terms.lower }) : emptyMessage}
         </p>
       )}
       <div className="flex items-center justify-between text-xs text-muted-foreground">
-        <span>
-          {number(Math.min(limit, filtered.length))} of {number(filtered.length)} {terms.lower}
-        </span>
+        <span>{t("roi.pulls.counter", { shown: number(Math.min(limit, filtered.length)), total: number(filtered.length), term: terms.lower })}</span>
         {limit < filtered.length && (
           <Button variant="outline" size="sm" onClick={() => setLimit(limit + 40)}>
-            Show more
+            {t("roi.pulls.showMore")}
           </Button>
         )}
       </div>
@@ -139,7 +137,8 @@ export function PersonDetails({
   onClose: () => void;
   onEdit?: () => void;
 }) {
-  const terms = changeTerms(snapshot.source_provider);
+  const { t } = useTranslation();
+  const terms = changeTerms(snapshot.source_provider, t);
   const [period, setPeriod] = useState<Period>("current");
   const current = person.periods.current;
   const baseline = person.periods[comparison];
@@ -159,40 +158,42 @@ export function PersonDetails({
         </SheetHeader>
         {onEdit && (
           <Button variant="outline" className="w-fit" onClick={onEdit}>
-            Edit linked accounts
+            {t("roi.details.editLinkedAccounts")}
           </Button>
         )}
         <div className="mt-2 grid grid-cols-1 gap-y-4 divide-y rounded-lg border py-5 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
           <div className="px-4">
-            <p className="text-xs text-muted-foreground">Merged {terms.plural}</p>
+            <p className="text-xs text-muted-foreground">{t("roi.details.mergedCount", { term: terms.plural })}</p>
             <p className="mt-2 text-2xl font-semibold">{number(current.merged_prs)}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{number(baseline.merged_prs)} in comparison</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {t("roi.details.inComparison", { count: number(baseline.merged_prs) })}
+            </p>
           </div>
           <div className="px-4">
-            <p className="text-xs text-muted-foreground">Recorded spend</p>
+            <p className="text-xs text-muted-foreground">{t("roi.details.recordedSpend")}</p>
             <p className="mt-2 text-2xl font-semibold">
               {money(current.spend_observation === "no_records" ? null : current.gateway_recorded_spend)}
             </p>
-            <p className="mt-1 text-xs text-muted-foreground">Gateway only</p>
+            <p className="mt-1 text-xs text-muted-foreground">{t("roi.details.gatewayOnly")}</p>
           </div>
           <div className="px-4">
-            <p className="text-xs text-muted-foreground">Spend / matched {terms.singular}</p>
+            <p className="text-xs text-muted-foreground">{t("roi.details.spendPerChange", { term: terms.singular })}</p>
             <p className="mt-2 text-2xl font-semibold">{money(current.recorded_spend_per_attributed_pr)}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Period average</p>
+            <p className="mt-1 text-xs text-muted-foreground">{t("roi.details.periodAverage")}</p>
           </div>
         </div>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-          <h3 className="font-medium">Merged {terms.plural}</h3>
+          <h3 className="font-medium">{t("roi.details.mergedCount", { term: terms.plural })}</h3>
           <div className="flex gap-1 rounded-lg bg-muted p-1">
             <Button size="sm" variant={period === "current" ? "outline" : "ghost"} onClick={() => setPeriod("current")}>
-              Current
+              {t("roi.period.current")}
             </Button>
             <Button
               size="sm"
               variant={period === comparison ? "outline" : "ghost"}
               onClick={() => setPeriod(comparison)}
             >
-              {comparison === "previous" ? "Previous period" : "Last year"}
+              {comparison === "previous" ? t("roi.period.previous") : t("roi.period.lastYear")}
             </Button>
           </div>
         </div>
@@ -204,16 +205,17 @@ export function PersonDetails({
 }
 
 export function BranchSpend({ snapshot, matchedOnly = true }: { snapshot: ObservedSnapshot; matchedOnly?: boolean }) {
+  const { t } = useTranslation();
   const rows = recordedBranches(snapshot, matchedOnly);
   return (
     <div className="rounded-xl border">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Repository</TableHead>
-            <TableHead>Branch</TableHead>
-            <TableHead className="text-right">Requests</TableHead>
-            <TableHead className="text-right">Tagged spend</TableHead>
+            <TableHead>{t("roi.branchSpend.repo")}</TableHead>
+            <TableHead>{t("roi.branchSpend.branch")}</TableHead>
+            <TableHead className="text-right">{t("roi.branchSpend.requests")}</TableHead>
+            <TableHead className="text-right">{t("roi.branchSpend.taggedSpend")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -229,9 +231,7 @@ export function BranchSpend({ snapshot, matchedOnly = true }: { snapshot: Observ
       </Table>
       {rows.length === 0 && (
         <p className="p-8 text-center text-sm text-muted-foreground">
-          {matchedOnly
-            ? "No tagged branch spend for matched people in this period"
-            : "No tagged branch spend in this period"}
+          {matchedOnly ? t("roi.branchSpend.emptyMatched") : t("roi.branchSpend.empty")}
         </p>
       )}
     </div>

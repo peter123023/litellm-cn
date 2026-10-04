@@ -1,6 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { FIELD_GROUPS, MCP_REQUIRED_FIELD_DEFS, SETTINGS_KEY } from "./MCPStandardsSettings";
 import { MCPServer } from "@/components/mcp_tools/types";
+import { DEFAULT_LANGUAGE, translate } from "@/i18n";
+
+const english = (key: string) => translate(DEFAULT_LANGUAGE, key);
 
 const makeServer = (overrides: Partial<MCPServer> = {}): MCPServer => ({
   server_id: "s1",
@@ -14,7 +17,7 @@ const makeServer = (overrides: Partial<MCPServer> = {}): MCPServer => ({
 describe("FIELD_GROUPS", () => {
   it("should contain four groups", () => {
     expect(FIELD_GROUPS).toHaveLength(4);
-    expect(FIELD_GROUPS.map((g) => g.label)).toEqual(["Documentation", "Source", "Connection", "Security"]);
+    expect(FIELD_GROUPS.map((g) => english(g.labelKey))).toEqual(["Documentation", "Source", "Connection", "Security"]);
   });
 });
 
@@ -22,6 +25,11 @@ describe("MCP_REQUIRED_FIELD_DEFS", () => {
   it("should flatten all fields from groups", () => {
     const totalFields = FIELD_GROUPS.reduce((sum, g) => sum + g.fields.length, 0);
     expect(MCP_REQUIRED_FIELD_DEFS).toHaveLength(totalFields);
+  });
+
+  it("should resolve every group, field and description label in the dictionary", () => {
+    const keys = FIELD_GROUPS.flatMap((g) => [g.labelKey, ...g.fields.flatMap((f) => [f.labelKey, f.descriptionKey])]);
+    expect(keys.filter((key) => english(key) === key)).toEqual([]);
   });
 });
 

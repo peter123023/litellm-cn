@@ -1,9 +1,6 @@
-export type ModelViewType = "groups" | "individual";
+import { useTranslation } from "@/i18n";
 
-const MODEL_VIEW_OPTIONS: readonly { value: ModelViewType; label: string }[] = [
-  { value: "groups", label: "Public Model Name" },
-  { value: "individual", label: "Litellm Model Name" },
-];
+export type ModelViewType = "groups" | "individual";
 
 interface ModelViewToggleProps {
   value: ModelViewType;
@@ -11,9 +8,16 @@ interface ModelViewToggleProps {
 }
 
 export default function ModelViewToggle({ value, onChange }: ModelViewToggleProps) {
+  const { t } = useTranslation();
+
+  const options = [
+    { value: "groups" as const, label: t("usage.modelView.publicModelName") },
+    { value: "individual" as const, label: t("usage.modelView.litellmModelName") },
+  ];
+
   return (
     <div className="flex bg-muted rounded-lg p-1">
-      {MODEL_VIEW_OPTIONS.map((option) => (
+      {options.map((option) => (
         <button
           key={option.value}
           className={`px-3 py-1 text-sm rounded-md transition-colors ${

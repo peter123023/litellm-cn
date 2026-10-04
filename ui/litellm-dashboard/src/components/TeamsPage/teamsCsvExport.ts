@@ -1,6 +1,7 @@
 import Papa from "papaparse";
 
 import { TeamListCallOptions, TeamsResponse, teamListCall } from "@/app/(dashboard)/hooks/teams/useTeams";
+import { DEFAULT_LANGUAGE, translate, type Translate } from "@/i18n";
 
 import { Team } from "../key_team_helpers/key_list";
 import { apiClient } from "../networking";
@@ -41,36 +42,37 @@ const cell = (value: string | number | boolean | null | undefined): string | num
 export const buildTeamsCsvRows = (
   teams: Team[],
   budgets: TeamMemberBudget[],
+  t: Translate = (key, params) => translate(DEFAULT_LANGUAGE, key, params),
 ): Record<string, string | number | boolean>[] => {
   const budgetsById = new Map(budgets.map((budget) => [budget.budget_id, budget]));
   return teams.map((team) => {
     const budgetId = teamMemberBudgetId(team);
     const memberBudget = budgetId ? budgetsById.get(budgetId) : undefined;
     return {
-      "Team Alias": cell(team.team_alias),
-      "Team ID": cell(team.team_id),
-      "Organization ID": cell(team.organization_id),
-      Models: (team.models ?? []).join(", "),
-      "Max Budget (USD)": cell(team.max_budget),
-      "Budget Duration": cell(team.budget_duration),
-      "Budget Reset At": cell(team.budget_reset_at),
-      "Spend (USD)": cell(team.spend),
-      "TPM Limit": cell(team.tpm_limit),
-      "RPM Limit": cell(team.rpm_limit),
-      "Team Member Budget (USD)": cell(memberBudget?.max_budget),
-      "Team Member Budget Duration": cell(memberBudget?.budget_duration),
-      "Team Member TPM Limit": cell(memberBudget?.tpm_limit),
-      "Team Member RPM Limit": cell(memberBudget?.rpm_limit),
-      Members: cell(team.members_count ?? team.members_with_roles?.length),
-      Keys: cell(team.keys_count ?? team.keys?.length),
-      Blocked: cell(team.blocked),
-      "Created At": cell(team.created_at),
+      [t("teams.csvTeamAlias")]: cell(team.team_alias),
+      [t("teams.csvTeamId")]: cell(team.team_id),
+      [t("teams.csvOrganizationId")]: cell(team.organization_id),
+      [t("teams.csvModels")]: (team.models ?? []).join(", "),
+      [t("teams.csvMaxBudget")]: cell(team.max_budget),
+      [t("teams.csvBudgetDuration")]: cell(team.budget_duration),
+      [t("teams.csvBudgetResetAt")]: cell(team.budget_reset_at),
+      [t("teams.csvSpend")]: cell(team.spend),
+      [t("teams.csvTpmLimit")]: cell(team.tpm_limit),
+      [t("teams.csvRpmLimit")]: cell(team.rpm_limit),
+      [t("teams.csvMemberBudget")]: cell(memberBudget?.max_budget),
+      [t("teams.csvMemberBudgetDuration")]: cell(memberBudget?.budget_duration),
+      [t("teams.csvMemberTpmLimit")]: cell(memberBudget?.tpm_limit),
+      [t("teams.csvMemberRpmLimit")]: cell(memberBudget?.rpm_limit),
+      [t("teams.csvMembers")]: cell(team.members_count ?? team.members_with_roles?.length),
+      [t("teams.csvKeys")]: cell(team.keys_count ?? team.keys?.length),
+      [t("teams.csvBlocked")]: cell(team.blocked),
+      [t("teams.csvCreatedAt")]: cell(team.created_at),
     };
   });
 };
 
-export const buildTeamsCsv = (teams: Team[], budgets: TeamMemberBudget[]): string =>
-  Papa.unparse(buildTeamsCsvRows(teams, budgets), { escapeFormulae: true });
+export const buildTeamsCsv = (teams: Team[], budgets: TeamMemberBudget[], t?: Translate): string =>
+  Papa.unparse(buildTeamsCsvRows(teams, budgets, t), { escapeFormulae: true });
 
 const downloadCsv = (csv: string, fileName: string): void => {
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -84,12 +86,16 @@ const downloadCsv = (csv: string, fileName: string): void => {
   window.URL.revokeObjectURL(url);
 };
 
-export const exportTeamsToCsv = async (accessToken: string, options: TeamListCallOptions): Promise<number> => {
+export const exportTeamsToCsv = async (
+  accessToken: string,
+  options: TeamListCallOptions,
+  t?: Translate,
+): Promise<number> => {
   const teams = await fetchAllTeams((page, pageSize) => teamListCall(accessToken, page, pageSize, options));
   const budgetIds = collectTeamMemberBudgetIds(teams);
   const budgets = budgetIds.length
     ? await apiClient.post<TeamMemberBudget[]>("/budget/info", { accessToken, body: { budgets: budgetIds } })
     : [];
-  downloadCsv(buildTeamsCsv(teams, budgets), `teams_export_${new Date().toISOString().split("T")[0]}.csv`);
+  downloadCsv(buildTeamsCsv(teams, budgets, t), `teams_export_${new Date().toISOString().split("T")[0]}.csv`);
   return teams.length;
 };

@@ -1,4 +1,5 @@
 import type { components } from "@/lib/http/schema";
+import type { Translate } from "@/i18n";
 
 export type KillSwitchConfig = components["schemas"]["AgentKillSwitchConfig"];
 export type KillSwitchAuth = NonNullable<KillSwitchConfig["auth"]>;
@@ -6,11 +7,11 @@ export type KillSwitchMethod = NonNullable<KillSwitchConfig["method"]>;
 export type KillSwitchAuthType = KillSwitchAuth["type"] | "none";
 
 export const KILL_SWITCH_METHODS: readonly KillSwitchMethod[] = ["POST", "PUT", "PATCH", "DELETE", "GET"];
-export const KILL_SWITCH_AUTH_TYPES: readonly { value: KillSwitchAuthType; label: string }[] = [
-  { value: "none", label: "None" },
-  { value: "bearer", label: "Bearer token" },
-  { value: "api_key", label: "API key header" },
-  { value: "basic", label: "Basic auth" },
+export const KILL_SWITCH_AUTH_TYPES: readonly { value: KillSwitchAuthType; labelKey: string }[] = [
+  { value: "none", labelKey: "agents.killSwitch.authType.none" },
+  { value: "bearer", labelKey: "agents.killSwitch.authType.bearer" },
+  { value: "api_key", labelKey: "agents.killSwitch.authType.apiKey" },
+  { value: "basic", labelKey: "agents.killSwitch.authType.basic" },
 ];
 
 export interface KeyValueFormValue {
@@ -51,22 +52,41 @@ const pairsToRecord = (pairs: readonly KeyValueFormValue[] | undefined): Record<
 const recordToPairs = (record: Record<string, string> | undefined | null): KeyValueFormValue[] =>
   Object.entries(record ?? {}).map(([key, value]) => ({ key, value }));
 
+type KillSwitchBodyErrorReason = "notAnObject" | "invalidJson";
+
+const BODY_ERROR_KEYS: Readonly<Record<KillSwitchBodyErrorReason, string>> = {
+  notAnObject: "agents.killSwitch.bodyNotObject",
+  invalidJson: "agents.killSwitch.bodyInvalidJson",
+};
+
+export class KillSwitchBodyError extends Error {
+  constructor(readonly reason: KillSwitchBodyErrorReason) {
+    super(reason);
+    this.name = "KillSwitchBodyError";
+  }
+}
+
 export const parseKillSwitchBody = (text: string | undefined): Record<string, unknown> | null => {
   const trimmed = text?.trim() ?? "";
   if (trimmed.length === 0) return null;
-  const parsed: unknown = JSON.parse(trimmed);
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(trimmed);
+  } catch {
+    throw new KillSwitchBodyError("invalidJson");
+  }
   if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
-    throw new Error("Body must be a JSON object");
+    throw new KillSwitchBodyError("notAnObject");
   }
   return parsed as Record<string, unknown>;
 };
 
-export const validateKillSwitchBody = (text: string | undefined): true | string => {
+export const validateKillSwitchBody = (text: string | undefined, t: Translate): true | string => {
   try {
     parseKillSwitchBody(text);
     return true;
   } catch (error) {
-    return error instanceof Error ? error.message : "Body must be valid JSON";
+    return t(BODY_ERROR_KEYS[error instanceof KillSwitchBodyError ? error.reason : "invalidJson"]);
   }
 };
 

@@ -12,6 +12,7 @@ import PatternTable from "./PatternTable";
 import KeywordTable from "./KeywordTable";
 import ContentCategoryConfiguration from "./ContentCategoryConfiguration";
 import CompetitorIntentConfiguration, { CompetitorIntentConfig } from "./CompetitorIntentConfiguration";
+import { useTranslation } from "@/i18n";
 
 interface PrebuiltPattern {
   name: string;
@@ -102,6 +103,7 @@ const ContentFilterConfiguration: React.FC<ContentFilterConfigurationProps> = ({
   competitorIntentConfig = null,
   onCompetitorIntentChange,
 }) => {
+  const { t } = useTranslation();
   const [patternModalVisible, setPatternModalVisible] = useState(false);
   const [keywordModalVisible, setKeywordModalVisible] = useState(false);
   const [customPatternModalVisible, setCustomPatternModalVisible] = useState(false);
@@ -119,7 +121,7 @@ const ContentFilterConfiguration: React.FC<ContentFilterConfigurationProps> = ({
 
   const handleAddPrebuiltPattern = () => {
     if (!selectedPatternName) {
-      toast.error("Please select a pattern");
+      toast.error(t("contentFilter.selectPatternFirst"));
       return;
     }
 
@@ -140,7 +142,7 @@ const ContentFilterConfiguration: React.FC<ContentFilterConfigurationProps> = ({
 
   const handleAddCustomPattern = () => {
     if (!customPatternName || !customPatternRegex) {
-      toast.error("Please provide pattern name and regex");
+      toast.error(t("contentFilter.providePatternAndRegex"));
       return;
     }
 
@@ -160,7 +162,7 @@ const ContentFilterConfiguration: React.FC<ContentFilterConfigurationProps> = ({
 
   const handleAddKeyword = () => {
     if (!newKeyword) {
-      toast.error("Please enter a keyword");
+      toast.error(t("contentFilter.enterKeyword"));
       return;
     }
 
@@ -188,14 +190,15 @@ const ContentFilterConfiguration: React.FC<ContentFilterConfigurationProps> = ({
           if (onFileUpload) {
             onFileUpload(content);
           }
-          toast.success(result.message || "File uploaded successfully");
+          toast.success(result.message || t("contentFilter.fileUploaded"));
         } else {
-          const errorMessage = result.error || (result.errors && result.errors.join(", ")) || "Invalid file";
-          toast.error(`Validation failed: ${errorMessage}`);
+          const errorMessage =
+            result.error || (result.errors && result.errors.join(", ")) || t("contentFilter.invalidFile");
+          toast.error(t("contentFilter.validationFailed", { error: errorMessage }));
         }
       }
     } catch (error) {
-      toast.error(`Failed to upload file: ${error}`);
+      toast.error(t("contentFilter.failedUploadFile", { error: String(error) }));
     } finally {
       setUploadValidating(false);
     }
@@ -219,10 +222,7 @@ const ContentFilterConfiguration: React.FC<ContentFilterConfigurationProps> = ({
     <div className="space-y-6">
       {!showStep && (
         <div>
-          <p className="text-muted-foreground">
-            Configure patterns, keywords, and content categories to detect and filter sensitive information in requests
-            and responses.
-          </p>
+          <p className="text-muted-foreground">{t("contentFilter.introDescription")}</p>
         </div>
       )}
 
@@ -230,9 +230,9 @@ const ContentFilterConfiguration: React.FC<ContentFilterConfigurationProps> = ({
         <Card>
           <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <CardTitle>Pattern Detection</CardTitle>
+              <CardTitle>{t("contentFilter.patternDetectionHeading")}</CardTitle>
               <p className="text-sm font-normal text-muted-foreground">
-                Detect sensitive information using regex patterns (SSN, credit cards, API keys, etc.)
+                {t("contentFilter.patternDetectionDescription")}
               </p>
             </div>
           </CardHeader>
@@ -240,11 +240,11 @@ const ContentFilterConfiguration: React.FC<ContentFilterConfigurationProps> = ({
             <div className="mb-4 flex flex-wrap gap-2">
               <Button onClick={() => setPatternModalVisible(true)}>
                 <Plus />
-                Add prebuilt pattern
+                {t("contentFilter.addPrebuiltPattern")}
               </Button>
               <Button variant="outline" onClick={() => setCustomPatternModalVisible(true)}>
                 <Plus />
-                Add custom regex
+                {t("contentFilter.addCustomRegex")}
               </Button>
             </div>
             <PatternTable
@@ -260,9 +260,9 @@ const ContentFilterConfiguration: React.FC<ContentFilterConfigurationProps> = ({
         <Card>
           <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <CardTitle>Blocked Keywords</CardTitle>
+              <CardTitle>{t("contentFilter.blockedKeywordsHeading")}</CardTitle>
               <p className="text-sm font-normal text-muted-foreground">
-                Block or mask specific sensitive terms and phrases
+                {t("contentFilter.blockedKeywordsDescription")}
               </p>
             </div>
           </CardHeader>
@@ -270,7 +270,7 @@ const ContentFilterConfiguration: React.FC<ContentFilterConfigurationProps> = ({
             <div className="mb-4 flex flex-wrap gap-2">
               <Button onClick={() => setKeywordModalVisible(true)}>
                 <Plus />
-                Add keyword
+                {t("contentFilter.addKeyword")}
               </Button>
               <input
                 ref={fileInputRef}
@@ -286,7 +286,7 @@ const ContentFilterConfiguration: React.FC<ContentFilterConfigurationProps> = ({
                 onClick={() => fileInputRef.current?.click()}
               >
                 {uploadValidating ? <UiLoadingSpinner className="size-4" /> : <Upload />}
-                Upload YAML file
+                {t("contentFilter.uploadYamlFile")}
               </Button>
             </div>
             <KeywordTable keywords={blockedWords} onActionChange={onBlockedWordUpdate} onRemove={onBlockedWordRemove} />

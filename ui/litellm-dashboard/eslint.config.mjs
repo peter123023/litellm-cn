@@ -81,6 +81,15 @@ const eslintConfig = [
     },
   },
   {
+    // One dictionary file per translation domain is the shape of this i18n layout, and a domain's
+    // keys only make sense together. Splitting one to satisfy a line budget scatters a namespace
+    // across files, so the budget is raised here instead of reshuffling ownership per language.
+    files: ["src/i18n/locales/**/*.ts"],
+    rules: {
+      "max-lines": ["error", { max: 1600, skipBlankLines: true, skipComments: true }],
+    },
+  },
+  {
     files: ["src/lib/http/**"],
     rules: {
       "no-restricted-syntax": "off",

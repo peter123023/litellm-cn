@@ -14,6 +14,7 @@ import ObservedReport from "./ObservedReport";
 import { useObservedReport, type ObservedViewData } from "./useObservedReport";
 import { syncMessage, type ObservedSnapshot } from "./observedData";
 import { createObservedDemo } from "./observedDemo";
+import { useTranslation } from "@/i18n";
 
 function SyncActions({
   data,
@@ -32,6 +33,7 @@ function SyncActions({
   onSync: (cancel: boolean) => void;
   onRetry: () => void;
 }) {
+  const { t } = useTranslation();
   const message = error || data?.status.error;
   const statusMessage = data ? syncMessage(data.status, data.report) : "";
   const canSync = data?.settings.ready && !readOnly;
@@ -45,7 +47,7 @@ function SyncActions({
         >
           <span>{message}</span>
           <Button size="sm" variant="outline" onClick={onRetry}>
-            Retry
+            {t("common.retry")}
           </Button>
         </div>
       )}
@@ -59,7 +61,7 @@ function SyncActions({
           {!readOnly && data.settings.ready && (
             <Button size="sm" variant="outline" disabled={busy} onClick={() => onSync(data.status.running)}>
               <RefreshCw className={data.status.running ? "animate-spin" : ""} />
-              {data.status.running ? "Cancel sync" : "Sync now"}
+              {data.status.running ? t("roi.sync.cancel") : t("roi.sync.now")}
             </Button>
           )}
         </div>
@@ -77,22 +79,23 @@ function EmptyReport({
   readOnly: boolean;
   onConnect: () => void;
 }) {
+  const { t } = useTranslation();
   function title() {
-    if (data.status.running) return "Reading repository activity";
-    return data.settings.ready ? "Ready for your first report" : "Connect your repositories";
+    if (data.status.running) return t("roi.empty.readingActivity");
+    return data.settings.ready ? t("roi.empty.readyForFirstReport") : t("roi.empty.connectRepositories");
   }
   return (
     <div className="flex flex-col items-center gap-4 px-6 py-12 text-center">
       <h2 className="text-lg font-medium">{title()}</h2>
       <p className="max-w-md text-sm text-muted-foreground">
         {data.status.running
-          ? "Your report will appear here when the first sync finishes"
-          : "Compare merged changes, issue trends, and recorded AI spend across your team"}
+          ? t("roi.empty.reportAppearsAfterSync")
+          : t("roi.empty.tagline")}
       </p>
       {!readOnly && !data.status.running && (
         <Button onClick={onConnect}>
           <Link2 />
-          {data.settings.ready ? "Connections" : "Connect GitHub or GitLab"}
+          {data.settings.ready ? t("roi.empty.connections") : t("roi.empty.connectGitHubOrGitLab")}
         </Button>
       )}
     </div>
@@ -106,6 +109,7 @@ export default function ObservedROIView({
   accessToken: string;
   isViewOnly?: boolean;
 }) {
+  const { t } = useTranslation();
   const { data, error, refresh } = useObservedReport(accessToken);
   const [returned] = useState(() => new URLSearchParams(typeof window === "undefined" ? "" : window.location.search));
   const [sample, setSample] = useState<ObservedSnapshot | null>(() =>
@@ -117,8 +121,8 @@ export default function ObservedROIView({
       returned.has("connection_failed"),
   );
   const [connectionError, setConnectionError] = useState(() => {
-    if (returned.has("connection_failed")) return "Connection failed or expired. Try again or use a token";
-    if (returned.has("connection_cancelled")) return "Connection cancelled. Choose an app or token to try again";
+    if (returned.has("connection_failed")) return t("roi.connection.failedOrExpired");
+    if (returned.has("connection_cancelled")) return t("roi.connection.cancelled");
     return "";
   });
   const [afterAuthorization, setAfterAuthorization] = useState(Boolean(returned.get("connected")));
@@ -179,7 +183,7 @@ export default function ObservedROIView({
   }
   const previewButton = (
     <Button size="sm" variant="ghost" onClick={() => previewSample(true)}>
-      Preview sample report
+      {t("roi.previewSampleReport")}
     </Button>
   );
   const actions = (
@@ -212,10 +216,10 @@ export default function ObservedROIView({
     <Page>
       <PageHeader>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <PageHeaderTitle>ROI Calculator</PageHeaderTitle>
+          <PageHeaderTitle>{t("roi.title")}</PageHeaderTitle>
           {previewButton}
         </div>
-        <PageHeaderDescription>Are we shipping more, with fewer bugs, at a better cost?</PageHeaderDescription>
+        <PageHeaderDescription>{t("roi.description")}</PageHeaderDescription>
       </PageHeader>
       <SyncActions
         data={data}

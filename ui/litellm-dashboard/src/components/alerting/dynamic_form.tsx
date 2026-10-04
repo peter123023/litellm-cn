@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { TableCell, TableRow } from "@/components/ui/table";
+import { useTranslation } from "@/i18n";
 
 interface AlertingSetting {
   field_name: string;
@@ -33,6 +34,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
   handleSubmit,
   premiumUser,
 }) => {
+  const { t } = useTranslation();
   const form = useForm<AlertingFormValues>({ defaultValues: {} });
 
   const onFinish = (formData: AlertingFormValues) => {
@@ -97,7 +99,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
             <TableCell>
               <Button className="flex items-center justify-center">
                 <a href="https://forms.gle/W3U4PZpJGFHWtHyA9" target="_blank">
-                  ✨ Enterprise Feature
+                  {t("alerting.enterpriseFeature")}
                 </a>
               </Button>
             </TableCell>
@@ -108,12 +110,12 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
             {value.stored_in_db == true ? (
               <Badge variant="secondary">
                 <CircleCheck />
-                In DB
+                {t("alerting.inDb")}
               </Badge>
             ) : value.stored_in_db == false ? (
-              <Badge variant="outline">In Config</Badge>
+              <Badge variant="outline">{t("alerting.inConfig")}</Badge>
             ) : (
-              <Badge variant="outline">Not Set</Badge>
+              <Badge variant="outline">{t("alerting.notSet")}</Badge>
             )}
           </TableCell>
           <TableCell>
@@ -121,7 +123,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
               type="button"
               variant="ghost"
               size="icon-sm"
-              aria-label={`Reset ${value.field_name}`}
+              aria-label={t("alerting.resetField", { name: value.field_name })}
               onClick={() => handleResetField(value.field_name, index)}
               className="text-destructive"
             >
@@ -131,7 +133,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
         </TableRow>
       ))}
       <div>
-        <Button type="submit">Update Settings</Button>
+        <Button type="submit">{t("alerting.updateSettings")}</Button>
       </div>
     </form>
   );

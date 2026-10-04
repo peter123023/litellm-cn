@@ -1,13 +1,21 @@
 import { z } from "zod";
+import { DEFAULT_LANGUAGE, translate } from "@/i18n";
+
+// Zod builds its messages when validation runs, outside React, so they resolve against English
+// rather than the active UI language.
+const message = (key: string) => translate(DEFAULT_LANGUAGE, key);
 
 export const workerAddressSchema = z.string().superRefine((address, ctx) => {
   try {
     const parsed = new URL(address);
     if (!["http:", "https:"].includes(parsed.protocol) || parsed.username || parsed.password) {
-      ctx.addIssue({ code: "custom", message: "Enter an HTTP or HTTPS proxy URL without credentials" });
+      ctx.addIssue({ code: "custom", message: message("lens.worker.validation.httpUrl") });
     }
   } catch (error) {
-    ctx.addIssue({ code: "custom", message: error instanceof Error ? error.message : "Invalid URL" });
+    ctx.addIssue({
+      code: "custom",
+      message: error instanceof Error ? error.message : message("lens.worker.validation.invalidUrl"),
+    });
   }
 });
 
@@ -27,7 +35,7 @@ export const analysisAccessSchema = z
   .object(analysisAccessFields)
   .superRefine((access, ctx) => {
     if (!access.model || !Number.isFinite(Number(access.budget)) || Number(access.budget) <= 0)
-      ctx.addIssue({ code: "custom", message: "Choose a model and a monthly limit greater than zero" });
+      ctx.addIssue({ code: "custom", message: message("lens.worker.validation.access") });
   })
   .transform((access) => ({ model: access.model ?? "", budget: Number(access.budget) }));
 
@@ -38,7 +46,7 @@ export const workerFormSchema = z.object(workerFormFields).superRefine((values, 
     if (!values.analysisKey) {
       ctx.addIssue({
         code: "custom",
-        message: "Choose an existing virtual key",
+        message: message("lens.worker.validation.existingKey"),
         path: ["analysisKey"],
       });
     }
@@ -55,7 +63,7 @@ export const workerFormSchema = z.object(workerFormFields).superRefine((values, 
   if (!values.address.trim()) {
     ctx.addIssue({
       code: "custom",
-      message: "Enter a proxy URL",
+      message: message("lens.worker.validation.proxyUrl"),
       path: ["address"],
     });
   }

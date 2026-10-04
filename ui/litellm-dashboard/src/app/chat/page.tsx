@@ -18,15 +18,15 @@ import { makeOpenAIResponsesRequest } from "@/components/llm_calls/responses_api
 import type { TokenUsage } from "@/components/chat_ui/ResponseMetrics";
 import type { MCPEvent } from "@/components/chat/types";
 import { getProviderLogoAndName } from "@/components/provider_info_helpers";
+import { useTranslation } from "@/i18n";
 
-const SUGGESTIONS = ["Write", "Learn", "Code", "Brainstorm"];
 const LOCALSTORAGE_MODEL_KEY = "litellm_chat_selected_model";
 
-function getGreeting(): string {
+function getGreeting(t: (key: string) => string): string {
   const h = new Date().getHours();
-  if (h >= 5 && h < 12) return "Good morning";
-  if (h >= 12 && h < 17) return "Good afternoon";
-  return "Good evening";
+  if (h >= 5 && h < 12) return t("chatPortal.greetingMorning");
+  if (h >= 12 && h < 17) return t("chatPortal.greetingAfternoon");
+  return t("chatPortal.greetingEvening");
 }
 
 // Extract provider from model name for logo lookup.
@@ -73,6 +73,7 @@ export default function ChatConversationPage() {
   const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
   const [modelSearchText, setModelSearchText] = useState("");
 
+  const { t } = useTranslation();
   const [responsesSessionId, setResponsesSessionId] = useState<string | null>(null);
   const [prevConversationIdForSessionReset, setPrevConversationIdForSessionReset] = useState(activeConversationId);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -111,9 +112,9 @@ export default function ChatConversationPage() {
           localStorage.setItem(LOCALSTORAGE_MODEL_KEY, names[0]);
         }
       })
-      .catch(() => toast.error("Could not load models"))
+      .catch(() => toast.error(t("chatPortal.couldNotLoadModels")))
       .finally(() => setIsLoadingModels(false));
-  }, [accessToken]);
+  }, [accessToken, t]);
 
   // Reset the responses session when switching between conversations so that
   // previous_response_id from conversation A is never sent for conversation B.
@@ -230,11 +231,11 @@ export default function ChatConversationPage() {
       } catch (err: unknown) {
         if (err instanceof Error && err.name === "AbortError") {
           updateLastAssistantMessage(convId!, {
-            content: accumulatedContent + " [stopped]",
+            content: `${accumulatedContent} ${t("chatPortal.stopped")}`,
           });
         } else {
           updateLastAssistantMessage(convId!, {
-            content: "[Something went wrong. The partial response has been saved.]",
+            content: t("chatPortal.partialResponseError"),
           });
         }
       } finally {
@@ -258,6 +259,7 @@ export default function ChatConversationPage() {
       updateLastAssistantMessage,
       isStreaming,
       responsesSessionId,
+      t,
     ],
   );
 
@@ -343,7 +345,16 @@ export default function ChatConversationPage() {
 
   const showBlankState = !activeConversation || activeConversation.messages.length === 0;
   const displayName = userEmail?.split("@")[0] ?? userId ?? "";
-  const greeting = displayName ? `${getGreeting()}, ${displayName}` : getGreeting();
+  const greeting = displayName
+    ? t("chatPortal.greeting", { greeting: getGreeting(t), name: displayName })
+    : t("chatPortal.greetingNamed", { greeting: getGreeting(t) });
+
+  const suggestions = [
+    t("chatPortal.suggestionWrite"),
+    t("chatPortal.suggestionLearn"),
+    t("chatPortal.suggestionCode"),
+    t("chatPortal.suggestionBrainstorm"),
+  ];
 
   // Filtered models: selected one floats to the top, then alphabetical
   const filteredModels = (
@@ -361,7 +372,7 @@ export default function ChatConversationPage() {
           autoFocus
           value={modelSearchText}
           onChange={(e) => setModelSearchText(e.target.value)}
-          placeholder="Search models..."
+          placeholder={t("chatPortal.searchModels")}
           className="h-8 text-[13px]"
         />
       </div>
@@ -432,7 +443,7 @@ export default function ChatConversationPage() {
                 <span className="overflow-hidden text-ellipsis whitespace-nowrap">{selectedModel}</span>
               </>
             ) : (
-              <span className="text-muted-foreground">Select model</span>
+              <span className="text-muted-foreground">{t("chatPortal.selectModel")}</span>
             )}
             <ChevronDown className="h-3 w-3 text-muted-foreground shrink-0" />
           </Button>
@@ -451,7 +462,7 @@ export default function ChatConversationPage() {
         value={inputText}
         onChange={(e) => setInputText(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder={inConversation ? "Send a message..." : "How can I help you today?"}
+        placeholder={inConversation ? t("chatPortal.sendMessage") : t("chatPortal.helpPrompt")}
         className="w-full border-none outline-none resize-none text-[15px] text-foreground bg-transparent font-[inherit] box-border"
         style={{
           minHeight: inConversation ? 52 : 80,
@@ -488,7 +499,9 @@ export default function ChatConversationPage() {
         <div className="flex items-center gap-2">
           {inConversation && selectedMCPServers.length > 0 && (
             <span className="text-xs text-muted-foreground max-w-[160px] overflow-hidden text-ellipsis whitespace-nowrap">
-              {selectedMCPServers.length} tool{selectedMCPServers.length > 1 ? "s" : ""} connected
+              {t(selectedMCPServers.length > 1 ? "chatPortal.toolsConnectedMany" : "chatPortal.toolConnectedOne", {
+                count: selectedMCPServers.length,
+              })}
             </span>
           )}
           {isStreaming ? (
@@ -501,7 +514,7 @@ export default function ChatConversationPage() {
               onClick={() => handleSend(inputText)}
               disabled={!inputText.trim() || isLoadingModels || !selectedModel}
             >
-              Send
+              {t("chatPortal.send")}
             </Button>
           )}
         </div>
@@ -513,7 +526,7 @@ export default function ChatConversationPage() {
     <>
       {storageUnavailable && !storageBannerDismissed && (
         <div className="bg-warning/10 border-b border-warning/20 px-5 py-1.5 text-[13px] text-warning flex justify-between items-center">
-          <span>Chat history won&apos;t be saved in this browser session</span>
+          <span>{t("chatPortal.historyNotSaved")}</span>
           <Button
             variant="ghost"
             size="icon-xs"
@@ -533,20 +546,20 @@ export default function ChatConversationPage() {
             </h1>
 
             <p className="-mt-4 mb-7 text-sm text-muted-foreground text-center max-w-[520px] leading-relaxed">
-              Chat with 100+ LLMs + MCP tools; authenticate once, use them here.{" "}
+              {t("chatPortal.blurb")}{" "}
               <Button
                 variant="link"
                 onClick={() => router.push(getChatRoutes().integrations)}
                 className="h-auto p-0 text-sm font-medium"
               >
-                Open Integrations -&gt;
+                {t("chatPortal.openIntegrations")}
               </Button>
             </p>
 
             <div className="w-full max-w-[680px]">{inputBar(false)}</div>
 
             <div className="flex gap-2 mt-3.5 flex-wrap justify-center">
-              {SUGGESTIONS.map((s) => (
+              {suggestions.map((s) => (
                 <Button
                   key={s}
                   variant="outline"
@@ -586,7 +599,7 @@ export default function ChatConversationPage() {
                   }
                 }}
                 className="absolute bottom-[100px] left-1/2 -translate-x-1/2 z-chrome rounded-full border bg-background/75 text-muted-foreground shadow-sm backdrop-blur-md hover:bg-background/95"
-                aria-label="Scroll to bottom"
+                aria-label={t("chatPortal.scrollToBottom")}
               >
                 <ChevronDown className="h-3 w-3" />
               </Button>

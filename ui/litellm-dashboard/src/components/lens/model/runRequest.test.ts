@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { runRequest } from "./runRequest";
+import { translate } from "@/i18n";
+import { runRequest } from "./RunNowDialog";
 
 const base = { agent: "support", saved: "support", start: "", end: "" };
 
@@ -30,7 +31,9 @@ describe("runRequest", () => {
   it("rejects a missing or backwards custom range with a message instead of a request", () => {
     const missing = { ...base, preset: -1 as const, start: "", end: "2026-10-02T12:00" };
     const backwards = { ...base, preset: -1 as const, start: "2026-10-02T12:00", end: "2026-10-02T10:00" };
-    expect(runRequest(missing)).toBe("Choose a start and end time");
-    expect(runRequest(backwards)).toBe("Start time must be before end time");
+    expect(runRequest(missing)).toBe("lens.investigations.runNowErrorMissingRange");
+    expect(runRequest(backwards)).toBe("lens.investigations.runNowErrorRangeOrder");
+    expect(translate("en", "lens.investigations.runNowErrorMissingRange")).toBe("Choose a start and end time");
+    expect(translate("en", "lens.investigations.runNowErrorRangeOrder")).toBe("Start time must be before end time");
   });
 });

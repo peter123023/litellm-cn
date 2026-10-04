@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { getCurlCommand, runSemanticFilterTest } from "./semanticFilterTestUtils";
 import { testMCPSemanticFilter } from "@/components/networking";
+import { translate } from "@/i18n";
 import { toast } from "@/lib/toast";
 
 vi.mock("@/components/networking", () => ({
@@ -40,6 +41,7 @@ describe("runSemanticFilterTest", () => {
     setIsTesting: mockSetIsTesting,
     setTestResult: mockSetTestResult,
     setTestError: mockSetTestError,
+    t: translate.bind(null, "en"),
   };
 
   beforeEach(() => {

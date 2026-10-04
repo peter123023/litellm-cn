@@ -5,6 +5,7 @@ import { Waypoints } from "lucide-react";
 
 import { useAutoRouterModelGroups } from "@/app/(dashboard)/hooks/models/useModels";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "@/i18n";
 import { cn } from "@/lib/cva.config";
 
 const NO_AUTO_ROUTERS: ReadonlySet<string> = new Set<string>();
@@ -37,6 +38,7 @@ export interface AutoRouterTagProps {
 }
 
 export function AutoRouterTag({ modelGroup, className }: AutoRouterTagProps) {
+  const { t } = useTranslation();
   const isAutoRouted = useIsAutoRoutedModelGroup(modelGroup);
 
   if (!isAutoRouted) return null;
@@ -44,7 +46,7 @@ export function AutoRouterTag({ modelGroup, className }: AutoRouterTagProps) {
   return (
     <Badge
       variant="secondary"
-      title={`Routed by auto-router "${modelGroup}"`}
+      title={t("tableCells.autoRouterTitle", { modelGroup: modelGroup ?? "" })}
       className={cn("gap-1.5 px-2.5 py-1 text-sm font-normal text-foreground", className)}
     >
       <Waypoints aria-hidden />

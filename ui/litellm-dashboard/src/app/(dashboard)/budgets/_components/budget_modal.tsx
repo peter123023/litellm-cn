@@ -12,9 +12,9 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useZodForm } from "@/lib/forms/useZodForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useTranslation, type Translate } from "@/i18n";
 
 const budgetShape = {
-  budget_id: z.string().min(1, "Please input a human-friendly name for the budget"),
   tpm_limit: z.number().nullish(),
   rpm_limit: z.number().nullish(),
   tpd_limit: z.number().nullish(),
@@ -22,14 +22,15 @@ const budgetShape = {
   budget_duration: z.string().nullish(),
 };
 
-const budgetSchema = z.object(budgetShape);
+const budgetSchema = (t: Translate) =>
+  z.object({ ...budgetShape, budget_id: z.string().min(1, t("budgets.field.nameRequired")) });
 
-type BudgetFormValues = z.output<typeof budgetSchema>;
+type BudgetFormValues = z.output<ReturnType<typeof budgetSchema>>;
 
-const BUDGET_DURATION_OPTIONS = [
-  { value: "24h", label: "daily" },
-  { value: "7d", label: "weekly" },
-  { value: "30d", label: "monthly" },
+const durationOptions = (t: Translate) => [
+  { value: "24h", label: t("budgets.duration.daily") },
+  { value: "7d", label: t("budgets.duration.weekly") },
+  { value: "30d", label: t("budgets.duration.monthly") },
 ];
 
 interface BudgetModalProps {
@@ -37,9 +38,11 @@ interface BudgetModalProps {
   setIsModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }
 const BudgetModal: React.FC<BudgetModalProps> = ({ isModalVisible, setIsModalVisible }) => {
+  const { t } = useTranslation();
   const [optionalSettingsOpen, setOptionalSettingsOpen] = React.useState(false);
-  const form = useZodForm(budgetSchema, { defaultValues: { budget_id: "" } });
+  const form = useZodForm(budgetSchema(t), { defaultValues: { budget_id: "" } });
   const createBudget = useCreateBudget();
+  const durationItems = React.useMemo(() => durationOptions(t), [t]);
 
   const handleCancel = () => {
     setIsModalVisible(false);
@@ -48,18 +51,18 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isModalVisible, setIsModalVis
 
   const handleCreate = async (formValues: BudgetFormValues) => {
     try {
-      toast.info("Making API Call");
+      toast.info(t("budgets.toast.makingApiCall"));
       await createBudget.mutateAsync(
         applyBudgetPrecision(
           optionalSettingsOpen ? formValues : { ...formValues, max_budget: undefined, budget_duration: undefined },
         ),
       );
-      toast.success("Budget Created");
+      toast.success(t("budgets.toast.created"));
       form.reset();
       setIsModalVisible(false);
     } catch (error) {
       console.error("Error creating the budget:", error);
-      toast.fromError(`Error creating the budget: ${error}`);
+      toast.fromError(t("budgets.toast.createFailed", { error: String(error) }));
     }
   };
 
@@ -67,23 +70,23 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isModalVisible, setIsModalVis
     <Dialog open={isModalVisible} onOpenChange={(open) => !open && handleCancel()}>
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[800px]">
         <DialogHeader>
-          <DialogTitle>Create Budget</DialogTitle>
+          <DialogTitle>{t("budgets.createBudget")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={form.handleSubmit(handleCreate)} noValidate>
           <FieldGroup>
             <FormField
               control={form.control}
               name="budget_id"
-              label="Budget ID"
-              description="A human-friendly name for the budget"
+              label={t("budgets.col.budgetId")}
+              description={t("budgets.field.nameDescription")}
             >
               {({ ref, ...field }) => <Input {...field} ref={ref} value={field.value ?? ""} placeholder="" />}
             </FormField>
             <FormField
               control={form.control}
               name="tpm_limit"
-              label="Max Tokens per minute"
-              description="Leave blank for no LiteLLM limit. Provider rate limits still apply."
+              label={t("budgets.field.tpmLabel")}
+              description={t("budgets.field.rateLimitHint")}
             >
               {({ ref, value, onChange, ...field }) => (
                 <Input
@@ -99,8 +102,8 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isModalVisible, setIsModalVis
             <FormField
               control={form.control}
               name="rpm_limit"
-              label="Max Requests per minute"
-              description="Leave blank for no LiteLLM limit. Provider rate limits still apply."
+              label={t("budgets.field.rpmLabel")}
+              description={t("budgets.field.rateLimitHint")}
             >
               {({ ref, value, onChange, ...field }) => (
                 <Input
@@ -116,8 +119,8 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isModalVisible, setIsModalVis
             <FormField
               control={form.control}
               name="tpd_limit"
-              label="Max Tokens per day (batch)"
-              description="Daily token budget for batch submissions. When set, batches are charged against this instead of TPM/RPM."
+              label={t("budgets.field.tpdLabel")}
+              description={t("budgets.field.tpdHint")}
             >
               {({ ref, value, onChange, ...field }) => (
                 <Input
@@ -133,11 +136,11 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isModalVisible, setIsModalVis
 
             <Collapsible open={optionalSettingsOpen} onOpenChange={setOptionalSettingsOpen} className="mt-20 mb-8">
               <CollapsibleTrigger className="group flex w-full items-center justify-between py-2 text-left">
-                <b>Optional Settings</b>
+                <b>{t("budgets.field.optionalSettings")}</b>
                 <ChevronRight className="size-4 text-muted-foreground transition-transform group-data-panel-open:rotate-90" />
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <FormField control={form.control} name="max_budget" label="Max Budget (USD)">
+                <FormField control={form.control} name="max_budget" label={t("budgets.field.maxBudgetUsd")}>
                   {({ ref, value, onChange, ...field }) => (
                     <Input
                       {...field}
@@ -149,14 +152,19 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isModalVisible, setIsModalVis
                     />
                   )}
                 </FormField>
-                <FormField className="mt-8" control={form.control} name="budget_duration" label="Reset Budget">
+                <FormField
+                  className="mt-8"
+                  control={form.control}
+                  name="budget_duration"
+                  label={t("budgets.field.resetBudget")}
+                >
                   {({ id, value, onChange, "aria-invalid": ariaInvalid, "aria-describedby": ariaDescribedBy }) => (
-                    <Select items={BUDGET_DURATION_OPTIONS} value={value ?? null} onValueChange={onChange}>
+                    <Select items={durationItems} value={value ?? null} onValueChange={onChange}>
                       <SelectTrigger id={id} aria-invalid={ariaInvalid} aria-describedby={ariaDescribedBy}>
                         <SelectValue placeholder="n/a" />
                       </SelectTrigger>
                       <SelectContent>
-                        {BUDGET_DURATION_OPTIONS.map((option) => (
+                        {durationItems.map((option) => (
                           <SelectItem key={option.value} value={option.value}>
                             {option.label}
                           </SelectItem>
@@ -170,7 +178,7 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isModalVisible, setIsModalVis
           </FieldGroup>
 
           <div style={{ textAlign: "right", marginTop: "10px" }}>
-            <Button type="submit">Create Budget</Button>
+            <Button type="submit">{t("budgets.createBudget")}</Button>
           </div>
         </form>
       </DialogContent>

@@ -4,6 +4,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { cn } from "@/lib/cva.config";
 import { Logo } from "@/components/molecules/logo/Logo";
+import { useTranslation } from "@/i18n";
 import githubLogo from "../../../../../public/assets/logos/github.svg";
 import slackLogo from "../../../../../public/assets/logos/slack.svg";
 import notionLogo from "../../../../../public/assets/logos/notion.svg";
@@ -56,6 +57,7 @@ interface MCPLogoSelectorProps {
 }
 
 const MCPLogoSelector: React.FC<MCPLogoSelectorProps> = ({ value, onChange }) => {
+  const { t } = useTranslation();
   const selectedWellKnown = WELL_KNOWN_LOGOS.find((l) => l.url === value);
 
   const handleSelect = (url: string) => {
@@ -66,14 +68,17 @@ const MCPLogoSelector: React.FC<MCPLogoSelectorProps> = ({ value, onChange }) =>
     <TooltipProvider>
       <div>
         <div className="mb-2 flex items-center gap-2">
-          <span className="text-sm font-medium">Logo</span>
+          <span className="text-sm font-medium">{t("mcpServers.logo.label")}</span>
           <Tooltip>
             <TooltipTrigger
-              render={<Info className="size-4 cursor-help text-muted-foreground" aria-label="About the logo" />}
+              render={
+                <Info
+                  className="size-4 cursor-help text-muted-foreground"
+                  aria-label={t("mcpServers.logo.aboutLabel")}
+                />
+              }
             />
-            <TooltipContent>
-              Select a well-known logo or paste a URL to any image. The logo is shown on the admin and chat pages.
-            </TooltipContent>
+            <TooltipContent>{t("mcpServers.logo.tooltip")}</TooltipContent>
           </Tooltip>
         </div>
 
@@ -82,7 +87,7 @@ const MCPLogoSelector: React.FC<MCPLogoSelectorProps> = ({ value, onChange }) =>
           <div className="mb-3 flex items-center gap-3 rounded-lg border border-border bg-muted p-3">
             <Logo
               src={selectedWellKnown?.src ?? value}
-              label="Selected"
+              label={t("mcpServers.logo.selectedAlt")}
               className="h-10 w-10 rounded-sm object-contain"
             />
             <div className="min-w-0 flex-1">
@@ -130,7 +135,7 @@ const MCPLogoSelector: React.FC<MCPLogoSelectorProps> = ({ value, onChange }) =>
             <LinkIcon className="size-4 text-muted-foreground" />
           </InputGroupAddon>
           <InputGroupInput
-            placeholder="Or paste a custom logo URL..."
+            placeholder={t("mcpServers.logo.customUrlPlaceholder")}
             value={value && !selectedWellKnown ? value : ""}
             onChange={(e) => {
               const v = e.target.value.trim();

@@ -7,6 +7,7 @@ import { alertingSettingsCall, updateConfigFieldSetting } from "../networking";
 import DynamicForm from "./dynamic_form";
 import { extractProxyErrorMessage } from "@/lib/http/client";
 import { toast } from "@/lib/toast";
+import { useTranslation } from "@/i18n";
 interface alertingSettingsItem {
   field_name: string;
   field_type: string;
@@ -23,6 +24,7 @@ interface AlertingSettingsProps {
 }
 
 const AlertingSettings: React.FC<AlertingSettingsProps> = ({ accessToken, premiumUser }) => {
+  const { t } = useTranslation();
   const [alertingSettings, setAlertingSettings] = useState<alertingSettingsItem[]>([]);
 
   useEffect(() => {
@@ -74,7 +76,7 @@ const AlertingSettings: React.FC<AlertingSettingsProps> = ({ accessToken, premiu
         }
       }
       // update value in state
-      toast.success("Wait 10s for proxy to update.");
+      toast.success(t("alerting.waitProxyUpdate"));
     } catch (error) {
       toast.error(extractProxyErrorMessage(error));
     }

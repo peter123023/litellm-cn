@@ -9,6 +9,7 @@ import {
   ComboboxItem,
   ComboboxList,
 } from "@/components/ui/combobox";
+import { useTranslation } from "@/i18n";
 
 export interface SearchSelectOption {
   label: string;
@@ -42,14 +43,15 @@ export function SearchSelect({
   options,
   value,
   onValueChange,
-  placeholder = "Select…",
-  emptyText = "No results",
+  placeholder,
+  emptyText,
   disabled = false,
   className,
   inputId,
   allowClear = true,
   "aria-label": ariaLabel,
 }: SearchSelectProps) {
+  const { t } = useTranslation();
   const selected =
     value == null || value === "" ? null : options.find((option) => option.value === value) ?? { label: value, value };
   const items =
@@ -68,12 +70,12 @@ export function SearchSelect({
       <ComboboxInput
         id={inputId}
         aria-label={ariaLabel}
-        placeholder={placeholder}
+        placeholder={placeholder ?? t("select.choose")}
         showClear={allowClear && value != null && value !== ""}
         className={`h-8 w-full text-sm ${className ?? ""}`}
       />
       <ComboboxContent side="bottom" collisionAvoidance={{ side: "shift", align: "shift", fallbackAxisSide: "none" }}>
-        <ComboboxEmpty>{emptyText}</ComboboxEmpty>
+        <ComboboxEmpty>{emptyText ?? t("select.noResults")}</ComboboxEmpty>
         <ComboboxList>
           {(item: SearchSelectOption) => (
             <ComboboxItem key={item.value} value={item}>

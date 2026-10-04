@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { Translate } from "@/i18n";
 
 export type ResultKind = "key" | "team" | "user" | "budget" | "spend" | "log";
 
@@ -10,7 +11,13 @@ export function generatedKey(value: unknown): string | undefined {
   return result.success ? result.data.key : undefined;
 }
 
-export function projectToolResult(kind: ResultKind, value: unknown, secrets: readonly string[]): unknown {
+export function projectToolResult(
+  kind: ResultKind,
+  value: unknown,
+  secrets: readonly string[],
+  t?: Translate,
+): unknown {
+  const message = (key: string, fallback: string): string => t?.(key) ?? fallback;
   const text = z
     .string()
     .transform((value) =>
@@ -152,10 +159,21 @@ export function projectToolResult(kind: ResultKind, value: unknown, secrets: rea
     log: z.object({ ...pagination, data: limitedList(log) }),
   };
   const parsed = schemas[kind].safeParse(value);
-  if (!parsed.success)
-    return { notice: "The gateway returned an unsupported result shape. Open the resource to inspect it." };
+  if (!parsed.success) {
+    return {
+      notice: message(
+        "liteAdmin.unsupportedResult",
+        "The gateway returned an unsupported result shape. Open the resource to inspect it.",
+      ),
+    };
+  }
   if (JSON.stringify(parsed.data).length > 24_000) {
-    return { notice: "The result is too large to summarize safely. Use a smaller page or narrower filters." };
+    return {
+      notice: message(
+        "liteAdmin.resultTooLarge",
+        "The result is too large to summarize safely. Use a smaller page or narrower filters.",
+      ),
+    };
   }
   return parsed.data;
 }

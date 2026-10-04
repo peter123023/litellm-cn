@@ -8,6 +8,7 @@ import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useTranslation } from "@/i18n";
 
 const LANGUAGE_ITEMS = [
   { value: "curl", label: "cURL" },
@@ -39,6 +40,7 @@ const PromptCodeSnippets: React.FC<PromptCodeSnippetsProps> = ({
   proxySettings,
 }) => {
   const syntaxTheme = useSyntaxTheme(coy);
+  const { t } = useTranslation();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState<"curl" | "python" | "javascript">("curl");
   const [selectedTab, setSelectedTab] = useState("basic");
@@ -252,18 +254,18 @@ main();`;
     <>
       <Button variant="outline" onClick={showModal}>
         <CodeIcon />
-        Get Code
+        {t("prompts.code.getCode")}
       </Button>
 
       <Dialog open={isModalVisible} onOpenChange={(open) => !open && handleCancel()}>
         <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Generated Code</DialogTitle>
+            <DialogTitle>{t("prompts.code.generated")}</DialogTitle>
           </DialogHeader>
           <div className="flex justify-between items-center mb-4">
             <div>
               <label htmlFor="prompt-code-language" className="font-medium block mb-1 text-foreground">
-                Language
+                {t("prompts.code.language")}
               </label>
               <Select
                 items={LANGUAGE_ITEMS}
@@ -286,19 +288,19 @@ main();`;
               variant="outline"
               onClick={() => {
                 navigator.clipboard.writeText(generatedCode);
-                toast.success("Copied to clipboard!");
+                toast.success(t("prompts.code.copied"));
               }}
             >
               <CopyIcon />
-              Copy to Clipboard
+              {t("prompts.code.copyToClipboard")}
             </Button>
           </div>
 
           <Tabs value={selectedTab} onValueChange={(value) => setSelectedTab(String(value))}>
-            <TabsList aria-label="Generated code type">
-              <TabsTrigger value="basic">Basic</TabsTrigger>
-              <TabsTrigger value="messages">With Messages</TabsTrigger>
-              <TabsTrigger value="version">With Version</TabsTrigger>
+            <TabsList aria-label={t("prompts.code.typeAria")}>
+              <TabsTrigger value="basic">{t("prompts.code.tabBasic")}</TabsTrigger>
+              <TabsTrigger value="messages">{t("prompts.code.tabMessages")}</TabsTrigger>
+              <TabsTrigger value="version">{t("prompts.code.tabVersion")}</TabsTrigger>
             </TabsList>
           </Tabs>
 

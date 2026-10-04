@@ -7,6 +7,7 @@ import { CircleAlert, Info, TriangleAlert, X } from "lucide-react";
 import { Alert, AlertAction, AlertDescription } from "@/components/shared/Alert";
 import { Button } from "@/components/ui/button";
 import { useUserBanner } from "@/app/(dashboard)/hooks/userBanner/useUserBanner";
+import { useTranslation } from "@/i18n";
 import { UserBanner as UserBannerData, UserBannerSeverity } from "@/components/networking";
 
 const DISMISS_STORAGE_KEY = "litellm:userBannerDismissed";
@@ -36,6 +37,7 @@ interface UserBannerProps {
 }
 
 export const UserBanner: React.FC<UserBannerProps> = ({ accessToken }) => {
+  const { t } = useTranslation();
   const { data: banner } = useUserBanner(accessToken);
   const [dismissedSignature, setDismissedSignature] = useState<string | null>(() =>
     typeof window === "undefined" ? null : localStorage.getItem(DISMISS_STORAGE_KEY),
@@ -62,7 +64,7 @@ export const UserBanner: React.FC<UserBannerProps> = ({ accessToken }) => {
         <UserBannerMarkdown message={banner.message} />
       </AlertDescription>
       <AlertAction>
-        <Button variant="ghost" size="icon-sm" aria-label="Dismiss banner" onClick={handleDismiss}>
+        <Button variant="ghost" size="icon-sm" aria-label={t("userBanner.dismiss")} onClick={handleDismiss}>
           <X />
         </Button>
       </AlertAction>

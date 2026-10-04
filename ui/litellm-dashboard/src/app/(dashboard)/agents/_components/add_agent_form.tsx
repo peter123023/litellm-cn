@@ -55,10 +55,17 @@ import MCPToolPermissions from "@/components/mcp_server_management/MCPToolPermis
 import AccessGroupSelector from "@/components/common_components/AccessGroupSelector";
 import GuardrailSelector from "@/components/guardrails/GuardrailSelector";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useTranslation } from "@/i18n";
 
 const CUSTOM_AGENT_TYPE = "custom";
 
-const STEP_TITLES = ["Configure", "Entitlements", "Governance", "Agent Management", "Ready"] as const;
+const STEP_TITLE_KEYS = [
+  "agents.steps.configure",
+  "agents.steps.entitlements",
+  "agents.steps.governance",
+  "agents.steps.agentManagement",
+  "agents.steps.ready",
+] as const;
 
 const stepMarkerClass = (index: number, current: number): string => {
   if (index < current) return "border-primary text-primary";
@@ -73,11 +80,12 @@ const stepTitleClass = (index: number, current: number): string => {
 };
 
 const AgentTypeLabel: React.FC<{ agentType: string; info: AgentCreateInfo | undefined }> = ({ agentType, info }) => {
+  const { t } = useTranslation();
   if (agentType === CUSTOM_AGENT_TYPE) {
     return (
       <span className="flex items-center gap-2">
         <LayoutGrid className="size-4 text-warning" />
-        <span>Custom / Other</span>
+        <span>{t("agents.add.customType")}</span>
       </span>
     );
   }
@@ -90,26 +98,29 @@ const AgentTypeLabel: React.FC<{ agentType: string; info: AgentCreateInfo | unde
   );
 };
 
-const StepProgress: React.FC<{ current: number }> = ({ current }) => (
-  <ol aria-label="Agent creation steps" className="mb-8 flex items-center">
-    {STEP_TITLES.map((title, index) => (
-      <li
-        key={title}
-        aria-current={index === current ? "step" : undefined}
-        className="flex flex-1 items-center gap-2 last:flex-none"
-      >
-        <span
-          aria-hidden="true"
-          className={`flex size-6 shrink-0 items-center justify-center rounded-full border text-xs ${stepMarkerClass(index, current)}`}
+const StepProgress: React.FC<{ current: number }> = ({ current }) => {
+  const { t } = useTranslation();
+  return (
+    <ol aria-label={t("agents.steps.ariaLabel")} className="mb-8 flex items-center">
+      {STEP_TITLE_KEYS.map((titleKey, index) => (
+        <li
+          key={titleKey}
+          aria-current={index === current ? "step" : undefined}
+          className="flex flex-1 items-center gap-2 last:flex-none"
         >
-          {index < current ? <Check className="size-3.5" /> : index + 1}
-        </span>
-        <span className={`text-xs whitespace-nowrap ${stepTitleClass(index, current)}`}>{title}</span>
-        {index < STEP_TITLES.length - 1 && <span aria-hidden="true" className="mx-2 h-px flex-1 bg-border" />}
-      </li>
-    ))}
-  </ol>
-);
+          <span
+            aria-hidden="true"
+            className={`flex size-6 shrink-0 items-center justify-center rounded-full border text-xs ${stepMarkerClass(index, current)}`}
+          >
+            {index < current ? <Check className="size-3.5" /> : index + 1}
+          </span>
+          <span className={`text-xs whitespace-nowrap ${stepTitleClass(index, current)}`}>{t(titleKey)}</span>
+          {index < STEP_TITLE_KEYS.length - 1 && <span aria-hidden="true" className="mx-2 h-px flex-1 bg-border" />}
+        </li>
+      ))}
+    </ol>
+  );
+};
 
 const SHARED_INITIAL_VALUES: AgentFormValues = {
   allowed_mcp_servers_and_groups: { servers: [], accessGroups: [] },
@@ -132,6 +143,7 @@ interface AddAgentFormProps {
 }
 
 const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessToken, onSuccess, teams }) => {
+  const { t } = useTranslation();
   const { userId, userRole } = useAuthorized();
   const form = useForm<AgentFormValues>({ defaultValues: buildInitialValues("a2a") });
   const panels = useCollapsiblePanels([AGENT_FORM_CONFIG.basic.key]);
@@ -339,12 +351,12 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
 
   const handleCreateAgent = async () => {
     if (!accessToken) {
-      toast.error("No access token available");
+      toast.error(t("agents.add.noAccessToken"));
       return;
     }
 
     if (keyAssignOption === "existing_key" && !selectedExistingKey) {
-      toast.error("Please select an existing key to assign");
+      toast.error(t("agents.add.selectExistingKey"));
       return;
     }
 
@@ -358,7 +370,7 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
       const values = form.getValues();
       const built = buildAgentData(values);
       if (!built) {
-        toast.error("Failed to build agent data");
+        toast.error(t("agents.add.buildFailed"));
         setIsSubmitting(false);
         return;
       }
@@ -434,7 +446,9 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
     } catch (error) {
       console.error("Error creating agent:", error);
       const errorMessage = error instanceof Error ? error.message : String(error);
-      toast.error(errorMessage ? `Failed to create agent: ${errorMessage}` : "Failed to create agent");
+      toast.error(
+        errorMessage ? t("agents.add.createFailedWithReason", { reason: errorMessage }) : t("agents.add.createFailed"),
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -461,25 +475,21 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
 
   const renderEntitlementsStep = () => (
     <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">
-        Configure which models, agents, and MCP tools this agent is allowed to use. Leave fields empty to allow all
-        (subject to key/team permissions).
-      </p>
+      <p className="text-sm text-muted-foreground">{t("agents.entitlements.description")}</p>
 
       <FieldGroup>
         <AgentFormField
           name="entitlement_models"
-          label={labelWithHint(
-            "Allowed Models",
-            "Restrict which models this agent can call. Leave empty to allow all.",
-          )}
+          label={labelWithHint(t("agents.entitlements.allowedModels"), t("agents.entitlements.allowedModelsHint"))}
         >
           {({ id, value, onChange }) => (
             <AgentTagsInput
               id={id}
               value={Array.isArray(value) ? (value as string[]) : []}
               onValueChange={onChange}
-              placeholder={loadingModels ? "Loading models..." : "Select models (leave empty for all)"}
+              placeholder={
+                loadingModels ? t("agents.entitlements.loadingModels") : t("agents.entitlements.selectModels")
+              }
               options={availableModels.map((m) => ({ label: getModelDisplayName(m), value: m }))}
             />
           )}
@@ -487,17 +497,16 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
 
         <AgentFormField
           name="entitlement_agents"
-          label={labelWithHint(
-            "Allowed Agents (Sub-Agents)",
-            "Restrict which other agents this agent can invoke as sub-agents. Leave empty to allow all.",
-          )}
+          label={labelWithHint(t("agents.entitlements.allowedAgents"), t("agents.entitlements.allowedAgentsHint"))}
         >
           {({ id, value, onChange }) => (
             <AgentMultiSelect
               id={id}
               value={Array.isArray(value) ? (value as string[]) : []}
               onValueChange={onChange}
-              placeholder={loadingAgents ? "Loading agents..." : "Select agents (leave empty for all)"}
+              placeholder={
+                loadingAgents ? t("agents.entitlements.loadingAgents") : t("agents.entitlements.selectAgents")
+              }
               options={availableAgents.map((a) => ({ label: a.agent_name, value: a.agent_id }))}
             />
           )}
@@ -505,16 +514,13 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
 
         <AgentFormField
           name="access_group_ids"
-          label={labelWithHint(
-            "Access Groups",
-            "Attach access groups to this agent. Attached groups cap which models, MCP servers, and agents the agent can reach, on top of its key and team permissions. Leave empty to apply no extra cap.",
-          )}
+          label={labelWithHint(t("agents.detail.accessGroups"), t("agents.entitlements.accessGroupsHint"))}
         >
           {({ value, onChange }) => (
             <AccessGroupSelector
               value={Array.isArray(value) ? (value as string[]) : []}
               onChange={onChange}
-              placeholder="Select access groups (optional)"
+              placeholder={t("agents.detail.selectAccessGroups")}
             />
           )}
         </AgentFormField>
@@ -523,10 +529,7 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
 
         <AgentFormField
           name="allowed_mcp_servers_and_groups"
-          label={labelWithHint(
-            "Allowed MCP Servers",
-            "Select which MCP servers or access groups this agent can access",
-          )}
+          label={labelWithHint(t("agents.detail.allowedMcpServers"), t("agents.entitlements.allowedMcpServersHint"))}
         >
           {({ value, onChange }) => (
             <MCPServerSelector
@@ -536,7 +539,7 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
                 accessGroups: (value as McpServerSelection | undefined)?.accessGroups ?? [],
               }}
               accessToken={accessToken ?? ""}
-              placeholder="Select MCP servers or access groups (optional)"
+              placeholder={t("agents.detail.selectMcpServers")}
             />
           )}
         </AgentFormField>
@@ -574,28 +577,20 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
   const renderObservabilityStep = () => (
     <div className="space-y-6">
       <div>
-        <h4 className="mb-3 text-sm font-medium text-foreground">Tracing</h4>
+        <h4 className="mb-3 text-sm font-medium text-foreground">{t("agents.governance.tracing")}</h4>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-sm font-medium text-foreground">
-                Require x-litellm-trace-id on calls TO this agent
-              </span>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Only accept this agent being invoked with a trace-id (e.g. when used as a sub-agent).
-              </p>
+              <span className="text-sm font-medium text-foreground">{t("agents.governance.requireTraceInbound")}</span>
+              <p className="mt-1 text-xs text-muted-foreground">{t("agents.governance.requireTraceInboundHint")}</p>
             </div>
             <Switch checked={requireTraceIdInbound} onCheckedChange={setRequireTraceIdInbound} />
           </div>
 
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-sm font-medium text-foreground">
-                Require x-litellm-trace-id on calls BY this agent
-              </span>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Requires LLM/MCP calls made by this agent to include x-litellm-trace-id for session tracking.
-              </p>
+              <span className="text-sm font-medium text-foreground">{t("agents.governance.requireTraceOutbound")}</span>
+              <p className="mt-1 text-xs text-muted-foreground">{t("agents.governance.requireTraceOutboundHint")}</p>
             </div>
             <Switch
               checked={requireTraceIdOutbound}
@@ -614,19 +609,18 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
       <Separator />
 
       <div>
-        <h4 className="mb-3 text-sm font-medium text-foreground">Budgets &amp; Rate Limits</h4>
+        <h4 className="mb-3 text-sm font-medium text-foreground">{t("agents.governance.budgets")}</h4>
         <div className="space-y-4">
           {!requireTraceIdOutbound && (
             <div className="rounded-lg border border-warning/20 bg-warning/10 p-3 text-sm text-warning">
-              Enable &quot;Require x-litellm-trace-id on calls BY this agent&quot; in Tracing to configure budgets and
-              rate limits.
+              {t("agents.governance.enableOutboundFirst")}
             </div>
           )}
 
-          <div className="text-sm font-medium text-foreground">Session Budgets</div>
+          <div className="text-sm font-medium text-foreground">{t("agents.governance.sessionBudgets")}</div>
           <div className="grid grid-cols-2 gap-4">
             <Field className="gap-1">
-              <FieldLabel htmlFor="agent-max-iterations">Max Iterations</FieldLabel>
+              <FieldLabel htmlFor="agent-max-iterations">{t("agents.governance.maxIterations")}</FieldLabel>
               <Input
                 id="agent-max-iterations"
                 type="number"
@@ -639,10 +633,12 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
                 }
                 onBlur={() => setMaxIterations((current) => (current !== null && current < 1 ? 1 : current))}
               />
-              <p className="mt-1 text-xs text-muted-foreground">Hard cap on LLM calls per session</p>
+              <p className="mt-1 text-xs text-muted-foreground">{t("agents.governance.maxIterationsHint")}</p>
             </Field>
             <Field className="gap-1">
-              <FieldLabel htmlFor="agent-max-budget-per-session">Max Budget Per Session ($)</FieldLabel>
+              <FieldLabel htmlFor="agent-max-budget-per-session">
+                {t("agents.governance.maxBudgetPerSession")}
+              </FieldLabel>
               <Input
                 id="agent-max-budget-per-session"
                 type="number"
@@ -657,26 +653,24 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
                   setMaxBudgetPerSession((current) => (current !== null && current < 0.01 ? 0.01 : current))
                 }
               />
-              <p className="mt-1 text-xs text-muted-foreground">Max spend per trace before returning 429</p>
+              <p className="mt-1 text-xs text-muted-foreground">{t("agents.governance.maxBudgetHint")}</p>
             </Field>
           </div>
 
           <Separator className="my-2" />
 
-          <div className="text-sm font-medium text-foreground">Agent Rate Limits</div>
-          <p className="text-xs text-muted-foreground">Global rate limits applied across all callers of this agent.</p>
+          <div className="text-sm font-medium text-foreground">{t("agents.governance.agentRateLimits")}</div>
+          <p className="text-xs text-muted-foreground">{t("agents.governance.agentRateLimitsHint")}</p>
           <div className="grid grid-cols-2 gap-4">
-            {rateLimitField("tpm_limit", "TPM Limit", "e.g. 100000")}
-            {rateLimitField("rpm_limit", "RPM Limit", "e.g. 100")}
+            {rateLimitField("tpm_limit", t("agents.detail.tpmLimit"), "e.g. 100000")}
+            {rateLimitField("rpm_limit", t("agents.detail.rpmLimit"), "e.g. 100")}
           </div>
 
-          <div className="mt-4 text-sm font-medium text-foreground">Per-Session Rate Limits</div>
-          <p className="text-xs text-muted-foreground">
-            Rate limits per session (x-litellm-trace-id). Each session gets its own counters.
-          </p>
+          <div className="mt-4 text-sm font-medium text-foreground">{t("agents.governance.perSessionRateLimits")}</div>
+          <p className="text-xs text-muted-foreground">{t("agents.governance.perSessionRateLimitsHint")}</p>
           <div className="grid grid-cols-2 gap-4">
-            {rateLimitField("session_tpm_limit", "Session TPM Limit", "e.g. 10000")}
-            {rateLimitField("session_rpm_limit", "Session RPM Limit", "e.g. 20")}
+            {rateLimitField("session_tpm_limit", t("agents.detail.sessionTpmLimit"), "e.g. 10000")}
+            {rateLimitField("session_rpm_limit", t("agents.detail.sessionRpmLimit"), "e.g. 20")}
           </div>
         </div>
       </div>
@@ -684,10 +678,8 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
       <Separator />
 
       <div>
-        <h4 className="mb-3 text-sm font-medium text-foreground">Guardrails</h4>
-        <p className="mb-3 text-xs text-muted-foreground">
-          Apply guardrails to this agent. Selected guardrails will run on all calls made by this agent.
-        </p>
+        <h4 className="mb-3 text-sm font-medium text-foreground">{t("agents.governance.guardrails")}</h4>
+        <p className="mb-3 text-xs text-muted-foreground">{t("agents.governance.guardrailsHint")}</p>
         <AgentFormField name="guardrails">
           {({ value, onChange }) => (
             <GuardrailSelector
@@ -763,7 +755,7 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
     <>
       <Field className="gap-1">
         <FieldLabel htmlFor="agent-type">
-          {labelWithHint("Agent Type", "Select the type of agent you want to create")}
+          {labelWithHint(t("agents.add.agentType"), t("agents.add.agentTypeHint"))}
         </FieldLabel>
         <Select value={agentType} onValueChange={(value) => value !== null && handleAgentTypeChange(value)}>
           <SelectTrigger id="agent-type" className="h-10 w-full">
@@ -785,19 +777,17 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
             ))}
             <SelectSeparator />
             <div className="mb-1 px-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              Not listed?
+              {t("agents.add.notListed")}
             </div>
             <SelectItem value={CUSTOM_AGENT_TYPE} className="focus:bg-warning/10">
               <span className="flex items-center gap-3">
                 <LayoutGrid className="size-4.5 shrink-0 text-warning" />
                 <span className="block">
                   <span className="flex items-center gap-2">
-                    <span className="font-medium text-warning">Custom / Other</span>
+                    <span className="font-medium text-warning">{t("agents.add.customType")}</span>
                     <StatusBadge tone="warning" label="GENERIC" className="h-4 px-1 text-[10px]" />
                   </span>
-                  <span className="block text-xs whitespace-normal text-warning">
-                    For outbound agents using an identity provider or virtual key
-                  </span>
+                  <span className="block text-xs whitespace-normal text-warning">{t("agents.add.customTypeHint")}</span>
                 </span>
               </span>
             </SelectItem>
@@ -810,24 +800,28 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
       <div className="mt-4">
         {agentType === CUSTOM_AGENT_TYPE ? (
           <FieldGroup>
-            <AgentFormField name="agent_name" label="Agent Name" rules={{ required: "Please enter an agent name" }}>
+            <AgentFormField
+              name="agent_name"
+              label={t("agents.form.agentName")}
+              rules={{ required: t("agents.form.agentNameRequired") }}
+            >
               {({ value, onChange, ref, ...control }) => (
                 <Input
                   {...control}
                   ref={ref}
-                  placeholder="e.g. my-custom-agent"
+                  placeholder={t("agents.add.customAgentNamePlaceholder")}
                   value={typeof value === "string" ? value : ""}
                   onChange={onChange}
                 />
               )}
             </AgentFormField>
-            <AgentFormField name="description" label="Description">
+            <AgentFormField name="description" label={t("common.description")}>
               {({ value, onChange, ref, ...control }) => (
                 <Textarea
                   {...control}
                   ref={ref}
                   rows={3}
-                  placeholder="Describe what this agent does…"
+                  placeholder={t("agents.add.customDescriptionPlaceholder")}
                   value={typeof value === "string" ? value : ""}
                   onChange={onChange}
                 />
@@ -842,7 +836,7 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
             {selectedAgentTypeInfo.credential_fields.length > 0 && (
               <div className="mt-4 rounded-lg border border-border p-4">
                 <h4 className="mb-3 text-sm font-medium text-foreground">
-                  {selectedAgentTypeInfo.agent_type_display_name} Settings
+                  {t("agents.add.agentTypeSettings", { name: selectedAgentTypeInfo.agent_type_display_name })}
                 </h4>
                 <FieldGroup>
                   {selectedAgentTypeInfo.credential_fields.map((field) => (
@@ -851,7 +845,11 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
                       name={field.key}
                       label={field.tooltip ? labelWithHint(field.label, field.tooltip) : field.label}
                       defaultValue={field.default_value ?? undefined}
-                      rules={field.required ? { required: `Please enter ${field.label}` } : undefined}
+                      rules={
+                        field.required
+                          ? { required: t("agents.form.enterFieldExact", { name: field.label }) }
+                          : undefined
+                      }
                     >
                       {({ value, onChange, ref, ...control }) =>
                         field.field_type === "password" ? (
@@ -914,10 +912,7 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
 
         <AgentFormField
           name="team_id"
-          label={labelWithHint(
-            "Assign to Team",
-            "Optionally select a team for the virtual key. The agent identity and its permissions are managed separately.",
-          )}
+          label={labelWithHint(t("agents.key.assignToTeam"), t("agents.key.assignToTeamHint"))}
         >
           {({ value, onChange }) => (
             <TeamDropdown value={typeof value === "string" ? value : undefined} onChange={onChange} />
@@ -927,9 +922,7 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
         <Separator className="my-4" />
 
         {form.getValues("identity_provider") === "microsoft_entra" && (
-          <p className="mb-4 text-sm text-muted-foreground">
-            This agent will authenticate with Microsoft Entra ID. You can skip virtual key creation.
-          </p>
+          <p className="mb-4 text-sm text-muted-foreground">{t("agents.key.entraNoKeyHint")}</p>
         )}
         <RadioGroup
           value={keyAssignOption}
@@ -947,17 +940,17 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
           >
             <div className="flex items-start justify-between">
               <div className="flex flex-1 items-start gap-3">
-                <RadioGroupItem value="create_new" aria-label="Create a new key for this agent" />
+                <RadioGroupItem value="create_new" aria-label={t("agents.key.createNewAria")} />
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <Key className="size-4 text-info" />
-                    <span className="font-medium text-foreground">Create a new key for this agent</span>
+                    <span className="font-medium text-foreground">{t("agents.key.createNew")}</span>
                   </div>
-                  <p className="mt-1 text-sm text-muted-foreground">A dedicated key scoped to this agent.</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{t("agents.key.createNewHint")}</p>
                   {keyAssignOption === "create_new" && (
                     <div className="mt-3 space-y-3" onClick={(e) => e.stopPropagation()}>
                       <Field className="gap-1">
-                        <FieldLabel htmlFor="agent-new-key-name">Key Name</FieldLabel>
+                        <FieldLabel htmlFor="agent-new-key-name">{t("agents.key.keyName")}</FieldLabel>
                         <Input
                           id="agent-new-key-name"
                           value={newKeyName}
@@ -969,7 +962,7 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
                   )}
                 </div>
               </div>
-              <StatusBadge tone="success" label="Recommended" />
+              <StatusBadge tone="success" label={t("agents.key.recommended")} />
             </div>
           </div>
 
@@ -983,18 +976,18 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
             onClick={() => setKeyAssignOption("existing_key")}
           >
             <div className="flex items-start gap-3">
-              <RadioGroupItem value="existing_key" aria-label="Assign an existing key" />
+              <RadioGroupItem value="existing_key" aria-label={t("agents.key.assignExistingAria")} />
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <Key className="size-4 text-muted-foreground" />
-                  <span className="font-medium text-foreground">Assign an existing key</span>
+                  <span className="font-medium text-foreground">{t("agents.key.assignExisting")}</span>
                 </div>
-                <p className="mt-1 text-sm text-muted-foreground">Re-assign a key you already have to this agent.</p>
+                <p className="mt-1 text-sm text-muted-foreground">{t("agents.key.assignExistingHint")}</p>
                 {keyAssignOption === "existing_key" && (
                   <div className="mt-3" onClick={(e) => e.stopPropagation()}>
                     <SearchSelect
                       inputId="agent-existing-key"
-                      placeholder={loadingKeys ? "Loading keys…" : "Search by key name…"}
+                      placeholder={loadingKeys ? t("agents.key.loading") : t("agents.key.searchPlaceholder")}
                       value={selectedExistingKey}
                       onValueChange={setSelectedExistingKey}
                       options={existingKeys.map((k) => ({
@@ -1016,8 +1009,8 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
             onClick={() => setKeyAssignOption("skip")}
           >
             {form.getValues("identity_provider") === "microsoft_entra"
-              ? "Use Entra JWT authentication"
-              : "Skip for now, I’ll assign a key later"}
+              ? t("agents.key.useEntra")
+              : t("agents.key.skipForNow")}
           </button>
         </div>
       </div>
@@ -1027,7 +1020,7 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
   const renderReadyStep = () => (
     <div className="py-6 text-center">
       <CircleCheck className="mb-4 size-12 text-success" />
-      <h3 className="mb-2 text-xl font-semibold text-foreground">Agent Created!</h3>
+      <h3 className="mb-2 text-xl font-semibold text-foreground">{t("agents.ready.title")}</h3>
       <div className="mb-4 flex justify-center">
         <Badge className="h-auto gap-1.5 bg-purple-100 px-3 py-1 text-sm text-purple-700 dark:bg-purple-950 dark:text-purple-300">
           <Bot className="size-3.5" />
@@ -1041,14 +1034,15 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
       )}
       {assignedKeyAlias && (
         <p className="mt-2 text-sm text-muted-foreground">
-          Key <span className="font-medium">{assignedKeyAlias}</span> has been assigned to this agent.
+          {t("agents.ready.keyAssignedBefore")} <span className="font-medium">{assignedKeyAlias}</span>{" "}
+          {t("agents.ready.keyAssignedAfter")}
         </p>
       )}
       {!createdKeyValue && !assignedKeyAlias && keyAssignOption === "skip" && (
         <p className="mt-2 text-sm text-muted-foreground">
           {form.getValues("identity_provider") === "microsoft_entra"
-            ? "Microsoft Entra ID is configured. Send an authenticated agent request to verify the connection."
-            : "No key assigned. You can create one from the Virtual Keys page."}
+            ? t("agents.ready.entraVerifyHint")
+            : t("agents.ready.noKeyHint")}
         </p>
       )}
     </div>
@@ -1060,9 +1054,9 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
         <DialogHeader>
           <div className="flex items-center space-x-3 border-b border-border pb-4">
             {selectedLogo && currentStep < 1 && (
-              <Logo src={selectedLogo} label="Agent" className="h-6 w-6 object-contain" />
+              <Logo src={selectedLogo} label={t("agents.add.logoLabel")} className="h-6 w-6 object-contain" />
             )}
-            <DialogTitle className="text-xl font-semibold text-foreground">Add New Agent</DialogTitle>
+            <DialogTitle className="text-xl font-semibold text-foreground">{t("agents.addNew")}</DialogTitle>
           </div>
         </DialogHeader>
         <TooltipProvider>
@@ -1083,24 +1077,24 @@ const AddAgentForm: React.FC<AddAgentFormProps> = ({ visible, onClose, accessTok
               <div>
                 {currentStep > 0 && currentStep < 4 && (
                   <Button type="button" variant="outline" onClick={handleBack}>
-                    ← Back
+                    {t("common.back")}
                   </Button>
                 )}
               </div>
               <div className="flex gap-3">
                 {currentStep < 4 && (
                   <Button variant="secondary" onClick={handleClose}>
-                    Cancel
+                    {t("common.cancel")}
                   </Button>
                 )}
-                {currentStep < 3 && <Button onClick={handleNext}>Next →</Button>}
+                {currentStep < 3 && <Button onClick={handleNext}>{t("agents.steps.next")}</Button>}
                 {currentStep === 3 && (
                   <Button disabled={isSubmitting} aria-busy={isSubmitting} onClick={handleCreateAgent}>
                     {isSubmitting && <UiLoadingSpinner className="size-4" />}
-                    {isSubmitting ? "Creating..." : "Create Agent →"}
+                    {isSubmitting ? t("agents.add.creating") : t("agents.add.createAgent")}
                   </Button>
                 )}
-                {currentStep === 4 && <Button onClick={handleClose}>Done</Button>}
+                {currentStep === 4 && <Button onClick={handleClose}>{t("common.done")}</Button>}
               </div>
             </div>
           </div>

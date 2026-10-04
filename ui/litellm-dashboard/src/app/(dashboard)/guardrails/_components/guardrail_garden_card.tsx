@@ -2,8 +2,11 @@ import React from "react";
 import { CircleCheck } from "lucide-react";
 import { GuardrailCardInfo } from "./guardrail_garden_data";
 import { Logo } from "@/components/molecules/logo/Logo";
+import { useTranslation } from "@/i18n";
 
 const GuardrailCard: React.FC<{ card: GuardrailCardInfo; onClick: () => void }> = ({ card, onClick }) => {
+  const { t } = useTranslation();
+
   return (
     <div
       onClick={onClick}
@@ -20,7 +23,7 @@ const GuardrailCard: React.FC<{ card: GuardrailCardInfo; onClick: () => void }> 
         <div className="mt-2.5 flex items-center gap-1 text-success">
           <CircleCheck className="size-3" />
           <span className="text-[11px] font-medium">
-            F1: {card.eval.f1}% &middot; {card.eval.testCases} test cases
+            {t("gardenCard.f1AndCases", { f1: card.eval.f1, cases: card.eval.testCases })}
           </span>
         </div>
       )}

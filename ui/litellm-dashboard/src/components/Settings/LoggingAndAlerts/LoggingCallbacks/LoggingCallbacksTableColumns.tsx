@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/cva.config";
+import type { Translate } from "@/i18n";
 
 import { AlertingObject } from "./types";
 
@@ -30,10 +31,11 @@ export type AvailableCallbacks = Record<string, AvailableCallbackMeta>;
 
 export const callbackRowMode = (record: CallbackRow): string => record.type || record.mode || "success";
 
-const CALLBACK_MODE_LABELS: Record<string, string> = {
-  success: "Success",
-  failure: "Failure",
-  success_and_failure: "Success & Failure",
+const callbackModeLabel = (mode: string, t: Translate): string => {
+  if (mode === "success") return t("common.success");
+  if (mode === "failure") return t("loggingAndAlerts.callbacks.modeFailure");
+  if (mode === "success_and_failure") return t("loggingAndAlerts.callbacks.modeSuccessAndFailure");
+  return mode;
 };
 
 function callbackModeTone(mode: string): StatusTone {
@@ -44,26 +46,24 @@ function callbackModeTone(mode: string): StatusTone {
 
 interface CallbackRowActionsProps {
   callback: CallbackRow;
+  t: Translate;
   onTest: (callback: AlertingObject) => void | Promise<void>;
   onEdit: (callback: AlertingObject) => void;
   onDelete: (callback: AlertingObject) => void;
 }
 
-function CallbackRowActions({ callback, onTest, onEdit, onDelete }: CallbackRowActionsProps) {
+function CallbackRowActions({ callback, t, onTest, onEdit, onDelete }: CallbackRowActionsProps) {
   if (callback.read_only) {
     return (
-      <span
-        className="text-xs text-muted-foreground"
-        title="Active callback that was not added through the dashboard. Edit it where it was configured."
-      >
-        Read only
+      <span className="text-xs text-muted-foreground" title={t("loggingAndAlerts.callbacks.readOnlyTooltip")}>
+        {t("loggingAndAlerts.callbacks.readOnly")}
       </span>
     );
   }
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label="Open callback actions"
+        aria-label={t("loggingAndAlerts.callbacks.openActions")}
         data-testid={`callback-actions-${callback.name}-${callbackRowMode(callback)}`}
         className={cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), "text-muted-foreground")}
       >
@@ -72,16 +72,16 @@ function CallbackRowActions({ callback, onTest, onEdit, onDelete }: CallbackRowA
       <DropdownMenuContent align="end" className="w-52">
         <DropdownMenuItem data-testid="callback-action-test" onClick={() => void onTest(callback)}>
           <Play />
-          Test
+          {t("loggingAndAlerts.callbacks.test")}
         </DropdownMenuItem>
         <DropdownMenuItem data-testid="callback-action-edit" onClick={() => onEdit(callback)}>
           <Pencil />
-          Edit
+          {t("common.edit")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" data-testid="callback-action-delete" onClick={() => onDelete(callback)}>
           <Trash2 />
-          Delete
+          {t("common.delete")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -89,6 +89,7 @@ function CallbackRowActions({ callback, onTest, onEdit, onDelete }: CallbackRowA
 }
 
 interface LoggingCallbacksTableColumnsDeps {
+  t: Translate;
   availableCallbacks: AvailableCallbacks;
   onTest: (callback: AlertingObject) => void | Promise<void>;
   onEdit: (callback: AlertingObject) => void;
@@ -96,6 +97,7 @@ interface LoggingCallbacksTableColumnsDeps {
 }
 
 export const getLoggingCallbacksTableColumns = ({
+  t,
   availableCallbacks,
   onTest,
   onEdit,
@@ -104,8 +106,8 @@ export const getLoggingCallbacksTableColumns = ({
   {
     id: "name",
     accessorKey: "name",
-    meta: { title: "Callback Name" },
-    header: "Callback Name",
+    meta: { title: t("loggingAndAlerts.callbacks.columnName") },
+    header: t("loggingAndAlerts.callbacks.columnName"),
     enableSorting: false,
     cell: ({ row }) => {
       const id = row.original.name;
@@ -119,25 +121,25 @@ export const getLoggingCallbacksTableColumns = ({
   },
   {
     id: "mode",
-    meta: { title: "Mode", skeleton: "badge" },
-    header: "Mode",
+    meta: { title: t("loggingAndAlerts.callbacks.columnMode"), skeleton: "badge" },
+    header: t("loggingAndAlerts.callbacks.columnMode"),
     size: 240,
     enableSorting: false,
     cell: ({ row }) => {
       const mode = callbackRowMode(row.original);
-      return <StatusBadge tone={callbackModeTone(mode)} label={CALLBACK_MODE_LABELS[mode] || mode} />;
+      return <StatusBadge tone={callbackModeTone(mode)} label={callbackModeLabel(mode, t)} />;
     },
   },
   {
     id: "actions",
     meta: { className: "text-right", headerClassName: "text-right" },
-    header: () => <span className="sr-only">Actions</span>,
+    header: () => <span className="sr-only">{t("common.actions")}</span>,
     size: 64,
     enableSorting: false,
     enableHiding: false,
     cell: ({ row }) => (
       <div className="flex justify-end">
-        <CallbackRowActions callback={row.original} onTest={onTest} onEdit={onEdit} onDelete={onDelete} />
+        <CallbackRowActions callback={row.original} t={t} onTest={onTest} onEdit={onEdit} onDelete={onDelete} />
       </div>
     ),
   },

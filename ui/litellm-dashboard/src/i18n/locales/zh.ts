@@ -6,6 +6,11 @@ import { zh as keysZh } from "./extra/keys";
 import { zh as modelsCoreZh } from "./extra/modelsCore";
 import { zh as addModelZh } from "./extra/addModel";
 import { zh as mcpZh } from "./extra/mcp";
+import { zh as mcpToolsZh } from "./extra/mcpTools";
+import { zh as mcpServersZh } from "./extra/mcpServers";
+import { zh as settingsAdminZh } from "./extra/settingsAdmin";
+import { zh as keyCreateZh } from "./extra/keyCreate";
+import { zh as settingsNetZh } from "./extra/settingsNet";
 import { zh as playgroundZh } from "./extra/playground";
 import { zh as promptsZh } from "./extra/prompts";
 import { zh as guardrailsZh } from "./extra/guardrails";
@@ -21,10 +26,10 @@ import { zh as miscZh } from "./extra/misc";
 import { zh as lensViewsZh } from "./extra/lensViews";
 import { zh as sharedWidgetsZh } from "./extra/sharedWidgets";
 import { zh as costAnalyticsZh } from "./extra/costAnalytics";
+import { zh as roiCalculatorZh } from "./extra/roiCalculator";
 
 export const zh: Record<string, string> = {
   // ---------------------------------------------------------------- language switcher
-  "language.label": "语言",
   "language.switchTo": "切换到{language}",
   "language.current": "当前语言：{language}",
 
@@ -37,27 +42,22 @@ export const zh: Record<string, string> = {
   "common.edit": "编辑",
   "common.add": "添加",
   "common.remove": "移除",
-  "common.create": "创建",
   "common.update": "更新",
   "common.copy": "复制",
   "common.copied": "已复制",
   "common.search": "搜索",
-  "common.filter": "筛选",
   "common.reset": "重置",
   "common.clear": "清空",
   "common.clearAll": "全部清空",
   "common.apply": "应用",
-  "common.confirm": "确认",
   "common.loading": "加载中...",
   "common.yes": "是",
   "common.no": "否",
   "common.back": "返回",
   "common.next": "下一步",
   "common.previous": "上一步",
-  "common.submit": "提交",
   "common.optional": "可选",
   "common.required": "必填",
-  "common.all": "全部",
   "common.none": "无",
   "common.status": "状态",
   "common.name": "名称",
@@ -65,12 +65,10 @@ export const zh: Record<string, string> = {
   "common.actions": "操作",
   "common.details": "详情",
   "common.view": "查看",
-  "common.download": "下载",
   "common.refresh": "刷新",
   "common.retry": "重试",
   "common.error": "错误",
   "common.success": "成功",
-  "common.warning": "警告",
   "common.enabled": "已启用",
   "common.disabled": "已禁用",
   "common.default": "默认",
@@ -78,24 +76,24 @@ export const zh: Record<string, string> = {
   "common.type": "类型",
   "common.value": "值",
   "common.date": "日期",
-  "common.time": "时间",
   "common.total": "总计",
-  "common.expand": "展开",
-  "common.collapse": "收起",
-  "common.showMore": "显示更多",
-  "common.showLess": "收起",
   "common.learnMore": "了解更多",
-  "common.noResults": "未找到结果",
-  "common.dismiss": "忽略",
-  "common.undo": "撤销",
   "common.continue": "继续",
-  "common.getStarted": "开始使用",
+  "common.hide": "隐藏",
+  "common.show": "显示",
+  "common.stop": "停止",
+  "common.done": "完成",
+  "common.duplicate": "复制",
+  "common.dangerZone": "危险区",
+  "common.unlimited": "无限制",
+  "common.unlimitedLower": "无限制",
+  "common.unavailable": "不可用",
 
   // ---------------------------------------------------------------- sidebar: groups
-  "navGroup.AI GATEWAY": "AI 网关",
+  "navGroup.AI_GATEWAY": "AI 网关",
   "navGroup.OBSERVABILITY": "可观测性",
   "navGroup.ACCESS_CONTROL": "访问控制",
-  "navGroup.DEVELOPER TOOLS": "开发者工具",
+  "navGroup.DEVELOPER_TOOLS": "开发者工具",
   "navGroup.SETTINGS": "设置",
 
   // ---------------------------------------------------------------- sidebar: items
@@ -142,6 +140,35 @@ export const zh: Record<string, string> = {
   "nav.admin-panel": "管理设置",
   "nav.cost-tracking": "成本追踪",
   "nav.ui-theme": "界面主题",
+  "nav.account.fallback": "账户",
+  "nav.account.tier": "套餐",
+  "nav.account.role": "角色",
+  "nav.account.email": "邮箱",
+  "nav.account.userId": "用户 ID",
+  "nav.account.premium": "高级版",
+  "nav.account.standard": "标准版",
+  "nav.account.upgradeToPremium": "升级到高级版以解锁更多功能",
+  "nav.account.copyEmail": "复制邮箱",
+  "nav.account.copyUserId": "复制用户 ID",
+  "nav.account.copyUserIdTitle": "复制用户 ID",
+  "nav.account.triggerLabel": "账户菜单 — {role} — 当前登录为 {user}",
+  "nav.account.unknownRole": "未知角色",
+  "nav.account.hideNewFeatureIndicators": "隐藏新功能标记",
+  "nav.account.hideNewFeatureIndicatorsToggle": "切换是否隐藏新功能标记",
+  "nav.account.hideAllPrompts": "隐藏所有提示",
+  "nav.account.hideAllPromptsToggle": "切换是否隐藏所有提示",
+  "nav.account.hideBlogPosts": "隐藏博客文章",
+  "nav.account.hideBlogPostsToggle": "切换是否隐藏博客文章",
+  "nav.account.hideBouncingIcon": "隐藏跳动图标",
+  "nav.account.hideBouncingIconToggle": "切换是否隐藏跳动图标",
+  "nav.account.hideLiteAdmin": "隐藏 LiteAdmin",
+  "nav.account.hideLiteAdminToggle": "切换是否隐藏 LiteAdmin",
+  "nav.account.changePassword": "修改密码",
+  "nav.account.logout": "退出登录",
+  "nav.community.joinSlack": "加入 Slack",
+  "nav.community.slackTooltip": "LiteLLM Slack 社区",
+  "nav.community.github": "LiteLLM 的 GitHub 仓库",
+  "nav.community.links": "社区链接",
 
   // ---------------------------------------------------------------- navbar
   "navbar.expandSidebar": "展开侧边栏",
@@ -154,10 +181,18 @@ export const zh: Record<string, string> = {
   "navbar.home": "LiteLLM 首页",
   "navbar.theme.light": "切换到浅色模式",
   "navbar.theme.dark": "切换到深色模式（Beta）",
-  "navbar.userMenu": "用户菜单",
-  "navbar.viewSwitcher": "切换视图",
   "navbar.workerSwitcher": "切换 Worker",
-  "navbar.signOut": "退出登录",
+  "navbar.aiGateway": "AI 网关",
+  "navbar.chat": "对话",
+  "navbar.chatDisabledHint": "管理员可在设置中启用",
+  "navbar.noMatchingWorkers": "没有匹配的 Worker",
+  "navbar.blogLoadFailed": "文章加载失败",
+  "navbar.blogEmpty": "暂无文章",
+  "navbar.blogViewAll": "查看全部文章",
+  "navbar.loading": "加载中",
+  "navbar.autoRouterBody": "把每次请求都路由到能处理它的最便宜的模型，无需改动提示词。",
+  "navbar.autoRouterReadDocs": "阅读文档",
+  "navbar.autoRouterMarkRead": "标记为已读",
 
   // ---------------------------------------------------------------- login page
   "login.title": "登录",
@@ -181,7 +216,8 @@ export const zh: Record<string, string> = {
   "login.chooseWorker": "选择要连接的 Worker",
   "login.adminUIDisabled": "管理界面已禁用",
   "login.adminUIDisabledBody": "管理界面已被管理员禁用。如需重新启用，请更新以下环境变量：",
-  "login.ssoNotice": "单点登录（SSO）已启用。LiteLLM 在加载此页面时不再自动跳转到 SSO 登录流程。如需恢复自动跳转，请在环境配置中设置",
+  "login.ssoNotice":
+    "单点登录（SSO）已启用。LiteLLM 在加载此页面时不再自动跳转到 SSO 登录流程。如需恢复自动跳转，请在环境配置中设置",
   "login.ssoNoticeTail": "。",
   "login.close": "关闭",
 
@@ -217,8 +253,7 @@ export const zh: Record<string, string> = {
   // ---------------------------------------------------------------- debug warning banner
   "debugWarning.title": "性能警告：详细调试模式已开启",
   "debugWarning.descPrefix": "详细调试日志（",
-  "debugWarning.descSuffix":
-    "）已开启。该模式会记录大量诊断信息并显著降低性能，仅应用于故障排查，请在生产环境中关闭。",
+  "debugWarning.descSuffix": "）已开启。该模式会记录大量诊断信息并显著降低性能，仅应用于故障排查，请在生产环境中关闭。",
 
   // ---------------------------------------------------------------- upgrade banner
   "upgradeBanner.latestPrefix": "最新版本为 ",
@@ -263,6 +298,11 @@ export const zh: Record<string, string> = {
   ...modelsCoreZh,
   ...addModelZh,
   ...mcpZh,
+  ...mcpToolsZh,
+  ...mcpServersZh,
+  ...settingsAdminZh,
+  ...keyCreateZh,
+  ...settingsNetZh,
   ...playgroundZh,
   ...promptsZh,
   ...guardrailsZh,
@@ -278,4 +318,5 @@ export const zh: Record<string, string> = {
   ...lensViewsZh,
   ...sharedWidgetsZh,
   ...costAnalyticsZh,
+  ...roiCalculatorZh,
 };

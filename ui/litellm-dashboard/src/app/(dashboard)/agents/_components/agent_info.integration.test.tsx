@@ -6,6 +6,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import AgentInfoView from "./agent_info";
 import * as networking from "@/components/networking";
 import type { AgentCreateInfo } from "@/components/networking";
+import { I18nProvider } from "@/i18n";
 
 vi.mock("@/components/networking", () => ({
   apiClient: { get: vi.fn() },
@@ -127,7 +128,9 @@ const renderView = () => {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={queryClient}>
-      <AgentInfoView agentId="agent-1" onClose={vi.fn()} accessToken="tok" isAdmin={true} />
+      <I18nProvider>
+        <AgentInfoView agentId="agent-1" onClose={vi.fn()} accessToken="tok" isAdmin={true} />
+      </I18nProvider>
     </QueryClientProvider>,
   );
 };

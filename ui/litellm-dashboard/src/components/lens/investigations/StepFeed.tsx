@@ -7,6 +7,7 @@ import { cn } from "@/lib/cva.config";
 
 import { modelsUsed, stepLine, windowLabel } from "../model/inbox";
 import type { Job } from "../model/types";
+import { useTranslation } from "@/i18n";
 
 const STEP_MARK = { model: "✓", stage: "▸", error: "!" } as const;
 const STEP_TONE = {
@@ -17,11 +18,15 @@ const STEP_TONE = {
 
 export function StepFeed({ job }: { job: Job }) {
   const [open, setOpen] = useState(true);
+  const { t } = useTranslation();
   const steps = job.steps ?? [];
   const models = modelsUsed(steps);
   const calls = steps.filter((s) => s.kind === "model").length;
   return (
-    <section aria-label="Live investigation steps" className="rounded-md border bg-background font-mono text-xs">
+    <section
+      aria-label={t("lens.investigations.stepsRegion")}
+      className="rounded-md border bg-background font-mono text-xs"
+    >
       <button
         type="button"
         onClick={() => setOpen(!open)}
@@ -30,15 +35,18 @@ export function StepFeed({ job }: { job: Job }) {
       >
         <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground">
           <span className="font-semibold text-foreground">
-            {job.trigger === "manual" ? "manual run" : "scheduled run"}
+            {t(job.trigger === "manual" ? "lens.investigations.manualRun" : "lens.investigations.scheduledRun")}
           </span>
           <span>{windowLabel(job)}</span>
           <span>
-            {calls} model {calls === 1 ? "call" : "calls"} · ${job.cost.toFixed(4)}
+            {t(calls === 1 ? "lens.investigations.modelCallOne" : "lens.investigations.modelCallMany", {
+              count: calls,
+            })}{" "}
+            · ${job.cost.toFixed(4)}
           </span>
           {models.length > 0 && (
             <span data-testid="step-feed-models">
-              using <span className="text-foreground">{models.join(", ")}</span>
+              {t("lens.investigations.using")} <span className="text-foreground">{models.join(", ")}</span>
             </span>
           )}
         </span>
@@ -46,7 +54,7 @@ export function StepFeed({ job }: { job: Job }) {
       </button>
       {open && (
         <ol className="max-h-56 space-y-0.5 overflow-y-auto border-t px-3 py-2" data-testid="step-feed">
-          {steps.length === 0 && <li className="text-muted-foreground">Waiting for the worker to start…</li>}
+          {steps.length === 0 && <li className="text-muted-foreground">{t("lens.investigations.waitingForWorker")}</li>}
           {[...steps].reverse().map((step, index) => (
             <li
               key={`${step.at}-${index}`}
@@ -61,7 +69,7 @@ export function StepFeed({ job }: { job: Job }) {
               <span className="tabular-nums text-muted-foreground">
                 {new Date(step.at).toLocaleTimeString(undefined, { hour12: false })}
               </span>
-              <span className={cn("truncate", STEP_TONE[step.kind])}>{stepLine(step)}</span>
+              <span className={cn("truncate", STEP_TONE[step.kind])}>{stepLine(step, t)}</span>
               <span className="truncate text-muted-foreground">{step.model}</span>
             </li>
           ))}

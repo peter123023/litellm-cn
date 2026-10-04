@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { effortNote, estimateLabel, branchCostLabel } from "./roiCalculatorData";
 import type { ROIIdentityMapUpdate, ROIPull, ROISummary } from "./roiCalculatorData";
 import type { ROIPerson } from "./roiCalculatorData";
+import { useTranslation } from "@/i18n";
 
 export type PersonMatchSelection = { person: ROIPerson; login: string };
 
@@ -29,6 +30,7 @@ export function PullReasoningDialog({
   summary: ROISummary | null;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const titleRef = React.useRef<HTMLHeadingElement>(null);
   return (
     <Dialog open={Boolean(pull)} onOpenChange={(open) => !open && onClose()}>
@@ -46,45 +48,48 @@ export function PullReasoningDialog({
             <div className="space-y-3">
               <dl className="grid grid-cols-2 gap-4 rounded-lg border bg-muted/20 p-4">
                 <div className="space-y-2">
-                  <dt className="text-xs text-muted-foreground">Estimated effort</dt>
-                  <dd className="text-2xl font-semibold tabular-nums">{estimateLabel(pull.estimate)}</dd>
+                  <dt className="text-xs text-muted-foreground">{t("roi.estimator.estimatedEffort")}</dt>
+                  <dd className="text-2xl font-semibold tabular-nums">{estimateLabel(pull.estimate, t)}</dd>
                 </div>
                 <div className="space-y-2">
-                  <dt className="text-xs text-muted-foreground">Recorded AI cost</dt>
-                  <dd className="text-xl font-semibold tabular-nums">{branchCostLabel(pull)}</dd>
+                  <dt className="text-xs text-muted-foreground">{t("roi.estimator.recordedAiCost")}</dt>
+                  <dd className="text-xl font-semibold tabular-nums">{branchCostLabel(pull, t)}</dd>
                   {pull.branch_cost?.status === "matched" && (
-                    <dd className="text-xs text-muted-foreground">{pull.branch_cost.requests} requests</dd>
+                    <dd className="text-xs text-muted-foreground">{t("roi.estimator.requestCount", { count: pull.branch_cost.requests })}</dd>
                   )}
                 </div>
               </dl>
               <p className="text-xs leading-5 text-muted-foreground">
-                {effortNote(pull.estimate.effort_basis ?? summary?.effort_basis)}
+                {effortNote(pull.estimate.effort_basis ?? summary?.effort_basis, t)}
               </p>
             </div>
             <section>
-              <h3 className="mb-2 font-medium">Reasoning</h3>
+              <h3 className="mb-2 font-medium">{t("roi.estimator.reasoning")}</h3>
               <p className="whitespace-pre-wrap leading-relaxed">
-                {pull.estimate.reasoning || "No estimate available."}
+                {pull.estimate.reasoning || t("roi.estimator.noEstimate")}
               </p>
             </section>
             <dl className="grid grid-cols-[auto_1fr] gap-x-5 gap-y-2 text-xs">
-              <dt className="text-muted-foreground">Model</dt>
+              <dt className="text-muted-foreground">{t("roi.estimator.model")}</dt>
               <dd className="break-all">{pull.estimate.model || summary?.estimator_model}</dd>
-              <dt className="text-muted-foreground">Merged</dt>
+              <dt className="text-muted-foreground">{t("roi.estimator.merged")}</dt>
               <dd>{new Date(pull.merged_at).toLocaleDateString(undefined, { timeZone: "UTC" })}</dd>
-              <dt className="text-muted-foreground">Email match</dt>
-              <dd>{pull.email || "Not matched"}</dd>
+              <dt className="text-muted-foreground">{t("roi.estimator.emailMatch")}</dt>
+              <dd>{pull.email || t("roi.estimator.notMatched")}</dd>
             </dl>
             <section className="space-y-2 border-t pt-4 text-sm">
-              <h3 className="font-medium">Track costs for this branch</h3>
+              <h3 className="font-medium">{t("roi.estimator.trackBranchCosts")}</h3>
               {pull.branch_cost?.status === "matched" && (
                 <p className="text-muted-foreground">
-                  {pull.branch_cost.spend?.toFixed(8)} USD across {pull.branch_cost.requests} requests
+                  {t("roi.estimator.spendAcrossRequests", {
+                    amount: pull.branch_cost.spend?.toFixed(8) ?? "",
+                    count: pull.branch_cost.requests,
+                  })}
                 </p>
               )}
               {pull.source_repo && pull.source_branch ? (
                 <>
-                  <p className="text-muted-foreground">Send both tags with each gateway request from this branch:</p>
+                  <p className="text-muted-foreground">{t("roi.estimator.sendBothTags")}</p>
                   <pre className="overflow-x-auto rounded-md bg-muted p-3 text-xs">
                     {JSON.stringify(
                       { metadata: { tags: [`repo:${pull.source_repo}`, `branch:${pull.source_branch}`] } },
@@ -92,20 +97,15 @@ export function PullReasoningDialog({
                       2,
                     )}
                   </pre>
-                  <p className="text-xs text-muted-foreground">
-                    Retained requests in the report’s UTC period. Branch names are case-sensitive. Reused branches
-                    cannot be split between changes.
-                  </p>
+                  <p className="text-xs text-muted-foreground">{t("roi.estimator.retainedRequestsNote")}</p>
                 </>
               ) : (
-                <p className="text-muted-foreground">
-                  The source repository or branch is unavailable. Sync again to refresh its metadata.
-                </p>
+                <p className="text-muted-foreground">{t("roi.estimator.sourceUnavailable")}</p>
               )}
             </section>
             {summary?.estimator_prompt && (
               <details className="rounded-md border p-3">
-                <summary className="cursor-pointer font-medium">Estimator prompt</summary>
+                <summary className="cursor-pointer font-medium">{t("roi.estimator.prompt")}</summary>
                 <p className="mt-2 whitespace-pre-wrap text-sm">{summary.estimator_prompt}</p>
               </details>
             )}
@@ -117,7 +117,7 @@ export function PullReasoningDialog({
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  View on {summary?.source_provider === "gitlab" ? "GitLab" : "GitHub"}
+                  {t("roi.estimator.viewOn", { provider: summary?.source_provider === "gitlab" ? "GitLab" : "GitHub" })}
                 </a>
               )}
             </DialogFooter>
@@ -141,6 +141,7 @@ export function IdentityMatchDialog({
   onClose: () => void;
   onSave: (payload: ROIIdentityMapUpdate) => Promise<void>;
 }) {
+  const { t } = useTranslation();
   const [email, setEmail] = React.useState(() =>
     selection ? identityMap[selection.login.toLowerCase()] ?? selection.person.email ?? "" : "",
   );
@@ -168,8 +169,8 @@ export function IdentityMatchDialog({
     <Dialog open={Boolean(person)} onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Match email</DialogTitle>
-          <DialogDescription>Link {login} to their gateway email. Manual matches take priority.</DialogDescription>
+          <DialogTitle>{t("roi.match.title")}</DialogTitle>
+          <DialogDescription>{t("roi.match.description", { login })}</DialogDescription>
         </DialogHeader>
         <form
           className="space-y-4"
@@ -179,7 +180,7 @@ export function IdentityMatchDialog({
           }}
         >
           <div className="grid gap-2">
-            <Label htmlFor="roi-match-email">Gateway email</Label>
+            <Label htmlFor="roi-match-email">{t("roi.match.gatewayEmail")}</Label>
             <Input
               id="roi-match-email"
               autoComplete="off"
@@ -203,11 +204,11 @@ export function IdentityMatchDialog({
           <DialogFooter>
             {existingEmail && (
               <Button disabled={busy} type="button" variant="outline" onClick={() => void save(null)}>
-                Use automatic match
+                {t("roi.match.useAutomatic")}
               </Button>
             )}
             <Button disabled={busy || !email.trim()} type="submit">
-              {busy ? "Saving…" : "Save match"}
+              {busy ? t("roi.match.saving") : t("roi.match.save")}
             </Button>
           </DialogFooter>
         </form>

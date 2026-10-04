@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { accountLogins, type ObservedPerson } from "./observedData";
+import { useTranslation } from "@/i18n";
 
 const connectionIdentityFields = {
   id: z.string(),
@@ -56,6 +57,7 @@ export default function ObservedAccounts({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const { t } = useTranslation();
   const [identities, setIdentities] = useState<z.infer<typeof identitiesSchema> | null>(null);
   const [email, setEmail] = useState(initialEmail);
   const [logins, setLogins] = useState(people.find((person) => person.email === initialEmail)?.logins.join(", ") ?? "");
@@ -121,20 +123,20 @@ export default function ObservedAccounts({
     >
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Link accounts</DialogTitle>
-          <DialogDescription>Match one internal user to all their source accounts</DialogDescription>
+          <DialogTitle>{t("roi.accounts.link")}</DialogTitle>
+          <DialogDescription>{t("roi.accounts.description")}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-2">
           <div className="space-y-2">
             <label htmlFor="identity-email" className="text-sm font-medium">
-              Internal email
+              {t("roi.accounts.internalEmail")}
             </label>
             <Input
               id="identity-email"
               disabled={!identities}
               list="roi-internal-emails"
               value={email}
-              placeholder="Choose an internal user"
+              placeholder={t("roi.accounts.chooseInternalUser")}
               onChange={(event) => selectEmail(event.target.value)}
             />
             <datalist id="roi-internal-emails">
@@ -145,18 +147,18 @@ export default function ObservedAccounts({
             identities.connections.map((entry) => (
               <div key={entry.id} className="space-y-2">
                 <label htmlFor={`identity-${entry.id}`} className="text-sm font-medium">
-                  {entry.source_provider === "github" ? "GitHub" : "GitLab"} usernames
+                  {t("roi.accounts.usernamesFor", { provider: entry.source_provider === "github" ? "GitHub" : "GitLab" })}
                   <span className="ml-2 text-xs font-normal text-muted-foreground">{new URL(entry.api_url).host}</span>
                 </label>
                 <Input
                   id={`identity-${entry.id}`}
                   value={linked[entry.id] ?? ""}
                   onChange={(event) => setLinked({ ...linked, [entry.id]: event.target.value })}
-                  placeholder="current-account, old-account"
+                  placeholder={t("roi.accounts.usernamePlaceholder")}
                 />
                 {entry.unmatched_logins.length > 0 && (
                   <details className="text-xs text-muted-foreground">
-                    <summary className="cursor-pointer">{entry.unmatched_logins.length} unmatched accounts</summary>
+                    <summary className="cursor-pointer">{t("roi.accounts.unmatchedAccounts", { count: entry.unmatched_logins.length })}</summary>
                     <div className="mt-2 max-h-32 overflow-auto flex flex-wrap gap-1">
                       {entry.unmatched_logins.map((login) => (
                         <Button
@@ -181,26 +183,24 @@ export default function ObservedAccounts({
           ) : (
             <div className="space-y-2">
               <label htmlFor="identity-logins" className="text-sm font-medium">
-                Source usernames
+                {t("roi.accounts.sourceUsernames")}
               </label>
               <Input
                 id="identity-logins"
                 value={logins}
                 onChange={(event) => setLogins(event.target.value)}
-                placeholder="current-account, old-account"
+                placeholder={t("roi.accounts.usernamePlaceholder")}
               />
             </div>
           )}
-          <p className="text-xs text-muted-foreground">
-            Separate accounts with commas. Their merged changes are combined, and gateway spend is counted once
-          </p>
+          <p className="text-xs text-muted-foreground">{t("roi.accounts.commaHint")}</p>
           {error && (
             <p role="alert" className="text-sm text-destructive">
               {error}
             </p>
           )}
           <Button className="w-full" disabled={!identities || !email.trim() || saving} onClick={save}>
-            {saving ? "Saving…" : "Save accounts"}
+            {saving ? t("roi.accounts.saving") : t("roi.accounts.save")}
           </Button>
         </div>
       </DialogContent>
