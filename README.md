@@ -671,13 +671,6 @@ LiteLLM 遵循 [Google Python 风格指南](https://google.github.io/styleguide/
 
 你的 PR 合并前，以上所有检查都必须通过。
 
-# 支持 / 与创始人交流
-
-- [预约演示 👋](https://calendly.com/d/4mp-gd3-k5k/berriai-1-1-onboarding-litellm-hosted-version)
-- [社区 Discord 💭](https://discord.gg/wuPM9dRgDw)
-- [社区 Slack 💭](https://www.litellm.ai/support)
-- 我们的邮箱 ✉️ ishaan@berri.ai / krrish@berri.ai
-
 # 贡献者
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
