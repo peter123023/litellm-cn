@@ -84,6 +84,23 @@ export const en: Record<string, string> = {
   "settingsCallback.deleteDialogMessage":
     "Are you sure you want to delete this callback? This action cannot be undone.",
   "settingsCallback.deleteInfoTitle": "Callback Information",
+
+  // -------------------------------------------------- app/(dashboard)/change-password/ChangePasswordForm.tsx
+  "changePassword.title": "Change Password",
+  "changePassword.description":
+    "Enter your current password and choose a new one. The new password must meet this proxy's password policy.",
+  "changePassword.mustChangeWarning":
+    "Your password must be changed before you can use the dashboard: it was either found in a known data breach or set by an administrator as a temporary password. After updating it, you will be signed out to log in again.",
+  "changePassword.currentPassword": "Current Password",
+  "changePassword.newPassword": "New Password",
+  "changePassword.confirmNewPassword": "Confirm New Password",
+  "changePassword.submit": "Change Password",
+  "changePassword.required_current": "Current password is required",
+  "changePassword.required_new": "New password is required",
+  "changePassword.required_confirm": "Confirm your new password",
+  "changePassword.mismatch": "New passwords do not match",
+  "changePassword.toast.updated": "Password updated",
+  "changePassword.toast.updatedRelogin": "Password updated. Please log in with your new password.",
 };
 
 export const zh: Record<string, string> = {
@@ -163,4 +180,20 @@ export const zh: Record<string, string> = {
   "settingsCallback.deleteDialogTitle": "删除回调",
   "settingsCallback.deleteDialogMessage": "确定要删除这个回调吗？此操作无法撤销。",
   "settingsCallback.deleteInfoTitle": "回调信息",
+
+  // -------------------------------------------------- app/(dashboard)/change-password/ChangePasswordForm.tsx
+  "changePassword.title": "修改密码",
+  "changePassword.description": "请输入当前密码并设置新密码。新密码必须满足此代理的密码策略。",
+  "changePassword.mustChangeWarning":
+    "您必须先修改密码才能使用仪表盘：该密码要么出现在已知的数据泄露中，要么由管理员设置为临时密码。更新后您将被登出并需要重新登录。",
+  "changePassword.currentPassword": "当前密码",
+  "changePassword.newPassword": "新密码",
+  "changePassword.confirmNewPassword": "确认新密码",
+  "changePassword.submit": "修改密码",
+  "changePassword.required_current": "请输入当前密码",
+  "changePassword.required_new": "请输入新密码",
+  "changePassword.required_confirm": "请确认新密码",
+  "changePassword.mismatch": "两次输入的新密码不一致",
+  "changePassword.toast.updated": "密码已更新",
+  "changePassword.toast.updatedRelogin": "密码已更新，请使用新密码重新登录。",
 };
