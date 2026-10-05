@@ -438,6 +438,27 @@ export const en: Record<string, string> = {
   "docLink.label": "API Reference Docs",
   "docLink.title": "Open documentation in a new tab",
   "docLink.opensNewTab": "(opens in a new tab)",
+
+  // -------------------------------------------------- app/(dashboard)/transform-request/TransformRequestPanel.tsx
+  "transformRequest.title": "Playground",
+  "transformRequest.subtitle": "See how LiteLLM transforms your request for the specified provider.",
+  "transformRequest.originalTitle": "Original Request",
+  "transformRequest.originalDesc": "The request you would send to LiteLLM /chat/completions endpoint.",
+  "transformRequest.placeholder": "Press Cmd/Ctrl + Enter to transform",
+  "transformRequest.transform": "Transform",
+  "transformRequest.transformedTitle": "Transformed Request",
+  "transformRequest.transformedDesc": "How LiteLLM transforms your request for the specified provider.",
+  "transformRequest.noteSensitive": "Note: Sensitive headers are not shown.",
+  "transformRequest.copyAria": "Copy to clipboard",
+  "transformRequest.toast.copied": "Copied to clipboard",
+  "transformRequest.toast.invalidJson": "Invalid JSON in request body",
+  "transformRequest.toast.noToken": "No access token found",
+  "transformRequest.toast.success": "Request transformed successfully",
+  "transformRequest.toast.unexpectedFormat": "Transformed request received in unexpected format",
+  "transformRequest.toast.failed": "Failed to transform request",
+  "transformRequest.issuePrefix": "Found an error? File an issue ",
+  "transformRequest.issueLink": "here",
+  "transformRequest.issueSuffix": ".",
 };
 
 export const zh: Record<string, string> = {
@@ -867,4 +888,25 @@ export const zh: Record<string, string> = {
   "docLink.label": "API 参考文档",
   "docLink.title": "在新标签页中打开文档",
   "docLink.opensNewTab": "（在新标签页中打开）",
+
+  // -------------------------------------------------- app/(dashboard)/transform-request/TransformRequestPanel.tsx
+  "transformRequest.title": "调试台",
+  "transformRequest.subtitle": "查看 LiteLLM 会如何针对指定提供商转换您的请求。",
+  "transformRequest.originalTitle": "原始请求",
+  "transformRequest.originalDesc": "您将发送到 LiteLLM /chat/completions 端点的请求。",
+  "transformRequest.placeholder": "按 Cmd/Ctrl + Enter 进行转换",
+  "transformRequest.transform": "转换",
+  "transformRequest.transformedTitle": "转换后的请求",
+  "transformRequest.transformedDesc": "LiteLLM 针对指定提供商转换您请求的方式。",
+  "transformRequest.noteSensitive": "注意：不会显示敏感请求头。",
+  "transformRequest.copyAria": "复制到剪贴板",
+  "transformRequest.toast.copied": "已复制到剪贴板",
+  "transformRequest.toast.invalidJson": "请求体中的 JSON 无效",
+  "transformRequest.toast.noToken": "未找到访问令牌",
+  "transformRequest.toast.success": "请求转换成功",
+  "transformRequest.toast.unexpectedFormat": "收到的转换请求格式异常",
+  "transformRequest.toast.failed": "转换请求失败",
+  "transformRequest.issuePrefix": "发现问题？提交 issue ",
+  "transformRequest.issueLink": "点此",
+  "transformRequest.issueSuffix": "。",
 };
