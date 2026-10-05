@@ -26,6 +26,7 @@ import AccessGroupBudgetsPanel from "@/app/(dashboard)/models-and-endpoints/pane
 import PriceDataPanel from "@/app/(dashboard)/models-and-endpoints/panels/PriceDataPanel";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTranslation } from "@/i18n";
 
 type ModelTabSlug =
   | "add"
@@ -40,16 +41,16 @@ type ModelTabSlug =
 
 const BASE_TAB_KEY = "all-models";
 
-const TAB_LABELS: Record<ModelTabSlug, string> = {
-  add: "Add Model",
-  "auto-routers": "Auto-Routers",
-  "llm-credentials": "LLM Credentials",
-  "pass-through": "Pass-Through Endpoints",
-  health: "Health Status",
-  "retry-settings": "Model Retry Settings",
-  "model-group-alias": "Model Group Alias",
-  "access-group-budgets": "Model Access Group Budgets",
-  "price-data": "Price Data Reload",
+const TAB_KEYS: Record<ModelTabSlug, string> = {
+  add: "modelsPage.tab.add",
+  "auto-routers": "modelsPage.tab.autoRouters",
+  "llm-credentials": "modelsPage.tab.llmCredentials",
+  "pass-through": "modelsPage.tab.passThrough",
+  health: "modelsPage.tab.health",
+  "retry-settings": "modelsPage.tab.retrySettings",
+  "model-group-alias": "modelsPage.tab.modelGroupAlias",
+  "access-group-budgets": "modelsPage.tab.accessGroupBudgets",
+  "price-data": "modelsPage.tab.priceData",
 };
 
 const renderPanel = (key: string) => {
@@ -81,6 +82,7 @@ const renderPanel = (key: string) => {
 
 export default function ModelsAndEndpointsPage() {
   const { accessToken, userRole, userId: userID, premiumUser, isViewOnly } = useAuthorized();
+  const { t } = useTranslation();
   const { data: teams } = useTeams();
   const { data: uiSettings } = useUISettings();
   const queryClient = useQueryClient();
@@ -123,17 +125,18 @@ export default function ModelsAndEndpointsPage() {
     [canCreate, canViewAutoRouters, isAdmin, isViewOnly],
   );
 
-  const allModelsLabel = isAdmin ? "Deployed Models" : "Your Models";
+  const allModelsLabel = isAdmin ? t("modelsPage.deployedModels") : t("modelsPage.yourModels");
   const tabLabel = (slug: "" | ModelTabSlug): React.ReactNode => {
     if (!slug) return allModelsLabel;
+    const label = t(TAB_KEYS[slug]);
     if (slug === "auto-routers" || slug === "access-group-budgets") {
       return (
         <span className="flex items-center gap-2">
-          {TAB_LABELS[slug]} <BetaBadge />
+          {label} <BetaBadge />
         </span>
       );
     }
-    return TAB_LABELS[slug];
+    return label;
   };
 
   const handleRefreshClick = () => {
@@ -166,13 +169,11 @@ export default function ModelsAndEndpointsPage() {
       <div className="mt-2 flex w-full flex-col gap-2 p-8">
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold">Model Management</h2>
+            <h2 className="text-lg font-semibold">{t("modelsPage.managementTitle")}</h2>
             {isAdmin ? (
-              <p className="text-sm text-muted-foreground">Add and manage models for the proxy</p>
+              <p className="text-sm text-muted-foreground">{t("modelsPage.adminSubtitle")}</p>
             ) : (
-              <p className="text-sm text-muted-foreground">
-                View your models and manage routers for teams that allow it.
-              </p>
+              <p className="text-sm text-muted-foreground">{t("modelsPage.viewerSubtitle")}</p>
             )}
           </div>
         </div>
@@ -207,9 +208,16 @@ export default function ModelsAndEndpointsPage() {
               </div>
               <div className="flex shrink-0 items-center gap-2 pb-1">
                 {lastRefreshed && (
-                  <span className="text-xs text-muted-foreground">Last Refreshed: {lastRefreshed}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {t("modelsPage.lastRefreshed", { lastRefreshed })}
+                  </span>
                 )}
-                <Button variant="ghost" size="icon-sm" onClick={handleRefreshClick} aria-label="Refresh models">
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={handleRefreshClick}
+                  aria-label={t("modelsPage.refreshAria")}
+                >
                   <RefreshCw />
                 </Button>
               </div>

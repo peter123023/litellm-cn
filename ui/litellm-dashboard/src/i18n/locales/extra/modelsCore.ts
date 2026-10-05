@@ -187,6 +187,24 @@ export const en: Record<string, string> = {
   "priceData.ready": "Ready",
   "priceData.active": "Active",
   "priceData.never": "Never",
+
+  // -------------------------------------------------- models-and-endpoints/page.tsx
+  "modelsPage.tab.add": "Add Model",
+  "modelsPage.tab.autoRouters": "Auto-Routers",
+  "modelsPage.tab.llmCredentials": "LLM Credentials",
+  "modelsPage.tab.passThrough": "Pass-Through Endpoints",
+  "modelsPage.tab.health": "Health Status",
+  "modelsPage.tab.retrySettings": "Model Retry Settings",
+  "modelsPage.tab.modelGroupAlias": "Model Group Alias",
+  "modelsPage.tab.accessGroupBudgets": "Model Access Group Budgets",
+  "modelsPage.tab.priceData": "Price Data Reload",
+  "modelsPage.deployedModels": "Deployed Models",
+  "modelsPage.yourModels": "Your Models",
+  "modelsPage.managementTitle": "Model Management",
+  "modelsPage.adminSubtitle": "Add and manage models for the proxy",
+  "modelsPage.viewerSubtitle": "View your models and manage routers for teams that allow it.",
+  "modelsPage.lastRefreshed": "Last Refreshed: {lastRefreshed}",
+  "modelsPage.refreshAria": "Refresh models",
 };
 
 export const zh: Record<string, string> = {
@@ -371,4 +389,22 @@ export const zh: Record<string, string> = {
   "priceData.ready": "就绪",
   "priceData.active": "活跃",
   "priceData.never": "从未",
+
+  // -------------------------------------------------- models-and-endpoints/page.tsx
+  "modelsPage.tab.add": "添加模型",
+  "modelsPage.tab.autoRouters": "自动路由",
+  "modelsPage.tab.llmCredentials": "LLM 凭据",
+  "modelsPage.tab.passThrough": "透传端点",
+  "modelsPage.tab.health": "健康状态",
+  "modelsPage.tab.retrySettings": "模型重试设置",
+  "modelsPage.tab.modelGroupAlias": "模型组别名",
+  "modelsPage.tab.accessGroupBudgets": "模型访问组预算",
+  "modelsPage.tab.priceData": "价格数据重载",
+  "modelsPage.deployedModels": "已部署模型",
+  "modelsPage.yourModels": "我的模型",
+  "modelsPage.managementTitle": "模型管理",
+  "modelsPage.adminSubtitle": "为代理添加和管理模型",
+  "modelsPage.viewerSubtitle": "查看你的模型，并管理允许你的团队使用的路由。",
+  "modelsPage.lastRefreshed": "最后刷新：{lastRefreshed}",
+  "modelsPage.refreshAria": "刷新模型",
 };
