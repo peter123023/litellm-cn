@@ -18,6 +18,7 @@ import { useCallback, useMemo, useState } from "react";
 
 import { useModelsInfo } from "../../hooks/models/useModels";
 import { transformModelData } from "../utils/modelDataTransformer";
+import { useTranslation } from "@/i18n";
 import {
   ALL_MODEL_GROUPS_VALUE,
   AllModelsTable,
@@ -81,6 +82,7 @@ const AllModelsTab = ({
   const { accessToken, userId, userRole, isViewOnly } = useAuthorized();
   const { data: teams, isLoading: isLoadingTeams } = useTeams();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   const [tableState, setTableState] = useQueryStates(TABLE_STATE);
   const modelNameSearch = tableState.model_search;
@@ -220,7 +222,7 @@ const AllModelsTab = ({
 
   const teamOptions = useMemo(
     () => [
-      { value: PERSONAL_TEAM_VALUE, label: "Personal" },
+      { value: PERSONAL_TEAM_VALUE, label: t("allModels.personal") },
       ...(teams ?? [])
         .filter((team) => team.team_id)
         .map((team) => ({ value: team.team_id, label: team.team_alias ? team.team_alias : team.team_id })),
@@ -243,7 +245,7 @@ const AllModelsTab = ({
     try {
       setDeleteLoading(true);
       await modelDeleteCall(accessToken, deleteModalModelId);
-      toast.success("Model deleted successfully");
+      toast.success(t("modelInfo.toast.modelDeleted"));
       queryClient.invalidateQueries({ queryKey: ["models", "list"] });
       refetchModels();
     } catch (error) {
@@ -261,7 +263,7 @@ const AllModelsTab = ({
       try {
         setPausingModelId(modelId);
         await modelPatchUpdateCall(accessToken, { blocked }, modelId);
-        toast.success(blocked ? "Model paused" : "Model resumed");
+        toast.success(blocked ? t("allModels.toast.modelPaused") : t("allModels.toast.modelResumed"));
         // invalidateQueries already schedules a refetch for active observers
         // on this key — no need to also call refetchModels() (would double-fetch).
         queryClient.invalidateQueries({ queryKey: ["models", "list"] });
@@ -331,17 +333,17 @@ const AllModelsTab = ({
             <Info className="mt-0.5 size-3.5 shrink-0" />
             {selectedTeamValue === PERSONAL_TEAM_VALUE ? (
               <span>
-                To access these models, create a Virtual Key without selecting a team on the{" "}
+                {t("allModels.accessHintNoTeam")}{" "}
                 <a href={uiHref("api-keys")} className="font-medium text-info hover:underline">
-                  Virtual Keys page
+                  {t("allModels.virtualKeysPage")}
                 </a>
                 .
               </span>
             ) : (
               <span>
-                To access these models, create a Virtual Key and select Team as &quot;{teamAccessLabel}&quot; on the{" "}
+                {t("allModels.accessHintTeam", { team: teamAccessLabel })}{" "}
                 <a href={uiHref("api-keys")} className="font-medium text-info hover:underline">
-                  Virtual Keys page
+                  {t("allModels.virtualKeysPage")}
                 </a>
                 .
               </span>
@@ -352,28 +354,28 @@ const AllModelsTab = ({
 
       <DeleteResourceModal
         isOpen={!!deleteModalModelId}
-        title="Delete Model"
-        alertMessage="This action cannot be undone."
-        message="Are you sure you want to delete this model?"
-        resourceInformationTitle="Model Information"
+        title={t("modelInfo.deleteModel")}
+        alertMessage={t("modelInfo.alertCannotUndo")}
+        message={t("modelInfo.deleteConfirmMessage", { type: t("modelInfo.model") })}
+        resourceInformationTitle={t("modelInfo.resourceInformationTitle")}
         resourceInformation={
           modelToDelete
             ? [
                 {
-                  label: "Model Name",
-                  value: modelToDelete.model_name || "Not Set",
+                  label: t("modelInfo.modelName"),
+                  value: modelToDelete.model_name || t("modelInfo.notSet"),
                 },
                 {
-                  label: "LiteLLM Model Name",
-                  value: modelToDelete.litellm_model_name || "Not Set",
+                  label: t("modelInfo.litellmModelName"),
+                  value: modelToDelete.litellm_model_name || t("modelInfo.notSet"),
                 },
                 {
-                  label: "Provider",
-                  value: modelToDelete.provider || "Not Set",
+                  label: t("modelInfo.provider"),
+                  value: modelToDelete.provider || t("modelInfo.notSet"),
                 },
                 {
-                  label: "Created By",
-                  value: modelToDelete.model_info?.created_by || "Not Set",
+                  label: t("modelInfo.createdBy"),
+                  value: modelToDelete.model_info?.created_by || t("modelInfo.notSet"),
                 },
               ]
             : []
