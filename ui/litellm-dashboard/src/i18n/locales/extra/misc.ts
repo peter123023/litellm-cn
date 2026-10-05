@@ -430,6 +430,14 @@ export const en: Record<string, string> = {
   "tagMgmt.resetBudgetHintExample":
     "How often the budget should reset. For example, setting 'daily' will reset the budget every 24 hours",
   "tagMgmt.createTag": "Create Tag",
+
+  // -------------------------------------------------- app/(dashboard)/api-reference
+  "apiReference.title": "OpenAI Compatible Proxy: API Reference",
+  "apiReference.description":
+    "LiteLLM is OpenAI Compatible. This means your API Key works with the OpenAI SDK. Just replace the base_url to point to your litellm proxy. Example Below",
+  "docLink.label": "API Reference Docs",
+  "docLink.title": "Open documentation in a new tab",
+  "docLink.opensNewTab": "(opens in a new tab)",
 };
 
 export const zh: Record<string, string> = {
@@ -851,4 +859,12 @@ export const zh: Record<string, string> = {
   "tagMgmt.maxBudgetHintBlocked": "该标签最多可花费的美元金额，达到后携带该标签的请求将被阻止",
   "tagMgmt.resetBudgetHintExample": "预算重置的频率。例如设置为 daily 表示每 24 小时重置一次预算",
   "tagMgmt.createTag": "创建标签",
+
+  // -------------------------------------------------- app/(dashboard)/api-reference
+  "apiReference.title": "OpenAI 兼容代理：API 参考",
+  "apiReference.description":
+    "LiteLLM 兼容 OpenAI。这意味着您的 API Key 可与 OpenAI SDK 配合使用。只需将 base_url 替换为指向您的 litellm 代理即可。示例如下",
+  "docLink.label": "API 参考文档",
+  "docLink.title": "在新标签页中打开文档",
+  "docLink.opensNewTab": "（在新标签页中打开）",
 };
