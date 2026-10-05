@@ -515,6 +515,10 @@ export const en: Record<string, string> = {
   "accessGroupBudget.saving": "Saving...",
   "accessGroupBudget.saveBudget": "Save Budget",
   "accessGroupBudget.schemaAtLeastOne": "Set at least one of max budget, soft budget or reset window",
+
+  // -------------------------------------------------- models-and-endpoints/components/PriceDataManagementTab.tsx
+  "priceData.managementTitle": "Price Data Management",
+  "priceData.managementDesc": "Manage model pricing data and configure automatic reload schedules",
 };
 
 export const zh: Record<string, string> = {
@@ -1019,4 +1023,8 @@ export const zh: Record<string, string> = {
   "accessGroupBudget.saving": "保存中...",
   "accessGroupBudget.saveBudget": "保存预算",
   "accessGroupBudget.schemaAtLeastOne": "请至少填写最大预算、软预算或重置周期中的一项",
+
+  // -------------------------------------------------- models-and-endpoints/components/PriceDataManagementTab.tsx
+  "priceData.managementTitle": "价格数据管理",
+  "priceData.managementDesc": "管理模型定价数据并配置自动重载计划",
 };
