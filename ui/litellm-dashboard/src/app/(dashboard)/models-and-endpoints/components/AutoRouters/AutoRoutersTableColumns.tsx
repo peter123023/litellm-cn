@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/cva.config";
+import { DEFAULT_LANGUAGE, translate, type Translate } from "@/i18n";
 
 import { AutoRouterRow } from "./autoRouterRows";
 import { fitPills } from "./fitPills";
@@ -67,14 +68,16 @@ function TargetsCell({ targets }: { targets: string[] }) {
 function AutoRouterRowActions({
   row,
   onDeleteClick,
+  t,
 }: {
   row: AutoRouterRow;
   onDeleteClick: (row: AutoRouterRow) => void;
+  t: Translate;
 }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label={`Open actions for ${row.name}`}
+        aria-label={t("autoRouter.rowActionsAria", { name: row.name })}
         data-testid={`auto-router-actions-${row.id}`}
         className={cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), "text-muted-foreground")}
       >
@@ -87,7 +90,7 @@ function AutoRouterRowActions({
           onClick={() => onDeleteClick(row)}
         >
           <Trash2 />
-          Delete auto router
+          {t("autoRouter.actionDelete")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -98,18 +101,20 @@ interface AutoRoutersTableColumnsDeps {
   canModify: boolean;
   onRouterClick: (row: AutoRouterRow) => void;
   onDeleteClick: (row: AutoRouterRow) => void;
+  t?: Translate;
 }
 
 export const getAutoRoutersTableColumns = ({
   canModify,
   onRouterClick,
   onDeleteClick,
+  t = (key, params) => translate(DEFAULT_LANGUAGE, key, params),
 }: AutoRoutersTableColumnsDeps): ColumnDef<AutoRouterRow>[] => [
   {
     id: "name",
     accessorKey: "name",
-    meta: { title: "Name" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Name" />,
+    meta: { title: t("autoRouter.col.name") },
+    header: ({ column }) => <DataTableSortHeader column={column} title={t("autoRouter.col.name")} />,
     size: 260,
     enableSorting: true,
     cell: ({ row }) => <IdentityCell title={row.original.name || "-"} onClick={() => onRouterClick(row.original)} />,
@@ -117,16 +122,16 @@ export const getAutoRoutersTableColumns = ({
   {
     id: "kind",
     accessorKey: "kind",
-    meta: { title: "Type" },
-    header: "Type",
+    meta: { title: t("autoRouter.col.type") },
+    header: t("autoRouter.col.type"),
     size: 180,
     enableSorting: false,
     cell: ({ row }) => <TypeCell row={row.original} />,
   },
   {
     id: "targets",
-    meta: { title: "Routes to" },
-    header: "Routes to",
+    meta: { title: t("autoRouter.col.routesTo") },
+    header: t("autoRouter.col.routesTo"),
     size: 320,
     enableSorting: false,
     cell: ({ row }) => <TargetsCell targets={row.original.targets} />,
@@ -134,8 +139,8 @@ export const getAutoRoutersTableColumns = ({
   {
     id: "defaultModel",
     accessorKey: "defaultModel",
-    meta: { title: "Default model" },
-    header: "Default model",
+    meta: { title: t("autoRouter.col.defaultModel") },
+    header: t("autoRouter.col.defaultModel"),
     size: 200,
     enableSorting: false,
     cell: ({ row }) =>
@@ -150,8 +155,8 @@ export const getAutoRoutersTableColumns = ({
   {
     id: "createdAt",
     accessorKey: "createdAt",
-    meta: { title: "Created" },
-    header: ({ column }) => <DataTableSortHeader column={column} title="Created" />,
+    meta: { title: t("autoRouter.col.created") },
+    header: ({ column }) => <DataTableSortHeader column={column} title={t("autoRouter.col.created")} />,
     size: 150,
     enableSorting: true,
     sortingFn: "datetime",
@@ -167,7 +172,9 @@ export const getAutoRoutersTableColumns = ({
           size: 60,
           enableSorting: false,
           cell: ({ row }) =>
-            row.original.canDelete ? <AutoRouterRowActions row={row.original} onDeleteClick={onDeleteClick} /> : null,
+            row.original.canDelete ? (
+              <AutoRouterRowActions row={row.original} onDeleteClick={onDeleteClick} t={t} />
+            ) : null,
         } satisfies ColumnDef<AutoRouterRow>,
       ]
     : []),

@@ -418,6 +418,34 @@ export const en: Record<string, string> = {
   "modelInfoEdit.cacheLocation": "Location: ",
   "modelInfoEdit.cacheRole": " Role: ",
   "modelInfoEdit.cacheIndex": " Index: ",
+
+  // -------------------------------------------------- models-and-endpoints/components/AutoRouters
+  "autoRouter.title": "Auto routers",
+  "autoRouter.description":
+    "Auto routers sit above your deployments and pick a model per request. They are called like any other model, so clients keep using a single model name.",
+  "autoRouter.add": "Add Auto Router",
+  "autoRouter.addDialogTitle": "Add Auto Router",
+  "autoRouter.addDialogDescription":
+    "Choose a classifier to route each request to a model. Called like any other model, so clients keep using a single model name.",
+  "autoRouter.deleteTitle": "Delete Auto Router",
+  "autoRouter.deleteMessage":
+    "Are you sure you want to delete \"{name}\"? Any client still calling this model name will start failing.",
+  "autoRouter.resourceInfoTitle": "Auto router",
+  "autoRouter.infoId": "ID",
+  "autoRouter.col.name": "Name",
+  "autoRouter.col.type": "Type",
+  "autoRouter.col.routesTo": "Routes to",
+  "autoRouter.col.defaultModel": "Default model",
+  "autoRouter.col.created": "Created",
+  "autoRouter.emptyTitle": "No auto routers yet",
+  "autoRouter.emptyCanCreate":
+    "Create an auto router to pick the right model per request instead of pinning one.",
+  "autoRouter.emptyReadOnly": "An auto router picks the right model per request instead of pinning one.",
+  "autoRouter.loading": "Loading auto routers…",
+  "autoRouter.rowActionsAria": "Open actions for {name}",
+  "autoRouter.actionDelete": "Delete auto router",
+  "autoRouter.toast.deleted": "Deleted auto router: {name}",
+  "autoRouter.toast.deleteFailed": "Failed to delete auto router: {error}",
 };
 
 export const zh: Record<string, string> = {
@@ -829,4 +857,30 @@ export const zh: Record<string, string> = {
   "modelInfoEdit.cacheLocation": "位置：",
   "modelInfoEdit.cacheRole": "角色：",
   "modelInfoEdit.cacheIndex": "索引：",
+
+  // -------------------------------------------------- models-and-endpoints/components/AutoRouters
+  "autoRouter.title": "自动路由",
+  "autoRouter.description":
+    "自动路由位于您的部署之上，并为每个请求挑选模型。它们像其他模型一样被调用，因此客户端可以继续使用单一模型名称。",
+  "autoRouter.add": "添加自动路由",
+  "autoRouter.addDialogTitle": "添加自动路由",
+  "autoRouter.addDialogDescription":
+    "选择一个分类器，将每个请求路由到某个模型。它像其他模型一样被调用，因此客户端可以继续使用单一模型名称。",
+  "autoRouter.deleteTitle": "删除自动路由",
+  "autoRouter.deleteMessage": "确定要删除“{name}”吗？任何仍在调用此模型名称的客户端都将开始失败。",
+  "autoRouter.resourceInfoTitle": "自动路由",
+  "autoRouter.infoId": "ID",
+  "autoRouter.col.name": "名称",
+  "autoRouter.col.type": "类型",
+  "autoRouter.col.routesTo": "路由到",
+  "autoRouter.col.defaultModel": "默认模型",
+  "autoRouter.col.created": "创建时间",
+  "autoRouter.emptyTitle": "暂无自动路由",
+  "autoRouter.emptyCanCreate": "创建一个自动路由，以便按请求挑选合适的模型，而不必固定某一个。",
+  "autoRouter.emptyReadOnly": "自动路由会按请求挑选合适的模型，而不必固定某一个。",
+  "autoRouter.loading": "正在加载自动路由…",
+  "autoRouter.rowActionsAria": "打开 {name} 的操作菜单",
+  "autoRouter.actionDelete": "删除自动路由",
+  "autoRouter.toast.deleted": "已删除自动路由：{name}",
+  "autoRouter.toast.deleteFailed": "删除自动路由失败：{error}",
 };
