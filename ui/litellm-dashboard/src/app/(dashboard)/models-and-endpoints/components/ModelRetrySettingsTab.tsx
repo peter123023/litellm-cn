@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useTranslation } from "@/i18n";
 
 interface GlobalRetryPolicyObject {
   [retryPolicyKey: string]: number;
@@ -27,17 +28,18 @@ interface ModelRetrySettingsTabProps {
   isSaving?: boolean;
 }
 
-const retryPolicyMap: Record<string, string> = {
-  "BadRequestError (400)": "BadRequestErrorRetries",
-  "AuthenticationError  (401)": "AuthenticationErrorRetries",
-  "TimeoutError (408)": "TimeoutErrorRetries",
-  "RateLimitError (429)": "RateLimitErrorRetries",
-  "ContentPolicyViolationError (400)": "ContentPolicyViolationErrorRetries",
-  "InternalServerError (500)": "InternalServerErrorRetries",
-  "ServiceUnavailableError (503)": "ServiceUnavailableErrorRetries",
-  "NotFoundError (404)": "NotFoundErrorRetries",
-  "All other errors": "DefaultRetries",
-};
+// Display label and policy key are separate: the label is translated, the key is a wire value.
+const RETRY_POLICY_ENTRIES: { labelKey: string; retryPolicyKey: string }[] = [
+  { labelKey: "modelRetry.err.badRequest", retryPolicyKey: "BadRequestErrorRetries" },
+  { labelKey: "modelRetry.err.authentication", retryPolicyKey: "AuthenticationErrorRetries" },
+  { labelKey: "modelRetry.err.timeout", retryPolicyKey: "TimeoutErrorRetries" },
+  { labelKey: "modelRetry.err.rateLimit", retryPolicyKey: "RateLimitErrorRetries" },
+  { labelKey: "modelRetry.err.contentPolicy", retryPolicyKey: "ContentPolicyViolationErrorRetries" },
+  { labelKey: "modelRetry.err.internalServer", retryPolicyKey: "InternalServerErrorRetries" },
+  { labelKey: "modelRetry.err.serviceUnavailable", retryPolicyKey: "ServiceUnavailableErrorRetries" },
+  { labelKey: "modelRetry.err.notFound", retryPolicyKey: "NotFoundErrorRetries" },
+  { labelKey: "modelRetry.err.allOther", retryPolicyKey: "DefaultRetries" },
+];
 
 const isValidRetryCount = (value: number) => Number.isFinite(value) && Number.isInteger(value) && value >= 0;
 
@@ -53,9 +55,10 @@ const ModelRetrySettingsTab = ({
   handleSaveRetrySettings,
   isSaving = false,
 }: ModelRetrySettingsTabProps) => {
+  const { t } = useTranslation();
   const isGlobalScope = selectedModelGroup === "global";
   const scopeItems = [
-    { value: "global", label: "Global Default" },
+    { value: "global", label: t("modelRetry.globalDefault") },
     ...availableModelGroups.map((group) => ({ value: group, label: group })),
   ];
 
@@ -86,7 +89,7 @@ const ModelRetrySettingsTab = ({
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <Label htmlFor="retry-policy-scope">Retry Policy Scope:</Label>
+        <Label htmlFor="retry-policy-scope">{t("modelRetry.scopeLabel")}</Label>
         <div className="w-48">
           <Select
             items={scopeItems}
@@ -109,22 +112,19 @@ const ModelRetrySettingsTab = ({
 
       {isGlobalScope ? (
         <div>
-          <h2 className="text-lg font-semibold">Global Retry Policy</h2>
-          <p className="text-sm text-muted-foreground">
-            Default retry settings applied to all model groups unless overridden
-          </p>
+          <h2 className="text-lg font-semibold">{t("modelRetry.globalTitle")}</h2>
+          <p className="text-sm text-muted-foreground">{t("modelRetry.globalDesc")}</p>
         </div>
       ) : (
         <div>
-          <h2 className="text-lg font-semibold">Retry Policy for {selectedModelGroup}</h2>
-          <p className="text-sm text-muted-foreground">
-            Model-specific retry settings. Falls back to global defaults if not set.
-          </p>
+          <h2 className="text-lg font-semibold">{t("modelRetry.groupTitle", { group: selectedModelGroup ?? "" })}</h2>
+          <p className="text-sm text-muted-foreground">{t("modelRetry.groupDesc")}</p>
         </div>
       )}
       <table className="w-full">
         <tbody>
-          {Object.entries(retryPolicyMap).map(([exceptionType, retryPolicyKey]) => {
+          {RETRY_POLICY_ENTRIES.map(({ labelKey, retryPolicyKey }) => {
+            const exceptionType = t(labelKey);
             const inheritedValue = globalRetryPolicy?.[retryPolicyKey] ?? defaultRetry;
             const override = isGlobalScope ? undefined : modelGroupRetryPolicy?.[selectedModelGroup!]?.[retryPolicyKey];
             const hasOverride = override != null;
@@ -134,14 +134,16 @@ const ModelRetrySettingsTab = ({
                 <td className="text-sm">
                   <span>{exceptionType}</span>
                   {!isGlobalScope && (
-                    <span className="ml-2 text-xs text-muted-foreground">(Global: {inheritedValue})</span>
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      {t("modelRetry.globalValue", { value: inheritedValue })}
+                    </span>
                   )}
                 </td>
                 <td className="flex items-center gap-2">
                   <Input
                     className="w-28"
                     type="number"
-                    aria-label={`${exceptionType} retry count`}
+                    aria-label={t("modelRetry.retryCountAria", { type: exceptionType })}
                     min={0}
                     step={1}
                     value={isGlobalScope ? inheritedValue : hasOverride ? override : ""}
@@ -150,7 +152,7 @@ const ModelRetrySettingsTab = ({
                   />
                   {!isGlobalScope && hasOverride && (
                     <Button variant="ghost" size="xs" onClick={() => setModelOverride(retryPolicyKey, null)}>
-                      Reset
+                      {t("modelRetry.reset")}
                     </Button>
                   )}
                 </td>
@@ -161,7 +163,7 @@ const ModelRetrySettingsTab = ({
       </table>
       <Button onClick={handleSaveRetrySettings} disabled={isSaving}>
         {isSaving && <LoaderCircle className="animate-spin" />}
-        Save
+        {t("modelRetry.save")}
       </Button>
     </div>
   );

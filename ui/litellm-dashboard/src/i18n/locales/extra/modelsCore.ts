@@ -446,6 +446,29 @@ export const en: Record<string, string> = {
   "autoRouter.actionDelete": "Delete auto router",
   "autoRouter.toast.deleted": "Deleted auto router: {name}",
   "autoRouter.toast.deleteFailed": "Failed to delete auto router: {error}",
+
+  // -------------------------------------------------- models-and-endpoints ModelRetrySettings
+  "modelRetry.scopeLabel": "Retry Policy Scope:",
+  "modelRetry.globalDefault": "Global Default",
+  "modelRetry.globalTitle": "Global Retry Policy",
+  "modelRetry.globalDesc": "Default retry settings applied to all model groups unless overridden",
+  "modelRetry.groupTitle": "Retry Policy for {group}",
+  "modelRetry.groupDesc": "Model-specific retry settings. Falls back to global defaults if not set.",
+  "modelRetry.globalValue": "(Global: {value})",
+  "modelRetry.retryCountAria": "{type} retry count",
+  "modelRetry.reset": "Reset",
+  "modelRetry.save": "Save",
+  "modelRetry.toast.saved": "Retry settings saved successfully",
+  "modelRetry.toast.saveFailed": "Failed to save retry settings",
+  "modelRetry.err.badRequest": "BadRequestError (400)",
+  "modelRetry.err.authentication": "AuthenticationError  (401)",
+  "modelRetry.err.timeout": "TimeoutError (408)",
+  "modelRetry.err.rateLimit": "RateLimitError (429)",
+  "modelRetry.err.contentPolicy": "ContentPolicyViolationError (400)",
+  "modelRetry.err.internalServer": "InternalServerError (500)",
+  "modelRetry.err.serviceUnavailable": "ServiceUnavailableError (503)",
+  "modelRetry.err.notFound": "NotFoundError (404)",
+  "modelRetry.err.allOther": "All other errors",
 };
 
 export const zh: Record<string, string> = {
@@ -883,4 +906,28 @@ export const zh: Record<string, string> = {
   "autoRouter.actionDelete": "删除自动路由",
   "autoRouter.toast.deleted": "已删除自动路由：{name}",
   "autoRouter.toast.deleteFailed": "删除自动路由失败：{error}",
+
+  // -------------------------------------------------- models-and-endpoints ModelRetrySettings
+  "modelRetry.scopeLabel": "重试策略范围：",
+  "modelRetry.globalDefault": "全局默认",
+  "modelRetry.globalTitle": "全局重试策略",
+  "modelRetry.globalDesc": "默认重试设置，适用于所有模型组，除非被覆盖",
+  "modelRetry.groupTitle": "{group} 的重试策略",
+  "modelRetry.groupDesc": "模型专属重试设置。若未设置则回退到全局默认值。",
+  "modelRetry.globalValue": "（全局：{value}）",
+  "modelRetry.retryCountAria": "{type} 重试次数",
+  "modelRetry.reset": "重置",
+  "modelRetry.save": "保存",
+  "modelRetry.toast.saved": "重试设置保存成功",
+  "modelRetry.toast.saveFailed": "保存重试设置失败",
+  // 异常类名保持英文（技术标识），仅 "All other errors" 这类叙述性文案翻译
+  "modelRetry.err.badRequest": "BadRequestError (400)",
+  "modelRetry.err.authentication": "AuthenticationError (401)",
+  "modelRetry.err.timeout": "TimeoutError (408)",
+  "modelRetry.err.rateLimit": "RateLimitError (429)",
+  "modelRetry.err.contentPolicy": "ContentPolicyViolationError (400)",
+  "modelRetry.err.internalServer": "InternalServerError (500)",
+  "modelRetry.err.serviceUnavailable": "ServiceUnavailableError (503)",
+  "modelRetry.err.notFound": "NotFoundError (404)",
+  "modelRetry.err.allOther": "其他所有错误",
 };
