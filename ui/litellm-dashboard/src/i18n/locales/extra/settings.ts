@@ -101,6 +101,23 @@ export const en: Record<string, string> = {
   "changePassword.mismatch": "New passwords do not match",
   "changePassword.toast.updated": "Password updated",
   "changePassword.toast.updatedRelogin": "Password updated. Please log in with your new password.",
+
+  // -------------------------------------------------- app/(dashboard)/ui-theme/UIThemeSettings.tsx
+  "uiTheme.title": "UI Theme Customization",
+  "uiTheme.description": "Customize your LiteLLM admin dashboard with a custom logo and favicon.",
+  "uiTheme.logoUrl": "Custom Logo URL",
+  "uiTheme.logoUrlHint": "Enter a URL for your custom logo or leave empty for default",
+  "uiTheme.logoUrlDark": "Custom Logo URL (dark mode)",
+  "uiTheme.logoUrlDarkHint":
+    "Enter a URL for a logo suited to dark backgrounds, or leave empty to reuse the logo above",
+  "uiTheme.faviconUrl": "Custom Favicon URL",
+  "uiTheme.faviconUrlHint": "Enter a URL for your custom favicon (.ico, .png, or .svg) or leave empty for default",
+  "uiTheme.saveChanges": "Save Changes",
+  "uiTheme.resetToDefault": "Reset to Default",
+  "uiTheme.toast.updated": "Theme settings updated successfully!",
+  "uiTheme.toast.updateFailed": "Failed to update theme settings",
+  "uiTheme.toast.reset": "Theme settings reset to default!",
+  "uiTheme.toast.resetFailed": "Failed to reset theme settings",
 };
 
 export const zh: Record<string, string> = {
@@ -196,4 +213,20 @@ export const zh: Record<string, string> = {
   "changePassword.mismatch": "两次输入的新密码不一致",
   "changePassword.toast.updated": "密码已更新",
   "changePassword.toast.updatedRelogin": "密码已更新，请使用新密码重新登录。",
+
+  // -------------------------------------------------- app/(dashboard)/ui-theme/UIThemeSettings.tsx
+  "uiTheme.title": "UI 主题自定义",
+  "uiTheme.description": "使用自定义 Logo 和网站图标来定制您的 LiteLLM 管理仪表盘。",
+  "uiTheme.logoUrl": "自定义 Logo URL",
+  "uiTheme.logoUrlHint": "输入自定义 Logo 的 URL，留空则使用默认",
+  "uiTheme.logoUrlDark": "自定义 Logo URL（深色模式）",
+  "uiTheme.logoUrlDarkHint": "输入适合深色背景的 Logo URL，留空则复用上方的 Logo",
+  "uiTheme.faviconUrl": "自定义网站图标 URL",
+  "uiTheme.faviconUrlHint": "输入自定义网站图标（.ico、.png 或 .svg）的 URL，留空则使用默认",
+  "uiTheme.saveChanges": "保存更改",
+  "uiTheme.resetToDefault": "恢复默认",
+  "uiTheme.toast.updated": "主题设置更新成功！",
+  "uiTheme.toast.updateFailed": "更新主题设置失败",
+  "uiTheme.toast.reset": "主题设置已恢复默认！",
+  "uiTheme.toast.resetFailed": "重置主题设置失败",
 };
