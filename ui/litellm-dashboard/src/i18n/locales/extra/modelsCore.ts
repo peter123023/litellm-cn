@@ -324,6 +324,29 @@ export const en: Record<string, string> = {
   "allModels.pause.resumeAria": "Resume model",
   "allModels.pause.pauseAria": "Pause model",
   "allModels.delete.configTooltip": "Config model cannot be deleted on the dashboard. Please delete it from the config file.",
+
+  // -------------------------------------------------- model_group_alias_settings.tsx
+  "modelGroupAlias.title": "Model Group Alias Settings",
+  "modelGroupAlias.description":
+    "Create aliases for your model groups to simplify API calls. For example, you can create an alias 'gpt-4o' that points to 'gpt-4o-mini-openai' model group.",
+  "modelGroupAlias.addNewAlias": "Add New Alias",
+  "modelGroupAlias.aliasName": "Alias Name",
+  "modelGroupAlias.targetModelGroup": "Target Model Group",
+  "modelGroupAlias.addAlias": "Add Alias",
+  "modelGroupAlias.manageExisting": "Manage Existing Aliases",
+  "modelGroupAlias.actions": "Actions",
+  "modelGroupAlias.save": "Save",
+  "modelGroupAlias.cancel": "Cancel",
+  "modelGroupAlias.noAliases": "No aliases added yet. Add a new alias above.",
+  "modelGroupAlias.configExample": "Configuration Example",
+  "modelGroupAlias.configExampleDesc": "Here's how your current aliases would look in the config.yaml:",
+  "modelGroupAlias.noAliasesConfigured": "# No aliases configured yet",
+  "modelGroupAlias.toast.saveFailed": "Failed to save model group alias settings",
+  "modelGroupAlias.toast.provideBoth": "Please provide both alias name and target model group",
+  "modelGroupAlias.toast.duplicate": "An alias with this name already exists",
+  "modelGroupAlias.toast.added": "Alias added successfully",
+  "modelGroupAlias.toast.updated": "Alias updated successfully",
+  "modelGroupAlias.toast.deleted": "Alias deleted successfully",
 };
 
 export const zh: Record<string, string> = {
@@ -644,4 +667,27 @@ export const zh: Record<string, string> = {
   "allModels.pause.resumeAria": "恢复模型",
   "allModels.pause.pauseAria": "暂停模型",
   "allModels.delete.configTooltip": "配置模型无法在仪表盘中删除，请从配置文件删除。",
+
+  // -------------------------------------------------- model_group_alias_settings.tsx
+  "modelGroupAlias.title": "模型组别名设置",
+  "modelGroupAlias.description":
+    "为您的模型组创建别名以简化 API 调用。例如，您可以创建一个别名 'gpt-4o' 指向 'gpt-4o-mini-openai' 模型组。",
+  "modelGroupAlias.addNewAlias": "添加新别名",
+  "modelGroupAlias.aliasName": "别名名称",
+  "modelGroupAlias.targetModelGroup": "目标模型组",
+  "modelGroupAlias.addAlias": "添加别名",
+  "modelGroupAlias.manageExisting": "管理现有别名",
+  "modelGroupAlias.actions": "操作",
+  "modelGroupAlias.save": "保存",
+  "modelGroupAlias.cancel": "取消",
+  "modelGroupAlias.noAliases": "尚未添加任何别名。请在上方添加新别名。",
+  "modelGroupAlias.configExample": "配置示例",
+  "modelGroupAlias.configExampleDesc": "以下是您当前别名在 config.yaml 中的样子：",
+  "modelGroupAlias.noAliasesConfigured": "# 尚未配置任何别名",
+  "modelGroupAlias.toast.saveFailed": "保存模型组别名设置失败",
+  "modelGroupAlias.toast.provideBoth": "请提供别名名称和目标模型组",
+  "modelGroupAlias.toast.duplicate": "已存在同名别名",
+  "modelGroupAlias.toast.added": "别名添加成功",
+  "modelGroupAlias.toast.updated": "别名更新成功",
+  "modelGroupAlias.toast.deleted": "别名删除成功",
 };
