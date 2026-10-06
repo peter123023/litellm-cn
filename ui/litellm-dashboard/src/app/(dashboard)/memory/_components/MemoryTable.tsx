@@ -8,6 +8,7 @@ import { MemoryRow } from "@/components/networking";
 import { DataTable, DataTableToolbar } from "@/components/shared/DataTable";
 
 import { getMemoryTableColumns } from "./MemoryTableColumns";
+import { useTranslation, type Translate } from "@/i18n";
 
 interface MemoryTableProps {
   data: MemoryRow[];
@@ -25,19 +26,17 @@ interface MemoryTableProps {
   onDeleteClick: (row: MemoryRow) => void;
 }
 
-function MemoryEmptyState({ hasActiveSearch }: { hasActiveSearch: boolean }) {
+function MemoryEmptyState({ hasActiveSearch, t }: { hasActiveSearch: boolean; t: Translate }) {
   return (
     <div className="flex flex-col items-center gap-1 py-6">
       <div className="mb-1 flex size-10 items-center justify-center rounded-lg bg-muted">
         <Database className="size-5 text-muted-foreground" />
       </div>
       <div className="text-sm font-medium text-foreground">
-        {hasActiveSearch ? "No matching memories" : "No memories stored yet"}
+        {hasActiveSearch ? t("memory.emptySearchTitle") : t("memory.emptyTitle")}
       </div>
       <div className="text-sm text-muted-foreground">
-        {hasActiveSearch
-          ? "No memories match your search."
-          : "Memories your agents store under /v1/memory will appear here."}
+        {hasActiveSearch ? t("memory.emptySearchDesc") : t("memory.emptyDesc")}
       </div>
     </div>
   );
@@ -58,10 +57,11 @@ export function MemoryTable({
   onEditClick,
   onDeleteClick,
 }: MemoryTableProps) {
+  const { t } = useTranslation();
   const columns = useMemo(() => {
-    const columnDeps = { onViewClick, onEditClick, onDeleteClick };
+    const columnDeps = { onViewClick, onEditClick, onDeleteClick, t };
     return getMemoryTableColumns(columnDeps);
-  }, [onViewClick, onEditClick, onDeleteClick]);
+  }, [onViewClick, onEditClick, onDeleteClick, t]);
 
   return (
     <DataTable
@@ -73,15 +73,15 @@ export function MemoryTable({
       onPaginationChange={onPaginationChange}
       rowCount={rowCount}
       isLoading={isLoading}
-      loadingMessage="Loading memories…"
-      noDataMessage={<MemoryEmptyState hasActiveSearch={hasActiveSearch} />}
+      loadingMessage={t("memory.loading")}
+      noDataMessage={<MemoryEmptyState hasActiveSearch={hasActiveSearch} t={t} />}
       size="compact"
       toolbar={(table) => (
         <DataTableToolbar
           table={table}
           searchValue={searchValue}
           onSearchChange={onSearchChange}
-          searchPlaceholder="Search by key prefix or memory ID…"
+          searchPlaceholder={t("memory.searchPlaceholder")}
           onRefresh={onRefresh}
           isRefreshing={isRefreshing}
           showViewOptions={false}
