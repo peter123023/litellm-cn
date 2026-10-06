@@ -15,6 +15,7 @@ import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTranslation, type Translate } from "@/i18n";
 import {
   buildBucketTotals,
   buildSeries,
@@ -50,8 +51,21 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 const SCALES = ["linear", "log"] as const;
 const GRANULARITIES = ["day", "week"] as const;
-const GRANULARITY_LABELS: Record<Granularity, string> = { day: "Daily", week: "Weekly" };
-const METRIC_LABELS: Record<Metric, string> = { requests: "requests", spend: "spend", tokens: "tokens" };
+// Labels live at module scope, so they hold i18n keys and are translated at render time.
+const GRANULARITY_LABELS: Record<Granularity, string> = {
+  day: "modelInsights.granularity.daily",
+  week: "modelInsights.granularity.weekly",
+};
+const GRANULARITY_KEYS = GRANULARITY_LABELS;
+const METRIC_LABELS: Record<Metric, string> = {
+  requests: "modelInsights.metricLower.requests",
+  spend: "modelInsights.metricLower.spend",
+  tokens: "modelInsights.metricLower.tokens",
+};
+const SCALE_LABELS: Record<Scale, string> = {
+  linear: "modelInsights.scale.linear",
+  log: "modelInsights.scale.log",
+};
 const RANKING_ROWS = 5;
 
 type Scale = (typeof SCALES)[number];
@@ -75,13 +89,15 @@ const DeltaBadge = ({ value }: { value: number }) => {
   );
 };
 
-const RankingRow = ({ model, rank }: { model: RankedModel; rank: number }) => (
+const RankingRow = ({ model, rank, t }: { model: RankedModel; rank: number; t: Translate }) => (
   <li className="grid grid-cols-[1.5rem_2.5rem_1fr_auto] items-center gap-3 py-2">
     <span className="text-sm tabular-nums text-muted-foreground">{rank}</span>
     <ProviderLogo provider={model.provider} className="size-9 rounded-md border p-1" />
     <div className="min-w-0">
       <p className="truncate font-medium">{model.model_group}</p>
-      <p className="truncate text-sm text-muted-foreground">by {model.provider}</p>
+      <p className="truncate text-sm text-muted-foreground">
+        {t("modelInsights.byProvider", { provider: model.provider })}
+      </p>
     </div>
     <div className="text-right">
       <p className="font-medium tabular-nums">{model.share.toFixed(1)}%</p>
@@ -114,6 +130,7 @@ const TaskTileContent = ({ x, y, width, height, category, label, leader }: TileP
 };
 
 export default function ModelInsightsView({ accessToken }: { accessToken: string | null }) {
+  const { t } = useTranslation();
   const [loaded, setLoaded] = React.useState<{ metric: Metric; response: ModelInsightsResponse } | null>(null);
   const [metric, setMetric] = React.useState<Metric>("tokens");
   const [scale, setScale] = React.useState<Scale>("linear");
@@ -190,7 +207,7 @@ export default function ModelInsightsView({ accessToken }: { accessToken: string
     return (
       <div className="p-8">
         <Alert variant="destructive">
-          <AlertTitle>Could not load model insights</AlertTitle>
+          <AlertTitle>{t("modelInsights.loadError")}</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       </div>
@@ -215,19 +232,22 @@ export default function ModelInsightsView({ accessToken }: { accessToken: string
       <PageHeader>
         <PageHeaderTitle>
           <BarChart3 />
-          Model Leaderboard
+          {t("modelInsights.title")}
         </PageHeaderTitle>
         <PageHeaderDescription>
-          See which models your gateway used from {data.start_date} through {data.end_date}
+          {t("modelInsights.subtitle", { start: data.start_date, end: data.end_date })}
         </PageHeaderDescription>
       </PageHeader>
 
       <Card aria-busy={isStale} className={isStale ? "opacity-60 transition-opacity" : "transition-opacity"}>
         <CardHeader className="flex-row items-start justify-between space-y-0">
           <div>
-            <CardTitle>Top models</CardTitle>
+            <CardTitle>{t("modelInsights.topModels")}</CardTitle>
             <CardDescription>
-              {GRANULARITY_LABELS[granularity]} {METRIC_LABELS[shown]} across your gateway
+              {t("modelInsights.topModelsDesc", {
+                granularity: t(GRANULARITY_LABELS[granularity]),
+                metric: t(METRIC_LABELS[shown]),
+              })}
             </CardDescription>
           </div>
           <div className="flex items-center gap-3">
@@ -235,16 +255,16 @@ export default function ModelInsightsView({ accessToken }: { accessToken: string
               <TabsList>
                 {(["requests", "spend", "tokens"] as const).map((value) => (
                   <TabsTrigger key={value} value={value} className="capitalize">
-                    {value}
+                    {t(METRIC_LABELS[value])}
                   </TabsTrigger>
                 ))}
               </TabsList>
             </Tabs>
             <Tabs value={granularity} onValueChange={(value) => setGranularity(value as Granularity)}>
-              <TabsList aria-label="Bucket size">
+              <TabsList aria-label={t("modelInsights.bucketSizeAria")}>
                 {GRANULARITIES.map((value) => (
                   <TabsTrigger key={value} value={value}>
-                    {GRANULARITY_LABELS[value]}
+                    {t(GRANULARITY_KEYS[value])}
                   </TabsTrigger>
                 ))}
               </TabsList>
@@ -253,7 +273,7 @@ export default function ModelInsightsView({ accessToken }: { accessToken: string
               <TabsList>
                 {SCALES.map((value) => (
                   <TabsTrigger key={value} value={value} className="capitalize">
-                    {value}
+                    {t(SCALE_LABELS[value])}
                   </TabsTrigger>
                 ))}
               </TabsList>
@@ -277,7 +297,10 @@ export default function ModelInsightsView({ accessToken }: { accessToken: string
                 content={
                   <ChartTooltipContent
                     labelFormatter={(label) =>
-                      `${label} · Gateway total ${formatMetric(bucketTotals.get(String(label)) ?? 0, shown)}`
+                      t("modelInsights.tooltipLabel", {
+                        label: String(label),
+                        total: formatMetric(bucketTotals.get(String(label)) ?? 0, shown),
+                      })
                     }
                   />
                 }
@@ -298,20 +321,20 @@ export default function ModelInsightsView({ accessToken }: { accessToken: string
 
       <Card aria-busy={isStale} className={isStale ? "opacity-60 transition-opacity" : "transition-opacity"}>
         <CardHeader>
-          <CardTitle>Leaderboard</CardTitle>
+          <CardTitle>{t("modelInsights.leaderboard")}</CardTitle>
           <CardDescription>
-            Share of {METRIC_LABELS[shown]}, with the change between the first and second half of the period
+            {t("modelInsights.leaderboardDesc", { metric: t(METRIC_LABELS[shown]) })}
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-x-12 md:grid-cols-2">
           <ol className="divide-y">
             {ranking.slice(0, RANKING_ROWS).map((model, index) => (
-              <RankingRow key={model.model_group} model={model} rank={index + 1} />
+              <RankingRow key={model.model_group} model={model} rank={index + 1} t={t} />
             ))}
           </ol>
           <ol className="divide-y">
             {ranking.slice(RANKING_ROWS).map((model, index) => (
-              <RankingRow key={model.model_group} model={model} rank={RANKING_ROWS + index + 1} />
+              <RankingRow key={model.model_group} model={model} rank={RANKING_ROWS + index + 1} t={t} />
             ))}
           </ol>
         </CardContent>
@@ -321,27 +344,27 @@ export default function ModelInsightsView({ accessToken }: { accessToken: string
         <CardHeader className="flex-row items-start justify-between space-y-0">
           <div>
             <CardTitle className="flex items-center gap-2">
-              <Layers className="size-5" /> Top models by task
+              <Layers className="size-5" /> {t("modelInsights.tasksTitle")}
             </CardTitle>
             <CardDescription>
-              Each task&apos;s share of {METRIC_LABELS[taskMetric]}, labelled with its leading model
+              {t("modelInsights.tasksDesc", { metric: t(METRIC_LABELS[taskMetric]) })}
             </CardDescription>
           </div>
           <Select value={taskMetric} onValueChange={(value) => setTaskMetric(value as Metric)}>
-            <SelectTrigger className="w-44" aria-label="Task metric">
+            <SelectTrigger className="w-44" aria-label={t("modelInsights.taskMetricAria")}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="spend">Share of spend</SelectItem>
-              <SelectItem value="requests">Share of requests</SelectItem>
-              <SelectItem value="tokens">Share of tokens</SelectItem>
+              <SelectItem value="spend">{t("modelInsights.shareOf.spend")}</SelectItem>
+              <SelectItem value="requests">{t("modelInsights.shareOf.requests")}</SelectItem>
+              <SelectItem value="tokens">{t("modelInsights.shareOf.tokens")}</SelectItem>
             </SelectContent>
           </Select>
         </CardHeader>
         <CardContent className="space-y-4">
           {taskError && (
             <Alert variant="destructive">
-              <AlertTitle>Could not load tasks</AlertTitle>
+              <AlertTitle>{t("modelInsights.tasksLoadError")}</AlertTitle>
               <AlertDescription>{taskError}</AlertDescription>
             </Alert>
           )}
@@ -370,14 +393,11 @@ export default function ModelInsightsView({ accessToken }: { accessToken: string
 
       <Card>
         <CardHeader>
-          <CardTitle>Cost per session</CardTitle>
-          <CardDescription>Session cost is not estimated from request counts</CardDescription>
+          <CardTitle>{t("modelInsights.costPerSession")}</CardTitle>
+          <CardDescription>{t("modelInsights.costPerSessionDesc")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Add a stable session_id to requests to unlock accurate session-level model comparisons in a future bounded
-            session rollup
-          </p>
+          <p className="text-sm text-muted-foreground">{t("modelInsights.costPerSessionHint")}</p>
         </CardContent>
       </Card>
     </Page>
