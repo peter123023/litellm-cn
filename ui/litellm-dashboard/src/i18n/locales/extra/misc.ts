@@ -627,6 +627,16 @@ export const en: Record<string, string> = {
     "Each guardrail's cost is its units per counter × that counter's per-unit price from the cost map. Open a guardrail for its per-counter math.",
   "guardrailMonitor.unpricedTooltip":
     "{units}: these units have no known price and are left out of the cost",
+  "guardrailMonitor.backToOverview": "Back to Overview",
+  "guardrailMonitor.detailLoadError": "Failed to load guardrail details.",
+  "guardrailMonitor.tab.overview": "Overview",
+  "guardrailMonitor.tab.logs": "Logs",
+  "guardrailMonitor.detail.requestsEvaluated": "Requests Evaluated",
+  "guardrailMonitor.detail.failRate": "Fail Rate",
+  "guardrailMonitor.detail.avgLatency": "Avg. latency added",
+  "guardrailMonitor.detail.blocked": "{count} blocked",
+  "guardrailMonitor.detail.perRequest": "Per request (avg)",
+  "guardrailMonitor.detail.noData": "No data",
 };
 
 export const zh: Record<string, string> = {
@@ -1242,4 +1252,14 @@ export const zh: Record<string, string> = {
   "guardrailMonitor.calcNote":
     "每个护栏的成本 = 其各计数器的单位数 × 成本图中该计数器的单价。打开某个护栏可查看其分计数器计算明细。",
   "guardrailMonitor.unpricedTooltip": "{units}：这些单位没有已知价格，未计入成本",
+  "guardrailMonitor.backToOverview": "返回概览",
+  "guardrailMonitor.detailLoadError": "加载护栏详情失败。",
+  "guardrailMonitor.tab.overview": "概览",
+  "guardrailMonitor.tab.logs": "日志",
+  "guardrailMonitor.detail.requestsEvaluated": "已评估请求",
+  "guardrailMonitor.detail.failRate": "失败率",
+  "guardrailMonitor.detail.avgLatency": "平均增加延迟",
+  "guardrailMonitor.detail.blocked": "已拦截 {count}",
+  "guardrailMonitor.detail.perRequest": "每请求（平均）",
+  "guardrailMonitor.detail.noData": "无数据",
 };
