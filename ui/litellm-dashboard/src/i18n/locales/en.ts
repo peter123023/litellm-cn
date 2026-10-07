@@ -33,8 +33,10 @@ import { en as lensViewsEn } from "./extra/lensViews";
 import { en as sharedWidgetsEn } from "./extra/sharedWidgets";
 import { en as costAnalyticsEn } from "./extra/costAnalytics";
 import { en as roiCalculatorEn } from "./extra/roiCalculator";
+import { en as toolPoliciesEn } from "./extra/toolPolicies";
 
 export const en: Record<string, string> = {
+  ...toolPoliciesEn,
   // ---------------------------------------------------------------- language switcher
   "language.switchTo": "Switch to {language}",
   "language.current": "Current language: {language}",

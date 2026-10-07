@@ -2,6 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 
+import { translate, DEFAULT_LANGUAGE, type Translate } from "@/i18n";
 import { ToolRow } from "@/components/networking";
 import { DataTableSortHeader } from "@/components/shared/DataTable";
 import { DateCell, IdCell, IdentityCell, UserPopoverCell } from "@/components/shared/table_cells";
@@ -15,6 +16,7 @@ interface ToolPoliciesTableColumnsDeps {
   savingOutput: ReadonlySet<string>;
   onInputPolicyChange: (toolName: string, policy: string) => void;
   onOutputPolicyChange: (toolName: string, policy: string) => void;
+  t?: Translate;
 }
 
 function TruncatedText({ value, className }: { value: string | undefined; className?: string }) {
@@ -35,11 +37,12 @@ export const getToolPoliciesTableColumns = ({
   savingOutput,
   onInputPolicyChange,
   onOutputPolicyChange,
+  t = (key, params) => translate(DEFAULT_LANGUAGE, key, params),
 }: ToolPoliciesTableColumnsDeps): ColumnDef<ToolRow>[] => [
   {
     id: "created_at",
     accessorFn: (row) => row.created_at ?? "",
-    header: ({ column }) => <DataTableSortHeader column={column} title="Discovered" />,
+    header: ({ column }) => <DataTableSortHeader column={column} title={t("toolPolicies.colDiscovered")} />,
     size: 170,
     enableGlobalFilter: false,
     cell: ({ row }) => <DateCell value={row.original.created_at} />,
@@ -47,7 +50,7 @@ export const getToolPoliciesTableColumns = ({
   {
     id: "tool_name",
     accessorFn: (row) => row.tool_name,
-    header: ({ column }) => <DataTableSortHeader column={column} title="Tool Name" />,
+    header: ({ column }) => <DataTableSortHeader column={column} title={t("toolPolicies.colToolName")} />,
     minSize: 200,
     cell: ({ row }) => (
       <IdentityCell
@@ -61,10 +64,10 @@ export const getToolPoliciesTableColumns = ({
   {
     id: "input_policy",
     accessorFn: (row) => row.input_policy,
-    header: ({ column }) => <DataTableSortHeader column={column} title="Input Policy" />,
+    header: ({ column }) => <DataTableSortHeader column={column} title={t("toolPolicies.colInputPolicy")} />,
     size: 140,
     filterFn: "equalsString",
-    meta: { title: "Input Policy", skeleton: "badge" },
+    meta: { title: t("toolPolicies.colInputPolicy"), skeleton: "badge" },
     cell: ({ row }) => (
       <PolicySelect
         value={row.original.input_policy}
@@ -78,10 +81,10 @@ export const getToolPoliciesTableColumns = ({
   {
     id: "output_policy",
     accessorFn: (row) => row.output_policy,
-    header: ({ column }) => <DataTableSortHeader column={column} title="Output Policy" />,
+    header: ({ column }) => <DataTableSortHeader column={column} title={t("toolPolicies.colOutputPolicy")} />,
     size: 140,
     filterFn: "equalsString",
-    meta: { title: "Output Policy", skeleton: "badge" },
+    meta: { title: t("toolPolicies.colOutputPolicy"), skeleton: "badge" },
     cell: ({ row }) => (
       <PolicySelect
         value={row.original.output_policy}
@@ -95,7 +98,7 @@ export const getToolPoliciesTableColumns = ({
   {
     id: "call_count",
     accessorFn: (row) => row.call_count ?? 0,
-    header: ({ column }) => <DataTableSortHeader column={column} title="# Calls" />,
+    header: ({ column }) => <DataTableSortHeader column={column} title={t("toolPolicies.colCalls")} />,
     size: 100,
     enableGlobalFilter: false,
     meta: { numeric: true },
@@ -104,16 +107,16 @@ export const getToolPoliciesTableColumns = ({
   {
     id: "team_id",
     accessorFn: (row) => row.team_id ?? "",
-    header: ({ column }) => <DataTableSortHeader column={column} title="Team Name" />,
+    header: ({ column }) => <DataTableSortHeader column={column} title={t("toolPolicies.colTeamName")} />,
     size: 160,
     filterFn: "equalsString",
-    meta: { title: "Team Name" },
+    meta: { title: t("toolPolicies.colTeamName") },
     cell: ({ row }) => <IdCell value={row.original.team_id} variant="plain" />,
   },
   {
     id: "key_hash",
     accessorFn: (row) => row.key_hash ?? "",
-    header: "Key Hash",
+    header: t("toolPolicies.colKeyHash"),
     size: 150,
     enableSorting: false,
     cell: ({ row }) => <IdCell value={row.original.key_hash} />,
@@ -121,10 +124,10 @@ export const getToolPoliciesTableColumns = ({
   {
     id: "key_alias",
     accessorFn: (row) => row.key_alias ?? "",
-    header: ({ column }) => <DataTableSortHeader column={column} title="Key Name" />,
+    header: ({ column }) => <DataTableSortHeader column={column} title={t("toolPolicies.colKeyName")} />,
     size: 150,
     filterFn: "equalsString",
-    meta: { title: "Key Name" },
+    meta: { title: t("toolPolicies.colKeyName") },
     cell: ({ row }) => <TruncatedText value={row.original.key_alias} className="block max-w-32 truncate" />,
   },
   {
@@ -133,17 +136,14 @@ export const getToolPoliciesTableColumns = ({
     header: () => (
       <TooltipProvider>
         <Tooltip>
-          <TooltipTrigger render={<span>User</span>} />
-          <TooltipContent>
-            The user who owns the key that discovered this tool. Displays the first available value: User Alias, User
-            Email, or User ID.
-          </TooltipContent>
+          <TooltipTrigger render={<span>{t("toolPolicies.colUser")}</span>} />
+          <TooltipContent>{t("toolPolicies.colUserTooltip")}</TooltipContent>
         </Tooltip>
       </TooltipProvider>
     ),
     size: 160,
     enableSorting: false,
-    meta: { title: "User" },
+    meta: { title: t("toolPolicies.colUser") },
     cell: ({ row }) => (
       <UserPopoverCell
         userAlias={row.original.user?.user_alias ?? null}
@@ -156,7 +156,7 @@ export const getToolPoliciesTableColumns = ({
   {
     id: "user_agent",
     accessorFn: (row) => row.user_agent ?? "",
-    header: "User Agent",
+    header: t("toolPolicies.colUserAgent"),
     size: 180,
     enableSorting: false,
     enableGlobalFilter: false,

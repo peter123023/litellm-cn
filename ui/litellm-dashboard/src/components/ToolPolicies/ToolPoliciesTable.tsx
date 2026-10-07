@@ -4,6 +4,7 @@ import { ColumnFiltersState } from "@tanstack/react-table";
 import { Wrench } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { useTranslation } from "@/i18n";
 import { ToolRow } from "@/components/networking";
 import {
   DataTable,
@@ -17,16 +18,6 @@ import { INPUT_POLICY_OPTIONS, OUTPUT_POLICY_OPTIONS } from "./PolicySelect";
 import { getToolPoliciesTableColumns } from "./ToolPoliciesTableColumns";
 
 const ALL_VALUE = "all";
-
-const INPUT_POLICY_FILTER_ITEMS = [
-  { value: ALL_VALUE, label: "All Input Policies" },
-  ...INPUT_POLICY_OPTIONS.map((option) => ({ value: option.value, label: option.label })),
-];
-
-const OUTPUT_POLICY_FILTER_ITEMS = [
-  { value: ALL_VALUE, label: "All Output Policies" },
-  ...OUTPUT_POLICY_OPTIONS.map((option) => ({ value: option.value, label: option.label })),
-];
 
 const toFilterValue = (value: string | null): string | undefined =>
   value === null || value === ALL_VALUE ? undefined : value;
@@ -44,18 +35,19 @@ interface ToolPoliciesTableProps {
 }
 
 function ToolPoliciesEmptyState({ filtered }: { filtered: boolean }) {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center gap-1 py-6">
       <div className="mb-1 flex size-10 items-center justify-center rounded-lg bg-muted">
         <Wrench className="size-5 text-muted-foreground" />
       </div>
       <div className="text-sm font-medium text-foreground">
-        {filtered ? "No matching tools" : "No tools discovered"}
+        {filtered ? t("toolPolicies.emptyNoMatch") : t("toolPolicies.emptyNoTools")}
       </div>
       <div className="max-w-xs text-center text-sm text-muted-foreground">
         {filtered
-          ? "No tools match your search or filters."
-          : "Make a chat completion that returns tool_calls to start auto-discovery."}
+          ? t("toolPolicies.emptyNoMatchDescription")
+          : t("toolPolicies.emptyNoToolsDescription")}
       </div>
     </div>
   );
@@ -76,30 +68,45 @@ export function ToolPoliciesTable({
   onInputPolicyChange,
   onOutputPolicyChange,
 }: ToolPoliciesTableProps) {
+  const { t } = useTranslation();
   const [globalFilter, setGlobalFilter] = useState("");
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const columns = useMemo(() => {
-    const deps = { onSelectTool, savingInput, savingOutput, onInputPolicyChange, onOutputPolicyChange };
+    const deps = { onSelectTool, savingInput, savingOutput, onInputPolicyChange, onOutputPolicyChange, t };
     return getToolPoliciesTableColumns(deps);
-  }, [onSelectTool, savingInput, savingOutput, onInputPolicyChange, onOutputPolicyChange]);
+  }, [onSelectTool, savingInput, savingOutput, onInputPolicyChange, onOutputPolicyChange, t]);
 
   const teamOptions = useMemo(() => uniqueValues(data, (row) => row.team_id), [data]);
   const keyAliasOptions = useMemo(() => uniqueValues(data, (row) => row.key_alias), [data]);
   const teamFilterItems = useMemo(
     () => [
-      { value: ALL_VALUE, label: "All Teams" },
+      { value: ALL_VALUE, label: t("toolPolicies.filterAllTeams") },
       ...teamOptions.map((option) => ({ value: option, label: option })),
     ],
-    [teamOptions],
+    [teamOptions, t],
   );
   const keyAliasFilterItems = useMemo(
     () => [
-      { value: ALL_VALUE, label: "All Keys" },
+      { value: ALL_VALUE, label: t("toolPolicies.filterAllKeys") },
       ...keyAliasOptions.map((option) => ({ value: option, label: option })),
     ],
-    [keyAliasOptions],
+    [keyAliasOptions, t],
+  );
+  const inputPolicyFilterItems = useMemo(
+    () => [
+      { value: ALL_VALUE, label: t("toolPolicies.filterAllInputPolicies") },
+      ...INPUT_POLICY_OPTIONS.map((option) => ({ value: option.value, label: option.label })),
+    ],
+    [t],
+  );
+  const outputPolicyFilterItems = useMemo(
+    () => [
+      { value: ALL_VALUE, label: t("toolPolicies.filterAllOutputPolicies") },
+      ...OUTPUT_POLICY_OPTIONS.map((option) => ({ value: option.value, label: option.label })),
+    ],
+    [t],
   );
 
   return (
@@ -117,7 +124,7 @@ export function ToolPoliciesTable({
       globalFilter={globalFilter}
       onGlobalFilterChange={setGlobalFilter}
       isLoading={isLoading}
-      loadingMessage="Loading tools…"
+      loadingMessage={t("toolPolicies.loadingTools")}
       noDataMessage={<ToolPoliciesEmptyState filtered={columnFilters.length > 0 || globalFilter !== ""} />}
       size="compact"
       toolbar={(table) => (
@@ -126,7 +133,7 @@ export function ToolPoliciesTable({
             table={table}
             searchValue={globalFilter}
             onSearchChange={setGlobalFilter}
-            searchPlaceholder="Search by Tool Name"
+            searchPlaceholder={t("toolPolicies.searchPlaceholder")}
             onRefresh={onRefresh}
             isRefreshing={isRefreshing}
             onOpenFilters={() => setFiltersOpen(true)}
@@ -136,22 +143,22 @@ export function ToolPoliciesTable({
             table={table}
             open={filtersOpen}
             onOpenChange={setFiltersOpen}
-            title="Filters"
-            description="Narrow down discovered tools"
+            title={t("toolPolicies.filtersTitle")}
+            description={t("toolPolicies.filtersDescription")}
           >
             {({ get, set }) => (
               <>
-                <DataTableFilterField label="Input Policy">
+                <DataTableFilterField label={t("toolPolicies.colInputPolicy")}>
                   <Select
-                    items={INPUT_POLICY_FILTER_ITEMS}
+                    items={inputPolicyFilterItems}
                     value={(get("input_policy") as string) ?? ALL_VALUE}
                     onValueChange={(value) => set("input_policy", toFilterValue(value))}
                   >
                     <SelectTrigger className="w-full" data-testid="filter-input-policy">
-                      <SelectValue placeholder="All Input Policies" />
+                      <SelectValue placeholder={t("toolPolicies.filterAllInputPolicies")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={ALL_VALUE}>All Input Policies</SelectItem>
+                      <SelectItem value={ALL_VALUE}>{t("toolPolicies.filterAllInputPolicies")}</SelectItem>
                       {INPUT_POLICY_OPTIONS.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label}
@@ -160,17 +167,17 @@ export function ToolPoliciesTable({
                     </SelectContent>
                   </Select>
                 </DataTableFilterField>
-                <DataTableFilterField label="Output Policy">
+                <DataTableFilterField label={t("toolPolicies.colOutputPolicy")}>
                   <Select
-                    items={OUTPUT_POLICY_FILTER_ITEMS}
+                    items={outputPolicyFilterItems}
                     value={(get("output_policy") as string) ?? ALL_VALUE}
                     onValueChange={(value) => set("output_policy", toFilterValue(value))}
                   >
                     <SelectTrigger className="w-full" data-testid="filter-output-policy">
-                      <SelectValue placeholder="All Output Policies" />
+                      <SelectValue placeholder={t("toolPolicies.filterAllOutputPolicies")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={ALL_VALUE}>All Output Policies</SelectItem>
+                      <SelectItem value={ALL_VALUE}>{t("toolPolicies.filterAllOutputPolicies")}</SelectItem>
                       {OUTPUT_POLICY_OPTIONS.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label}
@@ -179,17 +186,17 @@ export function ToolPoliciesTable({
                     </SelectContent>
                   </Select>
                 </DataTableFilterField>
-                <DataTableFilterField label="Team Name">
+                <DataTableFilterField label={t("toolPolicies.colTeamName")}>
                   <Select
                     items={teamFilterItems}
                     value={(get("team_id") as string) ?? ALL_VALUE}
                     onValueChange={(value) => set("team_id", toFilterValue(value))}
                   >
                     <SelectTrigger className="w-full" data-testid="filter-team">
-                      <SelectValue placeholder="All Teams" />
+                      <SelectValue placeholder={t("toolPolicies.filterAllTeams")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={ALL_VALUE}>All Teams</SelectItem>
+                      <SelectItem value={ALL_VALUE}>{t("toolPolicies.filterAllTeams")}</SelectItem>
                       {teamOptions.map((option) => (
                         <SelectItem key={option} value={option}>
                           {option}
@@ -198,17 +205,17 @@ export function ToolPoliciesTable({
                     </SelectContent>
                   </Select>
                 </DataTableFilterField>
-                <DataTableFilterField label="Key Name">
+                <DataTableFilterField label={t("toolPolicies.colKeyName")}>
                   <Select
                     items={keyAliasFilterItems}
                     value={(get("key_alias") as string) ?? ALL_VALUE}
                     onValueChange={(value) => set("key_alias", toFilterValue(value))}
                   >
                     <SelectTrigger className="w-full" data-testid="filter-key-alias">
-                      <SelectValue placeholder="All Keys" />
+                      <SelectValue placeholder={t("toolPolicies.filterAllKeys")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={ALL_VALUE}>All Keys</SelectItem>
+                      <SelectItem value={ALL_VALUE}>{t("toolPolicies.filterAllKeys")}</SelectItem>
                       {keyAliasOptions.map((option) => (
                         <SelectItem key={option} value={option}>
                           {option}
