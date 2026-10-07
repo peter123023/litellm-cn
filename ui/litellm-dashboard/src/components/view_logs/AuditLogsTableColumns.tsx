@@ -3,6 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 
 import { DateCell, IdCell, IdentityCell, StatusBadge, type StatusTone } from "@/components/shared/table_cells";
+import { DEFAULT_LANGUAGE, translate, type Translate } from "@/i18n";
 
 import DefaultProxyAdminTag from "../common_components/DefaultProxyAdminTag";
 
@@ -18,13 +19,13 @@ export type AuditLogEntry = {
   updated_values: Record<string, unknown>;
 };
 
-export const AUDIT_TABLE_NAME_DISPLAY: Record<string, string> = {
-  LiteLLM_VerificationToken: "Keys",
-  LiteLLM_TeamTable: "Teams",
-  LiteLLM_UserTable: "Users",
-  LiteLLM_OrganizationTable: "Organizations",
-  LiteLLM_ProxyModelTable: "Models",
-  LiteLLM_AgentsTable: "Agents",
+export const AUDIT_TABLE_NAME_LABEL_KEYS: Record<string, string> = {
+  LiteLLM_VerificationToken: "logs.audit.table.keys",
+  LiteLLM_TeamTable: "logs.audit.table.teams",
+  LiteLLM_UserTable: "logs.audit.table.users",
+  LiteLLM_OrganizationTable: "logs.audit.table.organizations",
+  LiteLLM_ProxyModelTable: "logs.audit.table.models",
+  LiteLLM_AgentsTable: "logs.audit.table.agents",
 };
 
 const ACTION_TONE: Record<string, StatusTone> = {
@@ -35,20 +36,42 @@ const ACTION_TONE: Record<string, StatusTone> = {
   kill_switch_fired: "error",
 };
 
-export const auditActionLabel = (action: string): string => {
+export const AUDIT_ACTION_LABEL_KEYS: Record<string, string> = {
+  created: "logs.audit.action.created",
+  updated: "logs.audit.action.updated",
+  deleted: "logs.audit.action.deleted",
+  rotated: "logs.audit.action.rotated",
+  kill_switch_fired: "logs.audit.action.kill_switch_fired",
+};
+
+const englishT: Translate = (key, params) => translate(DEFAULT_LANGUAGE, key, params);
+
+/** Unknown actions keep their raw snake_case value, title-cased as before. */
+export const auditActionLabel = (t: Translate, action: string): string => {
+  const labelKey = AUDIT_ACTION_LABEL_KEYS[action];
+  if (labelKey) return t(labelKey);
   const words = action.replace(/_/g, " ");
   return words ? words.charAt(0).toUpperCase() + words.slice(1) : words;
 };
 
+export const auditTableNameLabel = (t: Translate, tableName: string): string => {
+  const labelKey = AUDIT_TABLE_NAME_LABEL_KEYS[tableName];
+  return labelKey ? t(labelKey) : tableName;
+};
+
 interface AuditLogsTableColumnsDeps {
   onViewLog: (log: AuditLogEntry) => void;
+  t?: Translate;
 }
 
-export const getAuditLogsTableColumns = ({ onViewLog }: AuditLogsTableColumnsDeps): ColumnDef<AuditLogEntry>[] => [
+export const getAuditLogsTableColumns = ({
+  onViewLog,
+  t = englishT,
+}: AuditLogsTableColumnsDeps): ColumnDef<AuditLogEntry>[] => [
   {
     id: "updated_at",
     accessorKey: "updated_at",
-    header: "Timestamp",
+    header: t("logs.audit.col.timestamp"),
     size: 200,
     enableSorting: false,
     cell: ({ row }) => <DateCell value={row.original.updated_at} />,
@@ -56,27 +79,30 @@ export const getAuditLogsTableColumns = ({ onViewLog }: AuditLogsTableColumnsDep
   {
     id: "action",
     accessorKey: "action",
-    header: "Action",
+    header: t("logs.audit.col.action"),
     size: 110,
     enableSorting: false,
     cell: ({ row }) => (
-      <StatusBadge tone={ACTION_TONE[row.original.action] ?? "neutral"} label={auditActionLabel(row.original.action)} />
+      <StatusBadge
+        tone={ACTION_TONE[row.original.action] ?? "neutral"}
+        label={auditActionLabel(t, row.original.action)}
+      />
     ),
   },
   {
     id: "table_name",
     accessorKey: "table_name",
-    header: "Table",
+    header: t("logs.audit.col.table"),
     size: 130,
     enableSorting: false,
     cell: ({ row }) => (
-      <span className="text-sm">{AUDIT_TABLE_NAME_DISPLAY[row.original.table_name] ?? row.original.table_name}</span>
+      <span className="text-sm">{auditTableNameLabel(t, row.original.table_name)}</span>
     ),
   },
   {
     id: "object_id",
     accessorKey: "object_id",
-    header: "Object ID",
+    header: t("logs.audit.col.objectId"),
     minSize: 220,
     enableSorting: false,
     cell: ({ row }) => (
@@ -91,7 +117,7 @@ export const getAuditLogsTableColumns = ({ onViewLog }: AuditLogsTableColumnsDep
   {
     id: "changed_by",
     accessorKey: "changed_by",
-    header: "Changed By",
+    header: t("logs.audit.col.changedBy"),
     size: 200,
     enableSorting: false,
     cell: ({ row }) => <DefaultProxyAdminTag userId={row.original.changed_by} />,
@@ -99,7 +125,7 @@ export const getAuditLogsTableColumns = ({ onViewLog }: AuditLogsTableColumnsDep
   {
     id: "changed_by_api_key",
     accessorKey: "changed_by_api_key",
-    header: "API Key (Hash)",
+    header: t("logs.audit.col.apiKey"),
     size: 160,
     enableSorting: false,
     cell: ({ row }) => <IdCell value={row.original.changed_by_api_key} variant="plain" />,

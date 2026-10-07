@@ -23,7 +23,8 @@ import {
 import { CostBreakdownViewer } from "../CostBreakdownViewer";
 import { ConfigInfoMessage } from "../ConfigInfoMessage";
 import { VectorStoreViewer } from "../VectorStoreViewer";
-import { CREDENTIAL_LABELS } from "../constants";
+import { CREDENTIAL_LABEL_KEYS } from "../constants";
+import { useTranslation } from "@/i18n";
 import { TruncatedValue } from "./TruncatedValue";
 import { TokenFlow } from "./TokenFlow";
 import { JsonViewer } from "./JsonViewer";
@@ -74,6 +75,7 @@ export function LogDetailContent({
   accessToken,
   userEmail,
 }: LogDetailContentProps) {
+  const { t } = useTranslation();
   const metadata = logEntry.metadata || {};
   const hasError = metadata.status === "failure";
   const errorInfo = hasError ? metadata.error_information : null;
@@ -164,8 +166,8 @@ export function LogDetailContent({
                 <DescriptionItem label="IP Address">{logEntry.requester_ip_address}</DescriptionItem>
               )}
               {typeof logEntry.metadata?.used_client_oauth_token === "boolean" && (
-                <DescriptionItem label="Credential">
-                  {CREDENTIAL_LABELS[String(logEntry.metadata.used_client_oauth_token)]}
+                <DescriptionItem label={t("logs.filter.credential")}>
+                  {t(CREDENTIAL_LABEL_KEYS[String(logEntry.metadata.used_client_oauth_token)])}
                 </DescriptionItem>
               )}
               {hasGuardrailData && (

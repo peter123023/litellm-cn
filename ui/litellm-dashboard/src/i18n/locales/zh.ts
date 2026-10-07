@@ -30,11 +30,13 @@ import { zh as roiCalculatorZh } from "./extra/roiCalculator";
 import { zh as toolPoliciesZh } from "./extra/toolPolicies";
 import { zh as cachingZh } from "./extra/caching";
 import { zh as vectorStoresZh } from "./extra/vectorStores";
+import { zh as logsZh } from "./extra/logs";
 
 export const zh: Record<string, string> = {
   ...toolPoliciesZh,
   ...cachingZh,
   ...vectorStoresZh,
+  ...logsZh,
   // ---------------------------------------------------------------- language switcher
   "language.switchTo": "切换到{language}",
   "language.current": "当前语言：{language}",

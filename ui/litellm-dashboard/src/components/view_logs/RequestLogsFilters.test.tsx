@@ -4,7 +4,7 @@ import { useState } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { chooseSelectOption, renderWithProviders, testQueryClient } from "../../../tests/test-utils";
-import { ERROR_CODE_OPTIONS } from "./constants";
+import { ERROR_CODE_LABEL_KEYS } from "./constants";
 import { LOG_FILTER_IDS } from "./log_filter_logic";
 import { RequestLogsFilters } from "./RequestLogsFilters";
 
@@ -386,7 +386,7 @@ describe("RequestLogsFilters", () => {
     await user.click(input);
 
     const list = await screen.findByTestId("error-code-filter-list");
-    expect(within(list).getAllByRole("option")).toHaveLength(ERROR_CODE_OPTIONS.length);
+    expect(within(list).getAllByRole("option")).toHaveLength(Object.keys(ERROR_CODE_LABEL_KEYS).length);
     expect(within(list).queryByText(/^Use custom code:/)).not.toBeInTheDocument();
   });
 

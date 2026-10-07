@@ -1,13 +1,14 @@
 import { Check, Copy } from "lucide-react";
 import { useState, useCallback } from "react";
 import moment from "moment";
-import { AuditLogEntry, AUDIT_TABLE_NAME_DISPLAY } from "../AuditLogsTableColumns";
+import { AuditLogEntry, AUDIT_TABLE_NAME_LABEL_KEYS } from "../AuditLogsTableColumns";
 import DefaultProxyAdminTag from "../../common_components/DefaultProxyAdminTag";
 import CopyButton from "@/components/shared/CopyButton";
 import { StatusBadge, type StatusTone } from "@/components/shared/table_cells/status_badge";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetTitle } from "@/components/ui/sheet";
 import { ResizableSheetContent } from "@/components/ui/ResizableSheetContent";
+import { useTranslation } from "@/i18n";
 
 interface AuditLogDrawerProps {
   open: boolean;
@@ -171,9 +172,12 @@ function DiffSection({ log }: { log: AuditLogEntry }) {
 }
 
 export function AuditLogDrawer({ open, onClose, log }: AuditLogDrawerProps) {
+  const { t } = useTranslation();
   if (!log) return null;
 
-  const tableDisplay = AUDIT_TABLE_NAME_DISPLAY[log.table_name] ?? log.table_name;
+  const tableDisplay = AUDIT_TABLE_NAME_LABEL_KEYS[log.table_name]
+    ? t(AUDIT_TABLE_NAME_LABEL_KEYS[log.table_name])
+    : log.table_name;
 
   return (
     <Sheet open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>

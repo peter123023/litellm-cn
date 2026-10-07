@@ -1,6 +1,7 @@
 import moment from "moment";
 import { keepPreviousData, useQuery, type UseQueryOptions } from "@tanstack/react-query";
 import type { ColumnFiltersState, PaginationState, SortingState } from "@tanstack/react-table";
+import type { Translate } from "@/i18n";
 import { uiSpendLogsCall } from "../networking";
 import { Team } from "../key_team_helpers/key_list";
 import { fetchAllTeams } from "../../components/key_team_helpers/filter_helpers";
@@ -38,23 +39,26 @@ export const LOG_FILTER_IDS = {
   SEARCH: "search",
 } as const;
 
-export const LOG_FILTER_LABELS: Record<string, string> = {
-  [LOG_FILTER_IDS.TEAM_ID]: "Team ID",
-  [LOG_FILTER_IDS.SPAN_TYPE]: "Span Type",
-  [LOG_FILTER_IDS.STATUS]: "Status",
-  [LOG_FILTER_IDS.CACHE_STATUS]: "Cache",
-  [LOG_FILTER_IDS.CREDENTIAL]: "Credential",
-  [LOG_FILTER_IDS.KEY_ALIAS]: "Key Alias",
-  [LOG_FILTER_IDS.USER_ID]: "User ID",
-  [LOG_FILTER_IDS.END_USER]: "End User",
-  [LOG_FILTER_IDS.ERROR_CODE]: "Error Code",
-  [LOG_FILTER_IDS.ERROR_MESSAGE]: "Error Message",
-  [LOG_FILTER_IDS.KEY_HASH]: "Key Hash",
-  [LOG_FILTER_IDS.SESSION_ID]: "Session ID",
-  [LOG_FILTER_IDS.MODEL_ID]: "Model",
-  [LOG_FILTER_IDS.PUBLIC_MODEL_OR_SEARCH_TOOL]: "Public model / search tool",
-  [LOG_FILTER_IDS.SEARCH]: "Search",
+export const LOG_FILTER_LABEL_KEYS: Record<string, string> = {
+  [LOG_FILTER_IDS.TEAM_ID]: "logs.filter.teamId",
+  [LOG_FILTER_IDS.SPAN_TYPE]: "logs.filter.spanType",
+  [LOG_FILTER_IDS.STATUS]: "logs.filter.status",
+  [LOG_FILTER_IDS.CACHE_STATUS]: "logs.filter.cache",
+  [LOG_FILTER_IDS.CREDENTIAL]: "logs.filter.credential",
+  [LOG_FILTER_IDS.KEY_ALIAS]: "logs.filter.keyAlias",
+  [LOG_FILTER_IDS.USER_ID]: "logs.filter.userId",
+  [LOG_FILTER_IDS.END_USER]: "logs.filter.endUser",
+  [LOG_FILTER_IDS.ERROR_CODE]: "logs.filter.errorCode",
+  [LOG_FILTER_IDS.ERROR_MESSAGE]: "logs.filter.errorMessage",
+  [LOG_FILTER_IDS.KEY_HASH]: "logs.filter.keyHash",
+  [LOG_FILTER_IDS.SESSION_ID]: "logs.filter.sessionId",
+  [LOG_FILTER_IDS.MODEL_ID]: "logs.filter.model",
+  [LOG_FILTER_IDS.PUBLIC_MODEL_OR_SEARCH_TOOL]: "logs.filter.publicModelOrSearchTool",
+  [LOG_FILTER_IDS.SEARCH]: "logs.filter.search",
 };
+
+export const logFilterLabels = (t: Translate): Record<string, string> =>
+  Object.fromEntries(Object.entries(LOG_FILTER_LABEL_KEYS).map(([id, key]) => [id, t(key)]));
 
 export interface LogsWindow {
   start_date: string;

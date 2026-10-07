@@ -1,6 +1,4 @@
-import { DEFAULT_LANGUAGE } from "./defaultLanguage";
-
-const en = {
+export const en = {
   "vectorStores.page.title": "Vector Store Management",
   "vectorStores.page.lastRefreshed": "Last Refreshed: {time}",
   "vectorStores.page.intro": "You can use vector stores to store and retrieve LLM embeddings.",
@@ -127,10 +125,6 @@ const en = {
   "vectorStores.create.buttonCreating": "Creating Vector Store...",
   "vectorStores.create.vectorStoreNameHint": "Optional: Give your vector store a meaningful name",
   "vectorStores.create.descPlaceholderHint": "Optional: Describe what this vector store contains",
-  "vectorStores.create.namePlaceholder": "e.g., Product Documentation, Customer Support KB",
-  "vectorStores.create.descPlaceholder": "e.g., Contains all product documentation and user guides",
-  "vectorStores.create.providerHint": "Select the provider for embedding and vector store operations",
-  "vectorStores.create.providerPlaceholder": "Select a provider",
   "vectorStores.create.successTitle": "Vector Store Created Successfully",
   "vectorStores.create.successId": "Vector Store ID:",
   "vectorStores.create.successDocs": "Documents Ingested:",
@@ -175,10 +169,6 @@ const en = {
   "vectorStores.info.save": "Save Changes",
   "vectorStores.info.none": "None",
   "vectorStores.info.noMatchCreds": "No matching credentials",
-  "vectorStores.info.readOnly.title": "Read only: defined in the config file",
-  "vectorStores.info.readOnly.desc": "This vector store comes from the proxy config YAML, so it cannot be edited or deleted on the dashboard. Change or remove it in the config file and restart the proxy.",
-  "vectorStores.info.existingCredsOr": "Either select existing credentials OR enter provider credentials below",
-  "vectorStores.info.credsNoteOr": "OR",
 
   "vectorStores.documents.emptyTitle": "No documents uploaded yet",
   "vectorStores.documents.emptyDesc": "Upload documents above to get started.",
@@ -265,7 +255,7 @@ const en = {
   "vectorStores.selector.placeholder": "Select vector stores",
 };
 
-const zh = {
+export const zh = {
   "vectorStores.page.title": "向量库管理",
   "vectorStores.page.lastRefreshed": "最后刷新：{time}",
   "vectorStores.page.intro": "你可以用向量库来存储和检索大语言模型的嵌入向量。",
@@ -384,10 +374,6 @@ const zh = {
   "vectorStores.create.buttonCreating": "正在创建向量库…",
   "vectorStores.create.vectorStoreNameHint": "可选：给你的向量库起一个有意义的名字",
   "vectorStores.create.descPlaceholderHint": "可选：描述这个向量库包含的内容",
-  "vectorStores.create.namePlaceholder": "例如：产品文档、客户支持知识库",
-  "vectorStores.create.descPlaceholder": "例如：包含全部产品文档与用户指南",
-  "vectorStores.create.providerHint": "选择用于嵌入和向量库操作的提供方",
-  "vectorStores.create.providerPlaceholder": "选择提供方",
   "vectorStores.create.successTitle": "向量库创建成功",
   "vectorStores.create.successId": "向量库 ID：",
   "vectorStores.create.successDocs": "已摄入文档：",
@@ -431,10 +417,6 @@ const zh = {
   "vectorStores.info.save": "保存更改",
   "vectorStores.info.none": "无",
   "vectorStores.info.noMatchCreds": "没有匹配的凭证",
-  "vectorStores.info.readOnly.title": "只读：定义在配置文件中",
-  "vectorStores.info.readOnly.desc": "该向量库来自代理的 config YAML，因此无法在仪表盘上编辑或删除。请在配置文件中修改或移除，然后重启代理。",
-  "vectorStores.info.existingCredsOr": "选择已有凭证，或在下方直接填写提供方凭证",
-  "vectorStores.info.credsNoteOr": "或",
 
   "vectorStores.documents.emptyTitle": "尚未上传文档",
   "vectorStores.documents.emptyDesc": "请在上方上传文档以开始。",
@@ -519,5 +501,3 @@ const zh = {
   "vectorStores.selector.placeholder": "选择向量库",
 };
 
-export const vectorStoresEn = en;
-export const vectorStoresZh = zh;
