@@ -37,12 +37,14 @@ import { en as toolPoliciesEn } from "./extra/toolPolicies";
 import { en as cachingEn } from "./extra/caching";
 import { en as vectorStoresEn } from "./extra/vectorStores";
 import { en as logsEn } from "./extra/logs";
+import { en as policiesEn } from "./extra/policies";
 
 export const en: Record<string, string> = {
   ...toolPoliciesEn,
   ...cachingEn,
   ...vectorStoresEn,
   ...logsEn,
+  ...policiesEn,
   // ---------------------------------------------------------------- language switcher
   "language.switchTo": "Switch to {language}",
   "language.current": "Current language: {language}",

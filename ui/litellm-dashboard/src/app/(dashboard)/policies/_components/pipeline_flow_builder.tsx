@@ -23,6 +23,7 @@ import {
 } from "@/components/networking";
 import { getComplianceDatasetPrompts, getFrameworks } from "@/data/compliancePrompts";
 import type { CompliancePrompt } from "@/data/compliancePrompts";
+import { useTranslation, type Translate } from "@/i18n";
 
 const TEST_SOURCE_QUICK = "quick_chat";
 const TEST_SOURCE_ALL = "__all__";
@@ -34,18 +35,26 @@ function getPromptsForTestSource(source: string): CompliancePrompt[] {
   return fw ? fw.categories.flatMap((c) => c.prompts) : [];
 }
 
-const ACTION_OPTIONS = [
-  { label: "Next Step", value: "next" },
-  { label: "Allow", value: "allow" },
-  { label: "Block", value: "block" },
-  { label: "Custom Response", value: "modify_response" },
+const ACTION_OPTIONS: readonly { readonly key: string; readonly value: string }[] = [
+  { key: "policies.flowBuilder.actionNext", value: "next" },
+  { key: "policies.flowBuilder.actionAllow", value: "allow" },
+  { key: "policies.flowBuilder.actionBlock", value: "block" },
+  { key: "policies.flowBuilder.actionModifyResponse", value: "modify_response" },
 ];
 
-const ACTION_LABELS: Record<string, string> = {
-  allow: "Allow",
-  block: "Block",
-  next: "Next Step",
-  modify_response: "Custom Response",
+const ACTION_LABEL_KEYS: Record<string, string> = {
+  allow: "policies.flowBuilder.actionAllow",
+  block: "policies.flowBuilder.actionBlock",
+  next: "policies.flowBuilder.actionNext",
+  modify_response: "policies.flowBuilder.actionModifyResponse",
+};
+
+const buildActionOptions = (t: Translate) =>
+  ACTION_OPTIONS.map((option) => ({ label: t(option.key), value: option.value }));
+
+const actionLabel = (t: Translate, action: string): string => {
+  const key = ACTION_LABEL_KEYS[action];
+  return key ? t(key) : action;
 };
 
 function createDefaultStep(): PipelineStep {
@@ -222,36 +231,40 @@ interface ConnectorProps {
   onInsert: () => void;
 }
 
-const Connector: React.FC<ConnectorProps> = ({ onInsert }) => (
-  <div className="flex flex-col items-center" style={{ height: 56 }}>
-    <div style={{ width: 1, flex: 1, backgroundColor: "var(--color-border)" }} />
-    <button
-      onClick={onInsert}
-      className="z-raised flex items-center justify-center"
-      style={{
-        width: 24,
-        height: 24,
-        borderRadius: "50%",
-        border: "1px solid var(--color-border)",
-        backgroundColor: "var(--color-card)",
-        cursor: "pointer",
-        transition: "all 0.15s ease",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = "var(--color-info)";
-        e.currentTarget.style.backgroundColor = "color-mix(in oklab, var(--color-info) 10%, transparent)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = "var(--color-border)";
-        e.currentTarget.style.backgroundColor = "var(--color-card)";
-      }}
-      title="Insert step"
-    >
-      <Plus style={{ width: 12, height: 12, color: "var(--color-muted-foreground)" }} />
-    </button>
-    <div style={{ width: 1, flex: 1, backgroundColor: "var(--color-border)" }} />
-  </div>
-);
+const Connector: React.FC<ConnectorProps> = ({ onInsert }) => {
+  const { t } = useTranslation();
+
+  return (
+    <div className="flex flex-col items-center" style={{ height: 56 }}>
+      <div style={{ width: 1, flex: 1, backgroundColor: "var(--color-border)" }} />
+      <button
+        onClick={onInsert}
+        className="z-raised flex items-center justify-center"
+        style={{
+          width: 24,
+          height: 24,
+          borderRadius: "50%",
+          border: "1px solid var(--color-border)",
+          backgroundColor: "var(--color-card)",
+          cursor: "pointer",
+          transition: "all 0.15s ease",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = "var(--color-info)";
+          e.currentTarget.style.backgroundColor = "color-mix(in oklab, var(--color-info) 10%, transparent)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = "var(--color-border)";
+          e.currentTarget.style.backgroundColor = "var(--color-card)";
+        }}
+        title={t("policies.flowBuilder.insertStep")}
+      >
+        <Plus style={{ width: 12, height: 12, color: "var(--color-muted-foreground)" }} />
+      </button>
+      <div style={{ width: 1, flex: 1, backgroundColor: "var(--color-border)" }} />
+    </div>
+  );
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Step Card (editable)
@@ -274,6 +287,7 @@ const StepCard: React.FC<StepCardProps> = ({
   onDelete,
   availableGuardrails,
 }) => {
+  const { t } = useTranslation();
   const guardrailOptions = availableGuardrails.map((g) => ({
     label: g.guardrail_name || g.guardrail_id,
     value: g.guardrail_name || g.guardrail_id,
@@ -303,11 +317,13 @@ const StepCard: React.FC<StepCardProps> = ({
               letterSpacing: "0.06em",
             }}
           >
-            GUARDRAIL
+            {t("policies.flowBuilder.guardrailLabel")}
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <span style={{ fontSize: 13, color: "var(--color-muted-foreground)" }}>Step {stepIndex + 1}</span>
+          <span style={{ fontSize: 13, color: "var(--color-muted-foreground)" }}>
+            {t("policies.flowBuilder.step", { index: stepIndex + 1 })}
+          </span>
           <button
             onClick={onDelete}
             disabled={totalSteps <= 1}
@@ -320,7 +336,7 @@ const StepCard: React.FC<StepCardProps> = ({
               display: "flex",
               alignItems: "center",
             }}
-            title="Delete step"
+            title={t("policies.flowBuilder.deleteStep")}
           >
             <MoreVertical style={{ width: 16, height: 16, color: "var(--color-muted-foreground)" }} />
           </button>
@@ -338,14 +354,14 @@ const StepCard: React.FC<StepCardProps> = ({
             marginBottom: 6,
           }}
         >
-          Guardrail
+          {t("policies.flowBuilder.fieldGuardrail")}
         </label>
         <SearchSelect
           options={guardrailOptions}
           value={step.guardrail || undefined}
           onValueChange={(value) => onChange({ guardrail: value ?? undefined })}
-          placeholder="Select a guardrail"
-          emptyText="No guardrails found"
+          placeholder={t("policies.flowBuilder.selectGuardrail")}
+          emptyText={t("policies.flowBuilder.noGuardrailsFound")}
         />
       </div>
 
@@ -353,7 +369,9 @@ const StepCard: React.FC<StepCardProps> = ({
       <div style={{ borderTop: "1px solid var(--color-border)", padding: "14px 20px" }}>
         <div className="flex items-center gap-2" style={{ marginBottom: 8 }}>
           <PassIcon />
-          <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-foreground)" }}>ON PASS</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-foreground)" }}>
+            {t("policies.flowBuilder.onPass")}
+          </span>
         </div>
         <label
           style={{
@@ -364,14 +382,14 @@ const StepCard: React.FC<StepCardProps> = ({
             marginBottom: 6,
           }}
         >
-          Action
+          {t("policies.flowBuilder.action")}
         </label>
         <Select value={step.on_pass} onValueChange={(value) => onChange({ on_pass: value as PipelineStep["on_pass"] })}>
           <SelectTrigger className="w-full">
-            <SelectValue>{ACTION_LABELS[step.on_pass] || step.on_pass}</SelectValue>
+            <SelectValue>{actionLabel(t, step.on_pass)}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            {ACTION_OPTIONS.map((option) => (
+            {buildActionOptions(t).map((option) => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
               </SelectItem>
@@ -389,10 +407,10 @@ const StepCard: React.FC<StepCardProps> = ({
                 marginBottom: 6,
               }}
             >
-              Custom Response Message
+              {t("policies.flowBuilder.customResponseMessage")}
             </label>
             <Input
-              placeholder="Enter custom response..."
+              placeholder={t("policies.flowBuilder.enterCustomResponse")}
               value={step.modify_response_message || ""}
               onChange={(e) => onChange({ modify_response_message: e.target.value || null })}
             />
@@ -404,7 +422,9 @@ const StepCard: React.FC<StepCardProps> = ({
       <div style={{ borderTop: "1px solid var(--color-border)", padding: "14px 20px" }}>
         <div className="flex items-center gap-2" style={{ marginBottom: 8 }}>
           <FailIcon />
-          <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-foreground)" }}>ON FAIL</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-foreground)" }}>
+            {t("policies.flowBuilder.onFail")}
+          </span>
         </div>
         <label
           style={{
@@ -415,14 +435,14 @@ const StepCard: React.FC<StepCardProps> = ({
             marginBottom: 6,
           }}
         >
-          Action
+          {t("policies.flowBuilder.action")}
         </label>
         <Select value={step.on_fail} onValueChange={(value) => onChange({ on_fail: value as PipelineStep["on_fail"] })}>
           <SelectTrigger className="w-full">
-            <SelectValue>{ACTION_LABELS[step.on_fail] || step.on_fail}</SelectValue>
+            <SelectValue>{actionLabel(t, step.on_fail)}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            {ACTION_OPTIONS.map((option) => (
+            {buildActionOptions(t).map((option) => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
               </SelectItem>
@@ -440,10 +460,10 @@ const StepCard: React.FC<StepCardProps> = ({
                 marginBottom: 6,
               }}
             >
-              Custom Response Message
+              {t("policies.flowBuilder.customResponseMessage")}
             </label>
             <Input
-              placeholder="Enter custom response..."
+              placeholder={t("policies.flowBuilder.enterCustomResponse")}
               value={step.modify_response_message || ""}
               onChange={(e) => onChange({ modify_response_message: e.target.value || null })}
             />
@@ -455,7 +475,9 @@ const StepCard: React.FC<StepCardProps> = ({
       <div style={{ borderTop: "1px solid var(--color-border)", padding: "14px 20px" }}>
         <div className="flex items-center gap-2" style={{ marginBottom: 8 }}>
           <ApiFailureIcon />
-          <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-foreground)" }}>ON API FAILURE</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-foreground)" }}>
+            {t("policies.flowBuilder.onApiFailure")}
+          </span>
         </div>
         <label
           style={{
@@ -466,7 +488,7 @@ const StepCard: React.FC<StepCardProps> = ({
             marginBottom: 6,
           }}
         >
-          Action
+          {t("policies.flowBuilder.action")}
         </label>
         <Select
           value={step.on_error ?? null}
@@ -476,12 +498,12 @@ const StepCard: React.FC<StepCardProps> = ({
         >
           <SelectTrigger className="w-full">
             <SelectValue>
-              {step.on_error != null ? ACTION_LABELS[step.on_error] || step.on_error : "Same as ON FAIL"}
+              {step.on_error != null ? actionLabel(t, step.on_error) : t("policies.flowBuilder.sameAsOnFail")}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={null}>Same as ON FAIL</SelectItem>
-            {ACTION_OPTIONS.map((option) => (
+            <SelectItem value={null}>{t("policies.flowBuilder.sameAsOnFail")}</SelectItem>
+            {buildActionOptions(t).map((option) => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
               </SelectItem>
@@ -499,10 +521,10 @@ const StepCard: React.FC<StepCardProps> = ({
                 marginBottom: 6,
               }}
             >
-              Custom Response Message
+              {t("policies.flowBuilder.customResponseMessage")}
             </label>
             <Input
-              placeholder="Enter custom response..."
+              placeholder={t("policies.flowBuilder.enterCustomResponse")}
               value={step.modify_response_message || ""}
               onChange={(e) => onChange({ modify_response_message: e.target.value || null })}
             />
@@ -524,6 +546,8 @@ interface PipelineFlowBuilderProps {
 }
 
 const PipelineFlowBuilder: React.FC<PipelineFlowBuilderProps> = ({ pipeline, onChange, availableGuardrails }) => {
+  const { t } = useTranslation();
+
   const handleInsertStep = (atIndex: number) => {
     onChange({ ...pipeline, steps: insertStep(pipeline.steps, atIndex) });
   };
@@ -566,13 +590,13 @@ const PipelineFlowBuilder: React.FC<PipelineFlowBuilderProps> = ({ pipeline, onC
                 marginBottom: 2,
               }}
             >
-              TRIGGER
+              {t("policies.flowBuilder.triggerLabel")}
             </span>
             <span style={{ fontSize: 14, fontWeight: 600, color: "var(--color-foreground)", display: "block" }}>
-              Incoming LLM Request
+              {t("policies.flowBuilder.incomingRequest")}
             </span>
             <span style={{ fontSize: 13, color: "var(--color-muted-foreground)" }}>
-              This flow runs when a request matches this policy
+              {t("policies.flowBuilder.triggerSubtitle")}
             </span>
           </div>
         </div>
@@ -647,12 +671,14 @@ const PipelineFlowBuilder: React.FC<PipelineFlowBuilderProps> = ({ pipeline, onC
                 marginBottom: 2,
               }}
             >
-              END
+              {t("policies.flowBuilder.endLabel")}
             </span>
             <span style={{ fontSize: 14, fontWeight: 600, color: "var(--color-foreground)", display: "block" }}>
-              Continue to LLM
+              {t("policies.flowBuilder.continueToLLM")}
             </span>
-            <span style={{ fontSize: 13, color: "var(--color-muted-foreground)" }}>Request proceeds to the model</span>
+            <span style={{ fontSize: 13, color: "var(--color-muted-foreground)" }}>
+              {t("policies.flowBuilder.endSubtitle")}
+            </span>
           </div>
         </div>
       </div>
@@ -668,104 +694,112 @@ interface PipelineInfoDisplayProps {
   pipeline: GuardrailPipeline;
 }
 
-export const PipelineInfoDisplay: React.FC<PipelineInfoDisplayProps> = ({ pipeline }) => (
-  <div className="flex flex-col items-center" style={{ padding: "16px 0" }}>
-    {/* Trigger */}
-    <div
-      style={{
-        border: "1px solid var(--color-border)",
-        borderRadius: 10,
-        padding: "14px 20px",
-        backgroundColor: "var(--color-card)",
-        maxWidth: 720,
-        width: "100%",
-      }}
-    >
-      <div className="flex items-center gap-3">
-        <PlayIcon />
-        <div>
-          <span
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              textTransform: "uppercase",
-              color: "var(--color-muted-foreground)",
-              letterSpacing: "0.06em",
-              display: "block",
-              marginBottom: 2,
-            }}
-          >
-            TRIGGER
-          </span>
-          <span style={{ fontSize: 14, fontWeight: 600, color: "var(--color-foreground)" }}>Incoming LLM Request</span>
+export const PipelineInfoDisplay: React.FC<PipelineInfoDisplayProps> = ({ pipeline }) => {
+  const { t } = useTranslation();
+
+  return (
+    <div className="flex flex-col items-center" style={{ padding: "16px 0" }}>
+      {/* Trigger */}
+      <div
+        style={{
+          border: "1px solid var(--color-border)",
+          borderRadius: 10,
+          padding: "14px 20px",
+          backgroundColor: "var(--color-card)",
+          maxWidth: 720,
+          width: "100%",
+        }}
+      >
+        <div className="flex items-center gap-3">
+          <PlayIcon />
+          <div>
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                textTransform: "uppercase",
+                color: "var(--color-muted-foreground)",
+                letterSpacing: "0.06em",
+                display: "block",
+                marginBottom: 2,
+              }}
+            >
+              {t("policies.flowBuilder.triggerLabel")}
+            </span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: "var(--color-foreground)" }}>
+              {t("policies.flowBuilder.incomingRequest")}
+            </span>
+          </div>
         </div>
       </div>
-    </div>
 
-    {/* Steps */}
-    {pipeline.steps.map((step, index) => (
-      <React.Fragment key={index}>
-        {/* Connector */}
-        <div style={{ width: 1, height: 32, backgroundColor: "var(--color-border)" }} />
+      {/* Steps */}
+      {pipeline.steps.map((step, index) => (
+        <React.Fragment key={index}>
+          {/* Connector */}
+          <div style={{ width: 1, height: 32, backgroundColor: "var(--color-border)" }} />
 
-        {/* Step card */}
-        <div
-          style={{
-            border: "1px solid var(--color-border)",
-            borderRadius: 10,
-            padding: "14px 20px",
-            backgroundColor: "var(--color-card)",
-            maxWidth: 720,
-            width: "100%",
-          }}
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between" style={{ marginBottom: 8 }}>
-            <div className="flex items-center gap-2">
-              <GuardrailIcon />
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  color: "var(--color-info)",
-                  letterSpacing: "0.06em",
-                }}
-              >
-                GUARDRAIL
+          {/* Step card */}
+          <div
+            style={{
+              border: "1px solid var(--color-border)",
+              borderRadius: 10,
+              padding: "14px 20px",
+              backgroundColor: "var(--color-card)",
+              maxWidth: 720,
+              width: "100%",
+            }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between" style={{ marginBottom: 8 }}>
+              <div className="flex items-center gap-2">
+                <GuardrailIcon />
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    color: "var(--color-info)",
+                    letterSpacing: "0.06em",
+                  }}
+                >
+                  {t("policies.flowBuilder.guardrailLabel")}
+                </span>
+              </div>
+              <span style={{ fontSize: 13, color: "var(--color-muted-foreground)" }}>
+                {t("policies.flowBuilder.step", { index: index + 1 })}
               </span>
             </div>
-            <span style={{ fontSize: 13, color: "var(--color-muted-foreground)" }}>Step {index + 1}</span>
-          </div>
 
-          {/* Name */}
-          <div style={{ fontSize: 15, fontWeight: 600, color: "var(--color-foreground)", marginBottom: 8 }}>
-            {step.guardrail}
-          </div>
+            {/* Name */}
+            <div style={{ fontSize: 15, fontWeight: 600, color: "var(--color-foreground)", marginBottom: 8 }}>
+              {step.guardrail}
+            </div>
 
-          {/* Divider */}
-          <div style={{ borderTop: "1px solid var(--color-muted)", marginBottom: 10 }} />
+            {/* Divider */}
+            <div style={{ borderTop: "1px solid var(--color-muted)", marginBottom: 10 }} />
 
-          {/* Pass / Fail / API failure */}
-          <div className="flex flex-col gap-2" style={{ fontSize: 13, color: "var(--color-foreground)" }}>
-            <span className="flex items-center gap-1.5">
-              <PassIcon /> Pass &#8594; {ACTION_LABELS[step.on_pass] || step.on_pass}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <FailIcon /> On fail &#8594; {ACTION_LABELS[step.on_fail] || step.on_fail}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <ApiFailureIcon /> On API failure &#8594;{" "}
-              {step.on_error != null
-                ? ACTION_LABELS[step.on_error] || step.on_error
-                : `${ACTION_LABELS[step.on_fail] || step.on_fail} (same as on fail)`}
-            </span>
+            {/* Pass / Fail / API failure */}
+            <div className="flex flex-col gap-2" style={{ fontSize: 13, color: "var(--color-foreground)" }}>
+              <span className="flex items-center gap-1.5">
+                <PassIcon /> {t("policies.flowBuilder.passLabel")} &#8594; {actionLabel(t, step.on_pass)}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <FailIcon /> {t("policies.flowBuilder.onFailLabel")} &#8594; {actionLabel(t, step.on_fail)}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <ApiFailureIcon /> {t("policies.flowBuilder.onApiFailureLabel")} &#8594;{" "}
+                {step.on_error != null
+                  ? actionLabel(t, step.on_error)
+                  : t("policies.flowBuilder.sameAsOnFailSuffix", { action: actionLabel(t, step.on_fail) })}
+              </span>
+            </div>
           </div>
-        </div>
-      </React.Fragment>
-    ))}
-  </div>
-);
+        </React.Fragment>
+      ))}
+    </div>
+  );
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Pipeline Test Panel (right drawer)
@@ -815,15 +849,17 @@ function complianceMatchExpected(expected: "pass" | "fail", terminalAction: stri
   return terminalAction === "block";
 }
 
-const testSourceOptions = [
-  { value: TEST_SOURCE_QUICK, label: "Quick chat (custom message)" },
+const buildTestSourceOptions = (t: Translate) => [
+  { value: TEST_SOURCE_QUICK, label: t("policies.flowBuilder.quickChatOption") },
   ...getFrameworks().map((f) => ({ value: f.name, label: f.name })),
-  { value: TEST_SOURCE_ALL, label: "All compliance datasets" },
+  { value: TEST_SOURCE_ALL, label: t("policies.flowBuilder.allDatasetsOption") },
 ];
 
 const PipelineTestPanel: React.FC<PipelineTestPanelProps> = ({ pipeline, accessToken, onClose }) => {
+  const { t } = useTranslation();
+  const testSourceOptions = buildTestSourceOptions(t);
   const [testSource, setTestSource] = useState<string>(TEST_SOURCE_QUICK);
-  const [testMessage, setTestMessage] = useState("Hello, can you help me?");
+  const [testMessage, setTestMessage] = useState(t("policies.flowBuilder.defaultTestMessage"));
   const [isRunning, setIsRunning] = useState(false);
   const [result, setResult] = useState<PipelineTestResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -838,7 +874,7 @@ const PipelineTestPanel: React.FC<PipelineTestPanelProps> = ({ pipeline, accessT
 
     const emptySteps = pipeline.steps.filter((s) => !s.guardrail);
     if (emptySteps.length > 0) {
-      setError("All steps must have a guardrail selected");
+      setError(t("policies.flowBuilder.errorNoGuardrail"));
       return;
     }
 
@@ -901,7 +937,9 @@ const PipelineTestPanel: React.FC<PipelineTestPanelProps> = ({ pipeline, accessT
           justifyContent: "space-between",
         }}
       >
-        <span style={{ fontSize: 14, fontWeight: 600, color: "var(--color-foreground)" }}>Test Pipeline</span>
+        <span style={{ fontSize: 14, fontWeight: 600, color: "var(--color-foreground)" }}>
+          {t("policies.flowBuilder.testPipelineTitle")}
+        </span>
         <button
           onClick={onClose}
           style={{
@@ -928,7 +966,7 @@ const PipelineTestPanel: React.FC<PipelineTestPanelProps> = ({ pipeline, accessT
             marginBottom: 6,
           }}
         >
-          Test with
+          {t("policies.flowBuilder.testWith")}
         </label>
         <Select value={testSource} onValueChange={(value) => value !== null && setTestSource(value)}>
           <SelectTrigger className="mb-3 w-full">
@@ -955,12 +993,12 @@ const PipelineTestPanel: React.FC<PipelineTestPanelProps> = ({ pipeline, accessT
                 marginBottom: 6,
               }}
             >
-              Message
+              {t("policies.flowBuilder.message")}
             </label>
             <textarea
               value={testMessage}
               onChange={(e) => setTestMessage(e.target.value)}
-              placeholder="Enter a test message..."
+              placeholder={t("policies.flowBuilder.enterTestMessage")}
               rows={3}
               style={{
                 width: "100%",
@@ -988,12 +1026,15 @@ const PipelineTestPanel: React.FC<PipelineTestPanelProps> = ({ pipeline, accessT
             }}
           >
             {testSource === TEST_SOURCE_ALL
-              ? "Run pipeline against all compliance prompts (EU AI Act, GDPR, Topic Blocking, Airline, etc.)."
-              : `Run pipeline against ${promptsForSource.length} prompts from "${testSource}".`}
+              ? t("policies.flowBuilder.allCompliancePrompts")
+              : t("policies.flowBuilder.frameworkPrompts", {
+                  count: promptsForSource.length,
+                  name: testSource,
+                })}
           </div>
         )}
         <Button onClick={handleRunTest} disabled={isRunning} style={{ marginTop: 8, width: "100%" }}>
-          Run Test
+          {t("policies.flowBuilder.runTest")}
         </Button>
       </div>
 
@@ -1032,7 +1073,10 @@ const PipelineTestPanel: React.FC<PipelineTestPanelProps> = ({ pipeline, accessT
                 >
                   <div className="flex items-center justify-between" style={{ marginBottom: 4 }}>
                     <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-foreground)" }}>
-                      Step {i + 1}: {step.guardrail_name}
+                      {t("policies.flowBuilder.stepResultTitle", {
+                        index: i + 1,
+                        name: step.guardrail_name,
+                      })}
                     </span>
                     <span
                       style={{
@@ -1048,7 +1092,7 @@ const PipelineTestPanel: React.FC<PipelineTestPanelProps> = ({ pipeline, accessT
                     </span>
                   </div>
                   <div style={{ fontSize: 12, color: "var(--color-muted-foreground)" }}>
-                    Action: {ACTION_LABELS[step.action_taken] || step.action_taken}
+                    {t("policies.flowBuilder.actionTaken", { action: actionLabel(t, step.action_taken) })}
                     {step.duration_seconds != null && (
                       <span style={{ marginLeft: 8 }}>({(step.duration_seconds * 1000).toFixed(0)}ms)</span>
                     )}
@@ -1071,7 +1115,9 @@ const PipelineTestPanel: React.FC<PipelineTestPanelProps> = ({ pipeline, accessT
               }}
             >
               <div className="flex items-center justify-between">
-                <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-foreground)" }}>Result</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-foreground)" }}>
+                  {t("policies.flowBuilder.result")}
+                </span>
                 {(() => {
                   const ts = TERMINAL_STYLES[result.terminal_action] || TERMINAL_STYLES.block;
                   return (
@@ -1086,7 +1132,9 @@ const PipelineTestPanel: React.FC<PipelineTestPanelProps> = ({ pipeline, accessT
                         textTransform: "uppercase",
                       }}
                     >
-                      {result.terminal_action === "modify_response" ? "Custom Response" : result.terminal_action}
+                      {result.terminal_action === "modify_response"
+                        ? t("policies.flowBuilder.actionModifyResponse")
+                        : result.terminal_action}
                     </span>
                   );
                 })()}
@@ -1098,7 +1146,9 @@ const PipelineTestPanel: React.FC<PipelineTestPanelProps> = ({ pipeline, accessT
               )}
               {result.modify_response_message && (
                 <div style={{ fontSize: 12, color: "var(--color-info)", marginTop: 6 }}>
-                  Response: {result.modify_response_message}
+                  {t("policies.flowBuilder.responsePrefix", {
+                    message: result.modify_response_message,
+                  })}
                 </div>
               )}
             </div>
@@ -1115,7 +1165,7 @@ const PipelineTestPanel: React.FC<PipelineTestPanelProps> = ({ pipeline, accessT
                 marginBottom: 8,
               }}
             >
-              Compliance dataset
+              {t("policies.flowBuilder.complianceDataset")}
             </div>
             <div
               style={{
@@ -1124,7 +1174,10 @@ const PipelineTestPanel: React.FC<PipelineTestPanelProps> = ({ pipeline, accessT
                 marginBottom: 10,
               }}
             >
-              {complianceResults.filter((e) => e.matched).length} / {complianceResults.length} matched expected
+              {t("policies.flowBuilder.matchedExpected", {
+                matched: complianceResults.filter((e) => e.matched).length,
+                total: complianceResults.length,
+              })}
             </div>
             <div
               style={{
@@ -1172,10 +1225,12 @@ const PipelineTestPanel: React.FC<PipelineTestPanelProps> = ({ pipeline, accessT
                       }}
                     >
                       <span style={{ color: "var(--color-muted-foreground)" }}>
-                        expected: {entry.prompt.expectedResult}
+                        {t("policies.flowBuilder.expectedLabel", { value: entry.prompt.expectedResult })}
                       </span>
                       <span style={{ color: "var(--color-muted-foreground)" }}>→</span>
-                      <span style={{ color: "var(--color-muted-foreground)" }}>actual: {actual}</span>
+                      <span style={{ color: "var(--color-muted-foreground)" }}>
+                        {t("policies.flowBuilder.actualLabel", { value: actual })}
+                      </span>
                       <span
                         style={{
                           backgroundColor: matchStyle.bg,
@@ -1200,7 +1255,7 @@ const PipelineTestPanel: React.FC<PipelineTestPanelProps> = ({ pipeline, accessT
 
         {!result && !error && complianceResults.length === 0 && (
           <div style={{ textAlign: "center", color: "var(--color-muted-foreground)", fontSize: 13, marginTop: 24 }}>
-            Choose a test source above (quick chat or a compliance dataset) and click &quot;Run Test&quot;
+            {t("policies.flowBuilder.emptyTestHint")}
           </div>
         )}
       </div>
@@ -1247,6 +1302,7 @@ const PolicyVersionsSidebar: React.FC<PolicyVersionsSidebarProps> = ({
   onPublish,
   onPromoteToProduction,
 }) => {
+  const { t } = useTranslation();
   const canPublish = editingVersionStatus === "draft" && onPublish;
   const canPromote = editingVersionStatus === "published" && onPromoteToProduction;
 
@@ -1276,7 +1332,7 @@ const PolicyVersionsSidebar: React.FC<PolicyVersionsSidebarProps> = ({
               marginBottom: 4,
             }}
           >
-            Versions
+            {t("policies.flowBuilder.versionsTitle")}
           </span>
           <span
             style={{
@@ -1287,21 +1343,23 @@ const PolicyVersionsSidebar: React.FC<PolicyVersionsSidebarProps> = ({
               marginBottom: 12,
             }}
           >
-            Production = the version used when anyone calls this policy by name.
+            {t("policies.flowBuilder.versionsHint")}
           </span>
           <Button
             onClick={onNewVersion}
             disabled={!accessToken || isCreatingVersion}
             style={{ width: "100%", marginBottom: 12 }}
           >
-            + New Version
+            {t("policies.flowBuilder.newVersion")}
           </Button>
           {isLoading ? (
             <div style={{ display: "flex", justifyContent: "center", padding: 16 }}>
               <UiLoadingSpinner className="size-4" />
             </div>
           ) : versions.length === 0 ? (
-            <span style={{ fontSize: 13, color: "var(--color-muted-foreground)" }}>No versions found</span>
+            <span style={{ fontSize: 13, color: "var(--color-muted-foreground)" }}>
+              {t("policies.flowBuilder.noVersionsFound")}
+            </span>
           ) : (
             <div className="flex flex-col gap-1">
               {versions.map((v) => {
@@ -1359,7 +1417,7 @@ const PolicyVersionsSidebar: React.FC<PolicyVersionsSidebarProps> = ({
                     disabled={!accessToken || isUpdatingStatus}
                     style={{ width: "100%", marginBottom: 8 }}
                   >
-                    Publish
+                    {t("policies.flowBuilder.publish")}
                   </Button>
                   <span
                     style={{
@@ -1370,7 +1428,7 @@ const PolicyVersionsSidebar: React.FC<PolicyVersionsSidebarProps> = ({
                       marginBottom: canPromote ? 8 : 0,
                     }}
                   >
-                    Published versions can be tested in the Playground before promoting to production.
+                    {t("policies.flowBuilder.publishHint")}
                   </span>
                 </>
               )}
@@ -1381,7 +1439,7 @@ const PolicyVersionsSidebar: React.FC<PolicyVersionsSidebarProps> = ({
                     disabled={!accessToken || isUpdatingStatus}
                     style={{ width: "100%", marginBottom: 8 }}
                   >
-                    Promote to production
+                    {t("policies.flowBuilder.promoteToProduction")}
                   </Button>
                   <span
                     style={{
@@ -1391,7 +1449,7 @@ const PolicyVersionsSidebar: React.FC<PolicyVersionsSidebarProps> = ({
                       display: "block",
                     }}
                   >
-                    This version will be used when anyone calls this policy by name.
+                    {t("policies.flowBuilder.promoteHint")}
                   </span>
                 </>
               )}
@@ -1411,7 +1469,7 @@ const PolicyVersionsSidebar: React.FC<PolicyVersionsSidebarProps> = ({
                 letterSpacing: "0.06em",
               }}
             >
-              Silent Mirroring
+              {t("policies.flowBuilder.silentMirroring")}
             </span>
             <span
               style={{
@@ -1423,7 +1481,7 @@ const PolicyVersionsSidebar: React.FC<PolicyVersionsSidebarProps> = ({
                 borderRadius: 4,
               }}
             >
-              COMING SOON
+              {t("policies.flowBuilder.comingSoon")}
             </span>
           </div>
           <span
@@ -1434,8 +1492,7 @@ const PolicyVersionsSidebar: React.FC<PolicyVersionsSidebarProps> = ({
               display: "block",
             }}
           >
-            Test policy versions on production traffic without blocking requests. Shadow testing helps validate changes
-            before full rollout.
+            {t("policies.flowBuilder.silentMirroringBody")}
           </span>
         </div>
       </div>
@@ -1472,6 +1529,7 @@ export const FlowBuilderPage: React.FC<FlowBuilderPageProps> = ({
   onSelectVersion,
   onVersionStatusUpdated,
 }) => {
+  const { t } = useTranslation();
   const isEditing = !!editingPolicy?.policy_id;
   const showVersionsSidebar = !!editingPolicy?.policy_name;
 
@@ -1526,12 +1584,15 @@ export const FlowBuilderPage: React.FC<FlowBuilderPageProps> = ({
     setIsCreatingVersion(true);
     try {
       const newPolicy = await createPolicyVersion(accessToken, editingPolicy.policy_name);
-      toast.success("New draft version created");
+      toast.success(t("policies.flowBuilder.toastNewVersion"));
       onVersionCreated?.(newPolicy);
       const list = await listPolicyVersions(accessToken, editingPolicy.policy_name);
       setVersions(list.versions ?? []);
     } catch (error) {
-      toast.fromError("Failed to create version: " + (error instanceof Error ? error.message : String(error)));
+      toast.fromError(
+        t("policies.flowBuilder.toastCreateVersionFailedPrefix") +
+          (error instanceof Error ? error.message : String(error)),
+      );
     } finally {
       setIsCreatingVersion(false);
     }
@@ -1546,14 +1607,14 @@ export const FlowBuilderPage: React.FC<FlowBuilderPageProps> = ({
     setIsUpdatingStatus(true);
     try {
       const updated = await updatePolicyVersionStatus(accessToken, editingPolicy.policy_id, "published");
-      toast.success(
-        "Version published. You can test it in the Playground by selecting this version in the Policies dropdown.",
-      );
+      toast.success(t("policies.flowBuilder.toastPublished"));
       const list = await listPolicyVersions(accessToken, editingPolicy.policy_name ?? "");
       setVersions(list.versions ?? []);
       onVersionStatusUpdated?.(updated);
     } catch (error) {
-      toast.fromError("Failed to publish: " + (error instanceof Error ? error.message : String(error)));
+      toast.fromError(
+        t("policies.flowBuilder.toastPublishFailedPrefix") + (error instanceof Error ? error.message : String(error)),
+      );
     } finally {
       setIsUpdatingStatus(false);
     }
@@ -1564,12 +1625,14 @@ export const FlowBuilderPage: React.FC<FlowBuilderPageProps> = ({
     setIsUpdatingStatus(true);
     try {
       const updated = await updatePolicyVersionStatus(accessToken, editingPolicy.policy_id, "production");
-      toast.success("Version promoted to production");
+      toast.success(t("policies.flowBuilder.toastPromoted"));
       const list = await listPolicyVersions(accessToken, editingPolicy.policy_name ?? "");
       setVersions(list.versions ?? []);
       onVersionStatusUpdated?.(updated);
     } catch (error) {
-      toast.fromError("Failed to promote to production: " + (error instanceof Error ? error.message : String(error)));
+      toast.fromError(
+        t("policies.flowBuilder.toastPromoteFailedPrefix") + (error instanceof Error ? error.message : String(error)),
+      );
     } finally {
       setIsUpdatingStatus(false);
     }
@@ -1577,17 +1640,17 @@ export const FlowBuilderPage: React.FC<FlowBuilderPageProps> = ({
 
   const handleSave = async () => {
     if (!policyName.trim()) {
-      toast.error("Please enter a policy name");
+      toast.error(t("policies.flowBuilder.toastEnterName"));
       return;
     }
     if (!accessToken) {
-      toast.error("No access token available");
+      toast.error(t("policies.flowBuilder.toastNoToken"));
       return;
     }
 
     const emptySteps = pipeline.steps.filter((s) => !s.guardrail);
     if (emptySteps.length > 0) {
-      toast.error("Please select a guardrail for all steps");
+      toast.error(t("policies.flowBuilder.toastSelectGuardrails"));
       return;
     }
 
@@ -1605,17 +1668,19 @@ export const FlowBuilderPage: React.FC<FlowBuilderPageProps> = ({
 
       if (isEditing && editingPolicy) {
         await updatePolicy(accessToken, editingPolicy.policy_id, data as PolicyUpdateRequest);
-        toast.success("Policy updated successfully");
+        toast.success(t("policies.flowBuilder.toastPolicyUpdated"));
         onSuccess();
       } else {
         await createPolicy(accessToken, data as PolicyCreateRequest);
-        toast.success("Policy created successfully");
+        toast.success(t("policies.flowBuilder.toastPolicyCreated"));
         onSuccess();
         onBack();
       }
     } catch (error) {
       console.error("Failed to save policy:", error);
-      toast.fromError("Failed to save policy: " + (error instanceof Error ? error.message : String(error)));
+      toast.fromError(
+        t("policies.flowBuilder.toastSaveFailedPrefix") + (error instanceof Error ? error.message : String(error)),
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -1649,10 +1714,12 @@ export const FlowBuilderPage: React.FC<FlowBuilderPageProps> = ({
           >
             <ArrowLeft style={{ width: 18, height: 18, color: "var(--color-muted-foreground)" }} />
           </button>
-          <span style={{ fontSize: 14, color: "var(--color-muted-foreground)" }}>Policies</span>
+          <span style={{ fontSize: 14, color: "var(--color-muted-foreground)" }}>
+            {t("policies.flowBuilder.breadcrumbPolicies")}
+          </span>
           <span style={{ fontSize: 14, color: "var(--color-border)" }}>/</span>
           <Input
-            placeholder="Policy name..."
+            placeholder={t("policies.flowBuilder.policyNamePlaceholder")}
             value={policyName}
             onChange={(e) => setPolicyName(e.target.value)}
             disabled={isEditing}
@@ -1669,18 +1736,18 @@ export const FlowBuilderPage: React.FC<FlowBuilderPageProps> = ({
               letterSpacing: "0.02em",
             }}
           >
-            Flow
+            {t("policies.flowBuilder.flowBadge")}
           </span>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="secondary" onClick={onBack}>
-            Cancel
+            {t("policies.flowBuilder.cancel")}
           </Button>
           <Button variant="secondary" onClick={() => setShowTestPanel(!showTestPanel)}>
-            {showTestPanel ? "Hide Test" : "Test Pipeline"}
+            {showTestPanel ? t("policies.flowBuilder.hideTest") : t("policies.flowBuilder.testPipelineTitle")}
           </Button>
           <Button onClick={handleSave} disabled={isSubmitting}>
-            {isEditing ? "Update Policy" : "Save Policy"}
+            {isEditing ? t("policies.flowBuilder.updatePolicy") : t("policies.flowBuilder.savePolicy")}
           </Button>
         </div>
       </div>
@@ -1695,7 +1762,7 @@ export const FlowBuilderPage: React.FC<FlowBuilderPageProps> = ({
         }}
       >
         <Input
-          placeholder="Add a description (optional)..."
+          placeholder={t("policies.flowBuilder.descriptionPlaceholder")}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           style={{ maxWidth: 500 }}

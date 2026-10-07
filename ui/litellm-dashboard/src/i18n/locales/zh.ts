@@ -31,12 +31,14 @@ import { zh as toolPoliciesZh } from "./extra/toolPolicies";
 import { zh as cachingZh } from "./extra/caching";
 import { zh as vectorStoresZh } from "./extra/vectorStores";
 import { zh as logsZh } from "./extra/logs";
+import { zh as policiesZh } from "./extra/policies";
 
 export const zh: Record<string, string> = {
   ...toolPoliciesZh,
   ...cachingZh,
   ...vectorStoresZh,
   ...logsZh,
+  ...policiesZh,
   // ---------------------------------------------------------------- language switcher
   "language.switchTo": "切换到{language}",
   "language.current": "当前语言：{language}",
