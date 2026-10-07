@@ -35,10 +35,12 @@ import { en as costAnalyticsEn } from "./extra/costAnalytics";
 import { en as roiCalculatorEn } from "./extra/roiCalculator";
 import { en as toolPoliciesEn } from "./extra/toolPolicies";
 import { en as cachingEn } from "./extra/caching";
+import { en as vectorStoresEn } from "./extra/vectorStores";
 
 export const en: Record<string, string> = {
   ...toolPoliciesEn,
   ...cachingEn,
+  ...vectorStoresEn,
   // ---------------------------------------------------------------- language switcher
   "language.switchTo": "Switch to {language}",
   "language.current": "Current language: {language}",

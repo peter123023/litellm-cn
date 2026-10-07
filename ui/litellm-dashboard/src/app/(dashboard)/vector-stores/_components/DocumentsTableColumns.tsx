@@ -14,12 +14,20 @@ import {
 import { DocumentUpload } from "@/components/vector_store_management/types";
 import { cn } from "@/lib/cva.config";
 import { copyToClipboard } from "@/utils/dataUtils";
+import { translate, useTranslation, type Translate } from "@/i18n";
 
-const STATUS_CONFIG: Record<DocumentUpload["status"], { tone: StatusTone; label: string }> = {
-  uploading: { tone: "info", label: "Uploading" },
-  done: { tone: "success", label: "Ready" },
-  error: { tone: "error", label: "Error" },
-  removed: { tone: "neutral", label: "Removed" },
+const STATUS_TONE: Record<DocumentUpload["status"], StatusTone> = {
+  uploading: "info",
+  done: "success",
+  error: "error",
+  removed: "neutral",
+};
+
+const STATUS_LABEL_KEY: Record<DocumentUpload["status"], string> = {
+  uploading: "vectorStores.documents.status.uploading",
+  done: "vectorStores.documents.status.ready",
+  error: "vectorStores.documents.status.error",
+  removed: "vectorStores.documents.status.removed",
 };
 
 function formatFileSize(bytes?: number): string {
@@ -30,10 +38,11 @@ function formatFileSize(bytes?: number): string {
 }
 
 function DocumentRowActions({ document, onRemove }: { document: DocumentUpload; onRemove: (uid: string) => void }) {
+  const { t } = useTranslation();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label="Open document actions"
+        aria-label={t("vectorStores.documents.openActions")}
         data-testid={`document-actions-${document.uid}`}
         className={cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), "text-muted-foreground")}
       >
@@ -42,10 +51,10 @@ function DocumentRowActions({ document, onRemove }: { document: DocumentUpload; 
       <DropdownMenuContent align="end" className="w-52">
         <DropdownMenuItem
           data-testid="document-action-copy"
-          onClick={() => void copyToClipboard(document.uid, "Document ID copied to clipboard")}
+          onClick={() => void copyToClipboard(document.uid, t("vectorStores.documents.copiedToast"))}
         >
           <Copy />
-          Copy document ID
+          {t("vectorStores.documents.copyId")}
         </DropdownMenuItem>
         <DropdownMenuItem
           variant="destructive"
@@ -53,7 +62,7 @@ function DocumentRowActions({ document, onRemove }: { document: DocumentUpload; 
           onClick={() => onRemove(document.uid)}
         >
           <Trash2 />
-          Remove
+          {t("vectorStores.documents.remove")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -62,14 +71,18 @@ function DocumentRowActions({ document, onRemove }: { document: DocumentUpload; 
 
 interface DocumentsTableColumnsDeps {
   onRemove: (uid: string) => void;
+  t?: Translate;
 }
 
-export const getDocumentsTableColumns = ({ onRemove }: DocumentsTableColumnsDeps): ColumnDef<DocumentUpload>[] => [
+export const getDocumentsTableColumns = ({
+  onRemove,
+  t = translate,
+}: DocumentsTableColumnsDeps): ColumnDef<DocumentUpload>[] => [
   {
     id: "name",
     accessorKey: "name",
-    meta: { title: "Name" },
-    header: "Name",
+    meta: { title: t("vectorStores.documents.col.name") },
+    header: t("vectorStores.documents.col.name"),
     enableSorting: false,
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
@@ -85,19 +98,20 @@ export const getDocumentsTableColumns = ({ onRemove }: DocumentsTableColumnsDeps
   {
     id: "status",
     accessorKey: "status",
-    meta: { title: "Status", skeleton: "badge" },
-    header: "Status",
+    meta: { title: t("vectorStores.documents.col.status"), skeleton: "badge" },
+    header: t("vectorStores.documents.col.status"),
     size: 150,
     enableSorting: false,
     cell: ({ row }) => {
-      const config = STATUS_CONFIG[row.original.status] ?? { tone: "neutral", label: row.original.status };
-      return <StatusBadge tone={config.tone} label={config.label} />;
+      const key = STATUS_LABEL_KEY[row.original.status];
+      const label = key ? t(key) : row.original.status;
+      return <StatusBadge tone={STATUS_TONE[row.original.status] ?? "neutral"} label={label} />;
     },
   },
   {
     id: "actions",
     meta: { className: "text-right", headerClassName: "text-right" },
-    header: () => <span className="sr-only">Actions</span>,
+    header: () => <span className="sr-only">{t("vectorStores.documents.col.actions")}</span>,
     size: 64,
     enableSorting: false,
     enableHiding: false,

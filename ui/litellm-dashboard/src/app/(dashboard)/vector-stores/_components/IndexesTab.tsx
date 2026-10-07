@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
+import { useTranslation } from "@/i18n";
 import { toast } from "@/lib/toast";
 import { indexesListCall } from "@/components/networking";
 import { VectorStore } from "@/components/vector_store_management/types";
@@ -29,6 +30,7 @@ interface IndexesTabProps {
 }
 
 const IndexesTab: React.FC<IndexesTabProps> = ({ accessToken, vectorStores, onViewVectorStore }) => {
+  const { t } = useTranslation();
   const [indexes, setIndexes] = useState<VectorStoreIndex[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -55,7 +57,7 @@ const IndexesTab: React.FC<IndexesTabProps> = ({ accessToken, vectorStores, onVi
         setIndexes(response.data || []);
       } catch (error) {
         console.error("Error fetching indexes:", error);
-        toast.fromError("Error fetching indexes: " + error);
+        toast.fromError(t("vectorStores.indexes.fetchError", { error: String(error) }));
       } finally {
         setIsLoading(false);
       }
@@ -66,26 +68,26 @@ const IndexesTab: React.FC<IndexesTabProps> = ({ accessToken, vectorStores, onVi
   return (
     <div className="w-full">
       <p className="mb-4 text-sm text-muted-foreground">
-        Vector store indexes registered on this proxy via the <code>/v1/indexes</code> API. See the{" "}
+        {t("vectorStores.indexes.introBefore")} <code>/v1/indexes</code>{" "}
+        {t("vectorStores.indexes.introMid1")}{" "}
         <a
           href="https://docs.litellm.ai/docs/providers/azure_ai/azure_ai_vector_stores_passthrough"
           target="_blank"
           rel="noopener noreferrer"
           className="text-info hover:underline"
         >
-          vector store index docs
+          {t("vectorStores.indexes.docsLink")}
         </a>{" "}
-        for how this works. Index passthrough is supported for Azure AI Search and Milvus today; support for more
-        providers can be added, so please{" "}
+        {t("vectorStores.indexes.introMid2")}{" "}
         <a
           href="https://github.com/BerriAI/litellm/issues"
           target="_blank"
           rel="noopener noreferrer"
           className="text-info hover:underline"
         >
-          file a GitHub issue
+          {t("vectorStores.indexes.issueLink")}
         </a>{" "}
-        if you want your provider supported.
+        {t("vectorStores.indexes.introEnd")}
       </p>
       <div className="grid grid-cols-1 gap-2 pt-2 pb-2 w-full">
         <IndexesTable

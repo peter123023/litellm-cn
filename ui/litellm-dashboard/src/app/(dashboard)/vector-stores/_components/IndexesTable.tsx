@@ -6,6 +6,7 @@ import React, { useMemo, useState } from "react";
 
 import { DataTable } from "@/components/shared/DataTable";
 
+import { useTranslation } from "@/i18n";
 import type { VectorStoreIndex } from "./IndexesTab";
 import { getIndexesTableColumns } from "./IndexesTableColumns";
 
@@ -18,14 +19,14 @@ interface IndexesTableProps {
 
 const DEFAULT_SORTING: SortingState = [{ id: "created_at", desc: true }];
 
-function EmptyState() {
+function EmptyState({ t }: { t: (key: string) => string }) {
   return (
     <div className="flex flex-col items-center gap-1 py-6">
       <div className="mb-1 flex size-10 items-center justify-center rounded-lg bg-muted">
         <Inbox className="size-5 text-muted-foreground" />
       </div>
-      <div className="text-sm font-medium text-foreground">No indexes registered yet</div>
-      <div className="text-sm text-muted-foreground">Indexes registered on this proxy will appear here.</div>
+      <div className="text-sm font-medium text-foreground">{t("vectorStores.indexes.emptyTitle")}</div>
+      <div className="text-sm text-muted-foreground">{t("vectorStores.indexes.emptyDesc")}</div>
     </div>
   );
 }
@@ -36,11 +37,12 @@ const IndexesTable: React.FC<IndexesTableProps> = ({
   onViewVectorStore,
   isLoading = false,
 }) => {
+  const { t } = useTranslation();
   const [sorting, setSorting] = useState<SortingState>(DEFAULT_SORTING);
 
   const columns = useMemo(
-    () => getIndexesTableColumns({ resolveVectorStoreId, onViewVectorStore }),
-    [resolveVectorStoreId, onViewVectorStore],
+    () => getIndexesTableColumns({ resolveVectorStoreId, onViewVectorStore, t }),
+    [resolveVectorStoreId, onViewVectorStore, t],
   );
 
   return (
@@ -53,8 +55,8 @@ const IndexesTable: React.FC<IndexesTableProps> = ({
       sorting={sorting}
       onSortingChange={setSorting}
       isLoading={isLoading}
-      loadingMessage="Loading indexes…"
-      noDataMessage={<EmptyState />}
+      loadingMessage={t("vectorStores.indexes.loading")}
+      noDataMessage={<EmptyState t={t} />}
       size="compact"
     />
   );
