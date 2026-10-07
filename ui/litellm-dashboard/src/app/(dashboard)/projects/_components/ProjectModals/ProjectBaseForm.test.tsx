@@ -4,7 +4,8 @@ import userEvent from "@testing-library/user-event";
 import { renderWithProviders, screen, waitFor } from "../../../../../../tests/test-utils";
 import { useZodForm } from "@/lib/forms/useZodForm";
 import { ProjectBaseForm } from "./ProjectBaseForm";
-import { emptyProjectFormValues, projectFormSchema } from "./projectFormSchema";
+import { emptyProjectFormValues, createProjectFormSchema } from "./projectFormSchema";
+import { translate, DEFAULT_LANGUAGE } from "@/i18n";
 
 const mockUseTeams = vi.fn();
 vi.mock("@/app/(dashboard)/hooks/teams/useTeams", () => ({
@@ -25,7 +26,9 @@ vi.mock("@/components/key_team_helpers/fetch_available_models_team_key", () => (
 
 function FormWrapper() {
   const [advancedOpen, setAdvancedOpen] = React.useState(false);
-  const form = useZodForm(projectFormSchema, { defaultValues: emptyProjectFormValues });
+  const form = useZodForm(createProjectFormSchema((k, p) => translate(DEFAULT_LANGUAGE, k, p)), {
+    defaultValues: emptyProjectFormValues,
+  });
   return <ProjectBaseForm form={form} advancedOpen={advancedOpen} onAdvancedOpenChange={setAdvancedOpen} />;
 }
 

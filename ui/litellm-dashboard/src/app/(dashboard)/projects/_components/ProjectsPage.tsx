@@ -10,9 +10,11 @@ import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "
 import { CreateProjectModal } from "./ProjectModals/CreateProjectModal";
 import { ProjectDetail } from "./ProjectDetailsPage";
 import { ProjectsTable } from "./ProjectsTable";
+import { useTranslation } from "@/i18n";
 import { useClearProjectKeysTableState, useProjectsTableState } from "./useProjectsUrlState";
 
 export function ProjectsPage() {
+  const { t } = useTranslation();
   const { data: projects, isLoading } = useProjects();
   const { data: teams, isLoading: isTeamsLoading } = useTeams();
 
@@ -61,13 +63,13 @@ export function ProjectsPage() {
       <PageHeader>
         <PageHeaderTitle>
           <Folder />
-          Projects
+          {t("projects.title")}
         </PageHeaderTitle>
-        <PageHeaderDescription>Manage projects within your teams</PageHeaderDescription>
+        <PageHeaderDescription>{t("projects.subtitle")}</PageHeaderDescription>
         <PageHeaderControls>
           <Button onClick={() => setIsCreateModalVisible(true)}>
             <Plus className="size-4" />
-            Create Project
+            {t("projects.create")}
           </Button>
         </PageHeaderControls>
       </PageHeader>
@@ -79,13 +81,13 @@ export function ProjectsPage() {
               <SearchIcon className="size-4 text-muted-foreground" />
             </InputGroupAddon>
             <InputGroupInput
-              placeholder="Search projects by name, ID, description, or team..."
+              placeholder={t("projects.searchPlaceholder")}
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
             />
             {searchText && (
               <InputGroupAddon align="inline-end">
-                <InputGroupButton size="icon-xs" aria-label="Clear search" onClick={() => setSearchText("")}>
+                <InputGroupButton size="icon-xs" aria-label={t("projects.clearSearch")} onClick={() => setSearchText("")}>
                   <X />
                 </InputGroupButton>
               </InputGroupAddon>

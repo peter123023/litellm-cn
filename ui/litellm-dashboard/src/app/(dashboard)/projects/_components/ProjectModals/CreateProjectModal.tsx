@@ -9,9 +9,10 @@ import { Button } from "@/components/ui/button";
 import { UiLoadingSpinner } from "@/components/ui/ui-loading-spinner";
 import { useCreateProject, ProjectCreateParams } from "@/app/(dashboard)/hooks/projects/useCreateProject";
 import { ProjectBaseForm } from "./ProjectBaseForm";
-import { emptyProjectFormValues, projectFormSchema } from "./projectFormSchema";
+import { emptyProjectFormValues, createProjectFormSchema } from "./projectFormSchema";
 import { buildProjectCreateParams } from "./projectFormUtils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useTranslation } from "@/i18n";
 
 interface CreateProjectModalProps {
   isOpen: boolean;
@@ -19,7 +20,8 @@ interface CreateProjectModalProps {
 }
 
 function CreateProjectForm({ onClose }: { onClose: () => void }) {
-  const form = useZodForm(projectFormSchema, { defaultValues: emptyProjectFormValues });
+  const { t } = useTranslation();
+  const form = useZodForm(createProjectFormSchema(t), { defaultValues: emptyProjectFormValues });
   const createMutation = useCreateProject();
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
@@ -31,12 +33,12 @@ function CreateProjectForm({ onClose }: { onClose: () => void }) {
 
     createMutation.mutate(params, {
       onSuccess: () => {
-        toast.success("Project created successfully");
+        toast.success(t("projects.create.toast.created"));
         form.reset(emptyProjectFormValues);
         onClose();
       },
       onError: (error) => {
-        toast.error(error.message || "Failed to create project");
+        toast.error(error.message ? t("projects.create.toast.createError", { message: error.message }) : t("projects.create.toast.createFailed"));
       },
     });
   });
@@ -52,11 +54,11 @@ function CreateProjectForm({ onClose }: { onClose: () => void }) {
 
       <div className="mt-6 flex justify-end gap-2 border-t border-border pt-4">
         <Button type="button" variant="outline" onClick={handleCancel}>
-          Cancel
+          {t("projects.create.cancel")}
         </Button>
         <Button type="button" onClick={() => void handleSubmit()} disabled={createMutation.isPending}>
           {createMutation.isPending ? <UiLoadingSpinner /> : <FolderPlus />}
-          Create Project
+          {t("projects.create.submit")}
         </Button>
       </div>
     </form>
@@ -64,11 +66,12 @@ function CreateProjectForm({ onClose }: { onClose: () => void }) {
 }
 
 export function CreateProjectModal({ isOpen, onClose }: CreateProjectModalProps) {
+  const { t } = useTranslation();
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[720px]">
         <DialogHeader>
-          <DialogTitle className="text-lg">Create New Project</DialogTitle>
+          <DialogTitle className="text-lg">{t("projects.create.title")}</DialogTitle>
         </DialogHeader>
         <CreateProjectForm onClose={onClose} />
       </DialogContent>
