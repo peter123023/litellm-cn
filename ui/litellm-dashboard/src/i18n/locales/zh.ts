@@ -28,9 +28,11 @@ import { zh as sharedWidgetsZh } from "./extra/sharedWidgets";
 import { zh as costAnalyticsZh } from "./extra/costAnalytics";
 import { zh as roiCalculatorZh } from "./extra/roiCalculator";
 import { zh as toolPoliciesZh } from "./extra/toolPolicies";
+import { zh as cachingZh } from "./extra/caching";
 
 export const zh: Record<string, string> = {
   ...toolPoliciesZh,
+  ...cachingZh,
   // ---------------------------------------------------------------- language switcher
   "language.switchTo": "切换到{language}",
   "language.current": "当前语言：{language}",

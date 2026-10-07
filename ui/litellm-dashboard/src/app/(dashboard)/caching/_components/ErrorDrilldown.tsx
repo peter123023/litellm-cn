@@ -7,6 +7,7 @@ import type { ChartTooltipProps } from "@/components/shared/charts/chart_tooltip
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { components } from "@/lib/http/schema";
+import { useTranslation } from "@/i18n";
 
 export type CacheActivityErrorBucket = components["schemas"]["CacheActivityErrorBucket"];
 
@@ -23,7 +24,10 @@ export type ErrorCodeDatum = {
   classes: ErrorClassCount[];
 };
 
-export const groupErrorBuckets = (buckets: readonly CacheActivityErrorBucket[], callType: string): ErrorCodeDatum[] => {
+export const groupErrorBuckets = (
+  buckets: readonly CacheActivityErrorBucket[],
+  callType: string,
+): ErrorCodeDatum[] => {
   const rows = buckets.filter((bucket) => bucket.call_type === callType);
   return [...new Set(rows.map((row) => row.error_code))]
     .map((errorCode) => {
@@ -39,18 +43,27 @@ export const groupErrorBuckets = (buckets: readonly CacheActivityErrorBucket[], 
     .sort((a, b) => b[FAILED_REQUESTS_SERIES] - a[FAILED_REQUESTS_SERIES]);
 };
 
-export const ErrorCodeTooltip = ({ active, payload, label }: ChartTooltipProps) => {
+export const ErrorCodeTooltip = ({
+  active,
+  payload,
+  label,
+  failedSeriesLabel = FAILED_REQUESTS_SERIES,
+}: ChartTooltipProps & { failedSeriesLabel?: string }) => {
+  const { t } = useTranslation();
   if (!active || !payload || payload.length === 0) return null;
-  const datum = payload[0]?.payload as ErrorCodeDatum | undefined;
+  const datum = payload[0]?.payload as Record<string, unknown> | undefined;
   if (!datum) return null;
 
   return (
     <div className="min-w-40 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl">
       <p className="mb-1.5 font-medium text-foreground">
-        Error code {String(label)}: {datum[FAILED_REQUESTS_SERIES].toLocaleString()} failed
+        {t("caching.errorCodeTooltip", {
+          code: String(label),
+          count: (datum[failedSeriesLabel] as number)?.toLocaleString(),
+        })}
       </p>
       <div className="grid gap-1.5">
-        {datum.classes.map((errorClass) => (
+        {((datum.classes as ErrorClassCount[]) ?? []).map((errorClass) => (
           <div key={errorClass.error_class} className="flex w-full items-center justify-between gap-4">
             <span className="text-muted-foreground">{errorClass.error_class}</span>
             <span className="font-mono font-medium tabular-nums text-foreground">
@@ -70,27 +83,35 @@ interface ErrorDrilldownCardProps {
   onClose: () => void;
 }
 
-export const ErrorDrilldownCard = ({ callType, buckets, valueFormatter, onClose }: ErrorDrilldownCardProps) => (
-  <Card className="mt-4">
-    <CardHeader className="flex flex-row items-center justify-between">
-      <CardTitle className="text-base font-semibold">Failed requests by error code: {callType}</CardTitle>
-      <Button variant="outline" size="icon-sm" onClick={onClose} aria-label="Close error breakdown">
-        <X />
-      </Button>
-    </CardHeader>
-    <CardContent>
-      <p className="text-sm text-muted-foreground">Hover a bar to see the error classes behind that code.</p>
-      <BarChart
-        data={groupErrorBuckets(buckets, callType)}
-        index="error_code"
-        categories={[FAILED_REQUESTS_SERIES]}
-        colors={["red"]}
-        valueFormatter={valueFormatter}
-        showLegend={false}
-        customTooltip={ErrorCodeTooltip}
-        yAxisWidth={48}
-        className="mt-2"
-      />
-    </CardContent>
-  </Card>
-);
+export const ErrorDrilldownCard = ({ callType, buckets, valueFormatter, onClose }: ErrorDrilldownCardProps) => {
+  const { t } = useTranslation();
+  const failedSeriesLabel = t("caching.seriesFailed");
+  const data = groupErrorBuckets(buckets, callType).map((datum) => ({
+    ...datum,
+    [failedSeriesLabel]: datum[FAILED_REQUESTS_SERIES],
+  })) as unknown as Array<Record<string, unknown>>;
+  return (
+    <Card className="mt-4">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle className="text-base font-semibold">{t("caching.failedByErrorCode", { callType })}</CardTitle>
+        <Button variant="outline" size="icon-sm" onClick={onClose} aria-label="Close error breakdown">
+          <X />
+        </Button>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-muted-foreground">{t("caching.hoverBar")}</p>
+        <BarChart
+          data={data}
+          index="error_code"
+          categories={[failedSeriesLabel]}
+          colors={["red"]}
+          valueFormatter={valueFormatter}
+          showLegend={false}
+          customTooltip={(props) => <ErrorCodeTooltip {...props} failedSeriesLabel={failedSeriesLabel} />}
+          yAxisWidth={48}
+          className="mt-2"
+        />
+      </CardContent>
+    </Card>
+  );
+};

@@ -6,10 +6,11 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { getCacheSettingsCall, testCacheConnectionCall, updateCacheSettingsCall } from "@/components/networking";
 import { fetchAvailableModels, ModelGroup } from "@/components/llm_calls/fetch_models";
 import { toast } from "@/lib/toast";
+import { useTranslation } from "@/i18n";
 import RedisTypeSelector from "./RedisTypeSelector";
 import CacheFieldSection from "./CacheFieldSection";
 import { EmbeddingModelOption } from "./CacheFormField";
-import { CACHE_FIELDS, REDIS_TYPES, REDIS_TYPE_DESCRIPTIONS, RedisType } from "./cacheSettingsFields";
+import { CACHE_FIELDS, REDIS_TYPES, RedisType } from "./cacheSettingsFields";
 import {
   buildCachePayload,
   buildInitialValues,
@@ -31,6 +32,7 @@ const toRedisType = (value: unknown): RedisType =>
 
 const CacheSettings: React.FC<CacheSettingsProps> = ({ accessToken }) => {
   const form = useForm<CacheFormValues>({ defaultValues: buildInitialValues({}) });
+  const { t } = useTranslation();
   const [redisType, setRedisType] = useState<RedisType>("node");
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [embeddingModels, setEmbeddingModels] = useState<EmbeddingModelOption[]>([]);
@@ -50,7 +52,7 @@ const CacheSettings: React.FC<CacheSettingsProps> = ({ accessToken }) => {
       setRedisType(toRedisType(currentValues.redis_type));
     } catch (error) {
       console.error("Failed to load cache settings:", error);
-      toast.fromError("Failed to load cache settings");
+      toast.fromError(t("caching.toast.loadFailed"));
     }
   }, [accessToken, form]);
 
@@ -105,13 +107,13 @@ const CacheSettings: React.FC<CacheSettingsProps> = ({ accessToken }) => {
         buildCachePayload(redisType, values, { forTesting: true }),
       );
       if (result.status === "success") {
-        toast.success("Cache connection test successful!");
+        toast.success(t("caching.toast.testSuccess"));
       } else {
-        toast.fromError(`Connection test failed: ${result.message || result.error}`);
+        toast.fromError(t("caching.toast.testFailed", { message: result.message || result.error }));
       }
     } catch (error) {
       console.error("Test connection error:", error);
-      toast.fromError(`Connection test failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+      toast.fromError(t("caching.toast.testFailed", { message: error instanceof Error ? error.message : t("caching.unknownError") }));
     } finally {
       setIsTesting(false);
     }
@@ -129,11 +131,11 @@ const CacheSettings: React.FC<CacheSettingsProps> = ({ accessToken }) => {
     setIsSaving(true);
     try {
       await updateCacheSettingsCall(accessToken, buildCachePayload(redisType, values, { forTesting: false }));
-      toast.success("Cache settings updated successfully");
+      toast.success(t("caching.toast.saveSuccess"));
       await loadCacheSettings();
     } catch (error) {
       console.error("Failed to save cache settings:", error);
-      toast.fromError("Failed to update cache settings");
+      toast.fromError(t("caching.toast.saveFailed"));
     } finally {
       setIsSaving(false);
     }
@@ -148,19 +150,21 @@ const CacheSettings: React.FC<CacheSettingsProps> = ({ accessToken }) => {
       <FormProvider {...form}>
         <form onSubmit={(event) => event.preventDefault()} className="space-y-6">
           <div className="max-w-3xl">
-            <h3 className="text-sm font-medium text-foreground">Cache Settings</h3>
-            <p className="text-xs text-muted-foreground mt-1">Configure Redis cache for LiteLLM</p>
+            <h3 className="text-sm font-medium text-foreground">{t("caching.cacheSettingsTitle")}</h3>
+            <p className="text-xs text-muted-foreground mt-1">{t("caching.configureRedisDesc")}</p>
           </div>
 
           <RedisTypeSelector
             redisType={redisType}
-            redisTypeDescriptions={REDIS_TYPE_DESCRIPTIONS}
+            redisTypeDescriptions={Object.fromEntries(
+              REDIS_TYPES.map((rt) => [rt, t(`caching.redisType.${rt}.desc`)]),
+            )}
             onTypeChange={(type) => setRedisType(toRedisType(type))}
           />
 
           <div className="pt-4 border-t border-border">
             <CacheFieldSection
-              title="Connection Settings"
+              title={t("caching.section.connection")}
               section="connection"
               redisType={redisType}
               embeddingModels={embeddingModels}
@@ -171,7 +175,7 @@ const CacheSettings: React.FC<CacheSettingsProps> = ({ accessToken }) => {
           {redisType === "cluster" && (
             <div className="pt-4 border-t border-border">
               <CacheFieldSection
-                title="Cluster Configuration"
+                title={t("caching.section.cluster")}
                 section="cluster"
                 redisType={redisType}
                 embeddingModels={embeddingModels}
@@ -183,7 +187,7 @@ const CacheSettings: React.FC<CacheSettingsProps> = ({ accessToken }) => {
           {redisType === "sentinel" && (
             <div className="pt-4 border-t border-border">
               <CacheFieldSection
-                title="Sentinel Configuration"
+                title={t("caching.section.sentinel")}
                 section="sentinel"
                 redisType={redisType}
                 embeddingModels={embeddingModels}
@@ -195,7 +199,7 @@ const CacheSettings: React.FC<CacheSettingsProps> = ({ accessToken }) => {
           {redisType === "semantic" && (
             <div className="pt-4 border-t border-border">
               <CacheFieldSection
-                title="Semantic Configuration"
+                title={t("caching.section.semantic")}
                 section="semantic"
                 redisType={redisType}
                 embeddingModels={embeddingModels}
@@ -205,27 +209,27 @@ const CacheSettings: React.FC<CacheSettingsProps> = ({ accessToken }) => {
 
           <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen} className="mt-4">
             <CollapsibleTrigger className="group flex w-full items-center justify-between py-2 text-left">
-              <span className="text-sm font-medium text-foreground">Advanced Settings</span>
+              <span className="text-sm font-medium text-foreground">{t("caching.section.advanced")}</span>
               <ChevronRight className="size-4 text-muted-foreground transition-transform group-data-panel-open:rotate-90" />
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="space-y-6">
                 <CacheFieldSection
-                  title="SSL Settings"
+                  title={t("caching.section.ssl")}
                   section="ssl"
                   redisType={redisType}
                   embeddingModels={embeddingModels}
                   headingLevel="h5"
                 />
                 <CacheFieldSection
-                  title="Cache Management"
+                  title={t("caching.section.cacheManagement")}
                   section="cacheManagement"
                   redisType={redisType}
                   embeddingModels={embeddingModels}
                   headingLevel="h5"
                 />
                 <CacheFieldSection
-                  title="GCP Authentication"
+                  title={t("caching.section.gcp")}
                   section="gcp"
                   redisType={redisType}
                   embeddingModels={embeddingModels}
@@ -239,10 +243,10 @@ const CacheSettings: React.FC<CacheSettingsProps> = ({ accessToken }) => {
 
       <div className="border-t border-border pt-6 flex justify-end gap-3">
         <Button variant="secondary" size="sm" onClick={handleTestConnection} disabled={isTesting} className="text-sm">
-          {isTesting ? "Testing..." : "Test Connection"}
+          {isTesting ? t("caching.testing") : t("caching.testConnection")}
         </Button>
         <Button size="sm" onClick={handleSaveChanges} disabled={isSaving} className="text-sm font-medium">
-          {isSaving ? "Saving..." : "Save Changes"}
+          {isSaving ? t("caching.saving") : t("caching.saveChanges")}
         </Button>
       </div>
     </div>

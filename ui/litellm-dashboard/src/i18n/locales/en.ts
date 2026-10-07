@@ -34,9 +34,11 @@ import { en as sharedWidgetsEn } from "./extra/sharedWidgets";
 import { en as costAnalyticsEn } from "./extra/costAnalytics";
 import { en as roiCalculatorEn } from "./extra/roiCalculator";
 import { en as toolPoliciesEn } from "./extra/toolPolicies";
+import { en as cachingEn } from "./extra/caching";
 
 export const en: Record<string, string> = {
   ...toolPoliciesEn,
+  ...cachingEn,
   // ---------------------------------------------------------------- language switcher
   "language.switchTo": "Switch to {language}",
   "language.current": "Current language: {language}",

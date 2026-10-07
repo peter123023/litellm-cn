@@ -17,6 +17,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { CacheField } from "./cacheSettingsFields";
 import type { CacheFormValues } from "./cacheSettingsUtils";
+import { useTranslation } from "@/i18n";
 
 export interface EmbeddingModelOption {
   value: string;
@@ -32,11 +33,14 @@ interface CacheFormFieldProps {
 }
 
 const CacheFormField: React.FC<CacheFormFieldProps> = ({ field, embeddingModels, isSecretConfigured = false }) => {
+  const { t } = useTranslation();
   const form = useFormContext<CacheFormValues>();
-  const placeholder = isSecretConfigured ? SECRET_ALREADY_SET_PLACEHOLDER : field.helpText;
+  const placeholder = isSecretConfigured ? t("caching.secretAlreadySet") : t(`caching.field.${field.name}.help`);
+  const label = t(`caching.field.${field.name}.label`);
+  const helpText = t(`caching.field.${field.name}.help`);
 
   return (
-    <FormField control={form.control} name={field.name} label={field.label} description={field.helpText}>
+    <FormField control={form.control} name={field.name} label={label} description={helpText}>
       {({ ref, value, onChange, ...rest }) => {
         if (field.type === "boolean") {
           return <Switch {...rest} checked={value === true} onCheckedChange={(checked) => onChange(checked)} />;
@@ -70,7 +74,10 @@ const CacheFormField: React.FC<CacheFormFieldProps> = ({ field, embeddingModels,
           const { id, "aria-invalid": ariaInvalid, "aria-describedby": ariaDescribedBy, name, onBlur, disabled } = rest;
           return (
             <Select
-              items={options.map((option) => ({ label: option.label, value: option.value }))}
+              items={options.map((option) => ({
+                label: t(`caching.field.${field.name}.opt.${option.value}`),
+                value: option.value,
+              }))}
               name={name}
               disabled={disabled}
               value={typeof value === "string" && value !== "" ? value : null}
@@ -83,12 +90,12 @@ const CacheFormField: React.FC<CacheFormFieldProps> = ({ field, embeddingModels,
                 onBlur={onBlur}
                 className="w-full"
               >
-                <SelectValue placeholder="Select an option" />
+                <SelectValue placeholder={t("caching.selectAnOption")} />
               </SelectTrigger>
               <SelectContent>
                 {options.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
-                    {option.label}
+                    {t(`caching.field.${field.name}.opt.${option.value}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -107,11 +114,11 @@ const CacheFormField: React.FC<CacheFormFieldProps> = ({ field, embeddingModels,
                 model.value === other.value
               }
             >
-              <ComboboxInput {...rest} placeholder="Search and select a model..." className="w-full">
+              <ComboboxInput {...rest} placeholder={t("caching.searchSelectModel")} className="w-full">
                 <ComboboxClear />
               </ComboboxInput>
               <ComboboxContent>
-                <ComboboxEmpty>No models found</ComboboxEmpty>
+                <ComboboxEmpty>{t("caching.noModels")}</ComboboxEmpty>
                 <ComboboxList>
                   {(model: EmbeddingModelOption) => (
                     <ComboboxItem key={model.value} value={model} title={model.label}>
