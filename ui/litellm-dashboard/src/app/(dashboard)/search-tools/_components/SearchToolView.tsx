@@ -3,6 +3,7 @@ import { ArrowLeft, Check, Copy } from "lucide-react";
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useTranslation } from "@/i18n";
 import { SearchToolTester } from "./SearchToolTester";
 import { AvailableSearchProvider, SearchTool } from "./types";
 
@@ -21,6 +22,7 @@ export const SearchToolView: React.FC<SearchToolViewProps> = ({
   accessToken,
   availableProviders,
 }) => {
+  const { t } = useTranslation();
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
 
   const copyToClipboard = async (text: string | null | undefined, key: string) => {
@@ -44,14 +46,14 @@ export const SearchToolView: React.FC<SearchToolViewProps> = ({
         <div>
           <Button variant="ghost" size="sm" className="mb-4 -ml-2 text-muted-foreground" onClick={onBack}>
             <ArrowLeft className="mr-2 size-4" />
-            Back to All Search Tools
+            {t("search.view.back")}
           </Button>
           <div className="flex items-center gap-1">
             <h1 className="text-2xl font-semibold text-foreground">{searchTool.search_tool_name}</h1>
             <Button
               variant="ghost"
               size="icon-xs"
-              aria-label="Copy search tool name"
+              aria-label={t("search.view.copyName")}
               className="text-muted-foreground"
               onClick={() => copyToClipboard(searchTool.search_tool_name, "search-tool-name")}
             >
@@ -63,47 +65,49 @@ export const SearchToolView: React.FC<SearchToolViewProps> = ({
             <Button
               variant="ghost"
               size="icon-xs"
-              aria-label="Copy search tool ID"
+              aria-label={t("search.view.copyId")}
               className="text-muted-foreground"
               onClick={() => copyToClipboard(searchTool.search_tool_id, "search-tool-id")}
             >
               {copiedStates["search-tool-id"] ? <Check /> : <Copy />}
             </Button>
           </div>
-        </div>
-      </div>
+          </div>
+          </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Card>
           <CardContent>
-            <p className="text-sm text-muted-foreground">Provider</p>
+            <p className="text-sm text-muted-foreground">{t("search.view.provider")}</p>
             <p className="mt-2 text-lg font-semibold text-foreground">
               {getProviderDisplayName(searchTool.litellm_params.search_provider)}
             </p>
           </CardContent>
-        </Card>
+          </Card>
 
-        <Card>
+          <Card>
           <CardContent>
-            <p className="text-sm text-muted-foreground">API Key</p>
-            <p className="mt-2 text-foreground">{searchTool.litellm_params.api_key ? "****" : "Not set"}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">Created At</p>
+            <p className="text-sm text-muted-foreground">{t("search.view.apiKey")}</p>
             <p className="mt-2 text-foreground">
-              {searchTool.created_at ? new Date(searchTool.created_at).toLocaleString() : "Unknown"}
+              {searchTool.litellm_params.api_key ? "****" : t("search.view.apiKeyNotSet")}
             </p>
           </CardContent>
-        </Card>
-      </div>
+          </Card>
 
-      {searchTool.search_tool_info?.description && (
-        <Card className="mt-6">
+          <Card>
           <CardContent>
-            <p className="text-sm text-muted-foreground">Description</p>
+            <p className="text-sm text-muted-foreground">{t("search.view.createdAt")}</p>
+            <p className="mt-2 text-foreground">
+              {searchTool.created_at ? new Date(searchTool.created_at).toLocaleString() : t("search.view.unknown")}
+            </p>
+          </CardContent>
+          </Card>
+          </div>
+
+          {searchTool.search_tool_info?.description && (
+          <Card className="mt-6">
+          <CardContent>
+            <p className="text-sm text-muted-foreground">{t("search.view.description")}</p>
             <p className="mt-2 text-foreground">{searchTool.search_tool_info.description}</p>
           </CardContent>
         </Card>
