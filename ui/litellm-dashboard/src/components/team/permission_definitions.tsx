@@ -1,3 +1,5 @@
+import { DEFAULT_LANGUAGE, translate, type Translate } from "@/i18n";
+
 export interface PermissionInfo {
   method: string;
   endpoint: string;
@@ -5,25 +7,26 @@ export interface PermissionInfo {
   route: string;
 }
 
+const defaultTranslate: Translate = (key, params) => translate(DEFAULT_LANGUAGE, key, params);
+
 /**
- * Map of permission endpoint patterns to their descriptions
+ * Map of permission endpoint patterns to the i18n key of their description
  */
-export const PERMISSION_DESCRIPTIONS: Record<string, string> = {
-  "/auto_router/manage": "Member can create auto routers for this team and edit their own router configurations",
-  "/key/generate": "Member can generate a virtual key for this team",
-  "/key/service-account/generate":
-    "Member can generate a service account key (not belonging to any user) for this team",
-  "/key/update": "Member can update a virtual key belonging to this team",
-  "/key/delete": "Member can delete a virtual key belonging to this team",
-  "/key/info": "Member can get info about a virtual key belonging to this team",
-  "/key/regenerate": "Member can regenerate a virtual key belonging to this team",
-  "/key/{key_id}/regenerate": "Member can regenerate a virtual key belonging to this team",
-  "/key/list": "Member can list virtual keys belonging to this team",
-  "/key/block": "Member can block a virtual key belonging to this team",
-  "/key/unblock": "Member can unblock a virtual key belonging to this team",
-  "/key/access_group_assignment": "Member can assign access groups to virtual keys for this team",
-  "/team/daily/activity": "Member can view all team usage data (not just their own)",
-  "/spend/logs": "Member can view spend logs for the entire team (not just their own)",
+export const PERMISSION_DESCRIPTION_KEYS: Record<string, string> = {
+  "/auto_router/manage": "teamSettings.permissionDesc.autoRouterManage",
+  "/key/generate": "teamSettings.permissionDesc.keyGenerate",
+  "/key/service-account/generate": "teamSettings.permissionDesc.keyServiceAccountGenerate",
+  "/key/update": "teamSettings.permissionDesc.keyUpdate",
+  "/key/delete": "teamSettings.permissionDesc.keyDelete",
+  "/key/info": "teamSettings.permissionDesc.keyInfo",
+  "/key/regenerate": "teamSettings.permissionDesc.keyRegenerate",
+  "/key/{key_id}/regenerate": "teamSettings.permissionDesc.keyRegenerate",
+  "/key/list": "teamSettings.permissionDesc.keyList",
+  "/key/block": "teamSettings.permissionDesc.keyBlock",
+  "/key/unblock": "teamSettings.permissionDesc.keyUnblock",
+  "/key/access_group_assignment": "teamSettings.permissionDesc.keyAccessGroupAssignment",
+  "/team/daily/activity": "teamSettings.permissionDesc.teamDailyActivity",
+  "/spend/logs": "teamSettings.permissionDesc.spendLogs",
 };
 
 /**
@@ -41,35 +44,23 @@ export const getMethodForEndpoint = (endpoint: string): string => {
   return "POST";
 };
 
+export const permissionDescription = (endpoint: string, t: Translate = defaultTranslate): string =>
+  t(PERMISSION_DESCRIPTION_KEYS[endpoint] ?? "teamSettings.permissionDesc.fallback", { permission: endpoint });
+
 /**
  * Parses a permission string into a structured PermissionInfo object
  */
-export const getPermissionInfo = (permission: string): PermissionInfo => {
+export const getPermissionInfo = (permission: string, t: Translate = defaultTranslate): PermissionInfo => {
   const method = getMethodForEndpoint(permission);
   const endpoint = permission;
 
-  // Find exact match or fallback to default description
-  let description = PERMISSION_DESCRIPTIONS[permission];
-
-  // If no exact match, try to find a partial match based on patterns
-  if (!description) {
-    for (const [pattern, desc] of Object.entries(PERMISSION_DESCRIPTIONS)) {
-      if (permission.includes(pattern)) {
-        description = desc;
-        break;
-      }
-    }
-  }
-
-  // Fallback if no match found
-  if (!description) {
-    description = `Access ${permission}`;
-  }
+  // Find exact match or fall back to a partial match based on patterns
+  const match = Object.keys(PERMISSION_DESCRIPTION_KEYS).find((pattern) => permission.includes(pattern));
 
   return {
     method,
     endpoint,
-    description,
+    description: permissionDescription(match ?? endpoint, t),
     route: permission,
   };
 };

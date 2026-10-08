@@ -17,13 +17,14 @@ import {
   buildMemberFormData,
   buildMemberFormValues,
   emptyMemberFormValues,
-  TEMP_BUDGET_PAIR_MESSAGE,
+  TEMP_BUDGET_PAIR_MESSAGE_KEY,
   tempBudgetPairError,
   type MemberAdditionalField,
   type MemberFieldsConfig,
   type MemberFormValues,
 } from "./memberFormValues";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useTranslation, type Translate } from "@/i18n";
 
 dayjs.extend(utc);
 
@@ -46,23 +47,26 @@ interface MemberModalProps<T extends BaseMember> {
   config: ModalConfig;
 }
 
-const ROLE_REQUIRED_MESSAGE = "Please select a role!";
-
 const isEmailish = (value: string): boolean => value === "" || z.email().safeParse(value).success;
 
 const memberFieldSchema = z.union([z.string(), z.number(), z.null(), z.array(z.string())]).optional();
 
-const buildMemberSchema = (config: ModalConfig): z.ZodType<MemberFormValues, MemberFormValues> => {
+const buildMemberSchema = (
+  config: ModalConfig,
+  t: Translate,
+): z.ZodType<MemberFormValues, MemberFormValues> => {
+  const roleRequired = t("teamSettings.editMembership.roleRequired");
   const shape = {
-    user_email: z.string().refine(isEmailish, "Please enter a valid email!").nullish(),
+    user_email: z.string().refine(isEmailish, t("teamSettings.editMembership.invalidEmail")).nullish(),
     user_id: z.string().nullish(),
-    role: z.string({ error: ROLE_REQUIRED_MESSAGE }).min(1, ROLE_REQUIRED_MESSAGE),
+    role: z.string({ error: roleRequired }).min(1, roleRequired),
     ...Object.fromEntries((config.additionalFields ?? []).map((field) => [field.name, memberFieldSchema])),
   };
 
   return z.object(shape).superRefine((values, ctx) => {
     const path = tempBudgetPairError(values);
-    if (path !== null) ctx.addIssue({ code: "custom", path: [path], message: TEMP_BUDGET_PAIR_MESSAGE });
+    if (path !== null)
+      ctx.addIssue({ code: "custom", path: [path], message: t(TEMP_BUDGET_PAIR_MESSAGE_KEY) });
   });
 };
 
@@ -74,7 +78,8 @@ const MemberModal = <T extends BaseMember>({
   mode,
   config,
 }: MemberModalProps<T>) => {
-  const schema = useMemo(() => buildMemberSchema(config), [config]);
+  const { t } = useTranslation();
+  const schema = useMemo(() => buildMemberSchema(config, t), [config, t]);
   const form = useZodForm(schema, { defaultValues: emptyMemberFormValues(config) });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -129,7 +134,7 @@ const MemberModal = <T extends BaseMember>({
                 step={field.step || 1}
                 min={field.min || 0}
                 style={{ width: "100%" }}
-                placeholder={field.placeholder || "Enter a numerical value"}
+                placeholder={field.placeholder || t("teamSettings.editMembership.enterNumber")}
                 value={value ?? ""}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) => onChange(event.target.value)}
               />
@@ -159,7 +164,7 @@ const MemberModal = <T extends BaseMember>({
                 options={field.options ?? []}
                 value={Array.isArray(value) ? value : []}
                 onValueChange={onChange}
-                placeholder={field.placeholder || "Select options"}
+                placeholder={field.placeholder || t("teamSettings.editMembership.selectOptions")}
               />
             );
           case "budget-duration":
@@ -191,12 +196,17 @@ const MemberModal = <T extends BaseMember>({
     <Dialog open={visible} onOpenChange={(open) => !open && onCancel()}>
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[1000px]">
         <DialogHeader>
-          <DialogTitle>{config.title || (mode === "add" ? "Add Member" : "Edit Member")}</DialogTitle>
+          <DialogTitle>
+          {config.title ||
+            (mode === "add"
+              ? t("teamSettings.editMembership.addMember")
+              : t("teamSettings.editMembership.editMember"))}
+        </DialogTitle>
         </DialogHeader>
         <form onSubmit={form.handleSubmit(handleSubmit)}>
           <FieldGroup>
             {config.showEmail && (
-              <FormField control={form.control} name="user_email" label="Email">
+              <FormField control={form.control} name="user_email" label={t("teamSettings.editMembership.email")}>
                 {({ ref, value, onChange, ...rest }) => (
                   <Input
                     {...rest}
@@ -214,7 +224,7 @@ const MemberModal = <T extends BaseMember>({
             )}
 
             {config.showUserId && (
-              <FormField control={form.control} name="user_id" label="User ID">
+              <FormField control={form.control} name="user_id" label={t("teamSettings.editMembership.userId")}>
                 {({ ref, value, onChange, ...rest }) => (
                   <Input
                     {...rest}
@@ -232,9 +242,11 @@ const MemberModal = <T extends BaseMember>({
               name="role"
               label={
                 <span className="flex items-center gap-2">
-                  <span>Role</span>
+                  <span>{t("teamSettings.editMembership.role")}</span>
                   {mode === "edit" && initialData && (
-                    <span className="text-sm text-muted-foreground">(Current: {getRoleLabel(initialData.role)})</span>
+                    <span className="text-sm text-muted-foreground">
+                      {t("teamSettings.editMembership.currentRole", { role: getRoleLabel(initialData.role) })}
+                    </span>
                   )}
                 </span>
               }
@@ -264,17 +276,17 @@ const MemberModal = <T extends BaseMember>({
 
           <div className="mt-6 text-right">
             <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting} className="mr-2">
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" variant="outline" disabled={isSubmitting}>
               {isSubmitting && <UiLoadingSpinner className="size-4" />}
               {mode === "add"
                 ? isSubmitting
-                  ? "Adding..."
-                  : "Add Member"
+                  ? t("teamSettings.editMembership.adding")
+                  : t("teamSettings.editMembership.addMember")
                 : isSubmitting
-                  ? "Saving..."
-                  : "Save Changes"}
+                  ? t("teamSettings.editMembership.saving")
+                  : t("teamSettings.adminForm.saveChanges")}
             </Button>
           </div>
         </form>

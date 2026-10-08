@@ -11,6 +11,7 @@ import { UiLoadingSpinner } from "@/components/ui/ui-loading-spinner";
 import { useZodForm } from "@/lib/forms/useZodForm";
 
 import NumericalInput from "../shared/numerical_input";
+import { useTranslation } from "@/i18n";
 import {
   TEAM_ADMIN_SETTINGS_FIELDS,
   teamAdminFieldLabel,
@@ -45,6 +46,7 @@ export default function TeamAdminSettingsForm({
   onCancel,
   onSave,
 }: TeamAdminSettingsFormProps) {
+  const { t } = useTranslation();
   const form = useZodForm(teamAdminSettingsSchema, { defaultValues: initialValues });
   const draft = useWatch({ control: form.control });
   const hasChanges = Object.keys(teamAdminSettingsChanges(draft, initialValues, editableFields)).length > 0;
@@ -53,11 +55,9 @@ export default function TeamAdminSettingsForm({
   return (
     <form onSubmit={(event) => void submit(event)}>
       <FieldGroup>
-        <p className="text-sm text-muted-foreground">
-          A proxy admin chose which settings team admins can change. Ask a proxy admin to change anything else.
-        </p>
+        <p className="text-sm text-muted-foreground">{t("teamSettings.adminForm.hint")}</p>
         {TEAM_ADMIN_SETTINGS_FIELDS.filter((name) => editableFields.has(name)).map((name) => (
-          <FormField key={name} control={form.control} name={name} label={teamAdminFieldLabel(name)}>
+          <FormField key={name} control={form.control} name={name} label={teamAdminFieldLabel(name, t)}>
             {({ ref, value, ...field }) => (
               <NumericalInput {...field} ref={ref} value={value ?? ""} step={INPUT_STEP[name]} />
             )}
@@ -67,11 +67,11 @@ export default function TeamAdminSettingsForm({
 
       <div className="mt-6 flex items-center justify-end gap-2">
         <Button type="button" variant="outline" onClick={onCancel} disabled={isSaving}>
-          Cancel
+          {t("common.cancel")}
         </Button>
         <Button type="submit" disabled={isSaving || !hasChanges}>
           {isSaving ? <UiLoadingSpinner className="size-4" /> : <Save className="size-4" />}
-          Save Changes
+          {t("teamSettings.adminForm.saveChanges")}
         </Button>
       </div>
     </form>

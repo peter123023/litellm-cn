@@ -1,10 +1,10 @@
 import { z } from "zod";
+import { DEFAULT_LANGUAGE, translate, type Translate } from "@/i18n";
 
 export const TEAM_ADMIN_EDITABLE_TEAM_FIELDS_SETTING = "team_admin_editable_team_fields";
 
-export const TEAM_ADMIN_EDITING_DISABLED_TITLE = "Team admins cannot edit team settings on this proxy";
-export const TEAM_ADMIN_EDITING_DISABLED_DESCRIPTION =
-  "Ask a proxy admin to enable fields under Settings > UI > Team admin editable fields.";
+export const TEAM_ADMIN_EDITING_DISABLED_TITLE_KEY = "teamSettings.adminAccess.disabledTitle";
+export const TEAM_ADMIN_EDITING_DISABLED_DESCRIPTION_KEY = "teamSettings.adminAccess.disabledDescription";
 
 const callerEditAccessSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("unrestricted") }),
@@ -43,15 +43,18 @@ export const TEAM_ADMIN_SETTINGS_FIELDS = ["tpm_limit", "rpm_limit", "max_budget
 
 export type TeamAdminSettingsField = (typeof TEAM_ADMIN_SETTINGS_FIELDS)[number];
 
-const TEAM_ADMIN_FIELD_LABELS: ReadonlyMap<string, string> = new Map([
-  ["tpm_limit", "Tokens per minute Limit (TPM)"],
-  ["rpm_limit", "Requests per minute Limit (RPM)"],
-  ["max_budget", "Max Budget (USD)"],
-  ["projects", "Create and update projects"],
-  ["member_key_budgets", "Update budgets on team members' keys"],
+const TEAM_ADMIN_FIELD_LABEL_KEYS: ReadonlyMap<string, string> = new Map([
+  ["tpm_limit", "teamSettings.adminField.tpm_limit"],
+  ["rpm_limit", "teamSettings.adminField.rpm_limit"],
+  ["max_budget", "teamSettings.adminField.max_budget"],
+  ["projects", "teamSettings.adminField.projects"],
+  ["member_key_budgets", "teamSettings.adminField.member_key_budgets"],
 ]);
 
-export const teamAdminFieldLabel = (field: string): string => TEAM_ADMIN_FIELD_LABELS.get(field) ?? field;
+export const teamAdminFieldLabel = (
+  field: string,
+  t: Translate = (key, params) => translate(DEFAULT_LANGUAGE, key, params),
+): string => t(TEAM_ADMIN_FIELD_LABEL_KEYS.get(field) ?? field);
 
 export type TeamAdminSettingsValues = { readonly [F in TeamAdminSettingsField]?: string | number | null };
 

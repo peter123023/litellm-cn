@@ -29,7 +29,7 @@ const NULLABLE_NUMERIC_FIELDS: ReadonlySet<string> = new Set([
   "temp_budget_increase",
 ]);
 
-export const TEMP_BUDGET_PAIR_MESSAGE = "Set both a temporary budget increase and its expiry, or neither";
+export const TEMP_BUDGET_PAIR_MESSAGE_KEY = "teamSettings.editMembership.tempBudgetPair";
 
 const isUnset = (value: MemberFieldValue): boolean => value === null || value === undefined || value === "";
 

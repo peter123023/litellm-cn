@@ -2,6 +2,7 @@
  * Team info tab configuration and permission logic.
  * Extracted for testability - permission rules can be unit tested in isolation.
  */
+import { DEFAULT_LANGUAGE, translate, type Translate } from "@/i18n";
 
 export const TEAM_INFO_TAB_KEYS = {
   OVERVIEW: "overview",
@@ -12,14 +13,19 @@ export const TEAM_INFO_TAB_KEYS = {
   SETTINGS: "settings",
 } as const;
 
-export const TEAM_INFO_TAB_LABELS: Record<string, string> = {
-  [TEAM_INFO_TAB_KEYS.OVERVIEW]: "Overview",
-  [TEAM_INFO_TAB_KEYS.MY_USER]: "My User",
-  [TEAM_INFO_TAB_KEYS.VIRTUAL_KEYS]: "Virtual Keys",
-  [TEAM_INFO_TAB_KEYS.MEMBERS]: "Members",
-  [TEAM_INFO_TAB_KEYS.MEMBER_PERMISSIONS]: "Member Permissions",
-  [TEAM_INFO_TAB_KEYS.SETTINGS]: "Settings",
+const TEAM_INFO_TAB_LABEL_KEYS: Record<string, string> = {
+  [TEAM_INFO_TAB_KEYS.OVERVIEW]: "teamSettings.tab.overview",
+  [TEAM_INFO_TAB_KEYS.MY_USER]: "teamSettings.tab.myUser",
+  [TEAM_INFO_TAB_KEYS.VIRTUAL_KEYS]: "teamSettings.tab.virtualKeys",
+  [TEAM_INFO_TAB_KEYS.MEMBERS]: "teamSettings.tab.members",
+  [TEAM_INFO_TAB_KEYS.MEMBER_PERMISSIONS]: "teamSettings.tab.memberPermissions",
+  [TEAM_INFO_TAB_KEYS.SETTINGS]: "teamSettings.tab.settings",
 };
+
+export const teamInfoTabLabel = (
+  tabKey: string,
+  t: Translate = (key, params) => translate(DEFAULT_LANGUAGE, key, params),
+): string => t(TEAM_INFO_TAB_LABEL_KEYS[tabKey] ?? tabKey);
 
 /**
  * Returns the list of tab keys that should be visible based on permissions.

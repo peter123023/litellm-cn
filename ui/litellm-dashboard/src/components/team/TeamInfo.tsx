@@ -49,12 +49,13 @@ import { CheckIcon, ChevronDown, CircleMinus, CopyIcon, Info, Pencil, Plus, Save
 import React, { useEffect, useMemo, useState } from "react";
 import { useFieldArray } from "react-hook-form";
 import { z } from "zod";
+import { useTranslation } from "@/i18n";
 import GuardrailsSelect from "./GuardrailsSelect";
 import {
   type CallerEditAccess,
   parseTeamEditAccess,
-  TEAM_ADMIN_EDITING_DISABLED_DESCRIPTION,
-  TEAM_ADMIN_EDITING_DISABLED_TITLE,
+  TEAM_ADMIN_EDITING_DISABLED_DESCRIPTION_KEY,
+  TEAM_ADMIN_EDITING_DISABLED_TITLE_KEY,
   type TeamAdminSettingsChanges,
 } from "./teamAdminEditAccess";
 import TeamAdminSettingsForm from "./TeamAdminSettingsForm";
@@ -116,7 +117,7 @@ import {
   getTeamInfoDefaultTab,
   getTeamInfoVisibleTabs,
   TEAM_INFO_TAB_KEYS,
-  TEAM_INFO_TAB_LABELS,
+  teamInfoTabLabel,
 } from "./tabVisibilityUtils";
 import TeamMembersComponent from "./TeamMemberTab";
 import {
@@ -578,6 +579,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
   premiumUser = false,
   onUpdate,
 }) => {
+  const { t } = useTranslation();
   const teamUpdateSchema = useMemo(
     () =>
       teamUpdateFieldsSchema.superRefine((values, ctx) => {
@@ -677,7 +679,9 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
 
   const openSettingsEditor = (modelAliases: Record<string, string>) => {
     if (teamEditAccess.kind === "team_admin_disabled") {
-      toast.error(TEAM_ADMIN_EDITING_DISABLED_TITLE, { description: TEAM_ADMIN_EDITING_DISABLED_DESCRIPTION });
+      toast.error(t(TEAM_ADMIN_EDITING_DISABLED_TITLE_KEY), {
+        description: t(TEAM_ADMIN_EDITING_DISABLED_DESCRIPTION_KEY),
+      });
       return;
     }
     setTeamModelAliases(modelAliases);
@@ -1302,7 +1306,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
   const tabItems = [
     {
       key: TEAM_INFO_TAB_KEYS.OVERVIEW,
-      label: TEAM_INFO_TAB_LABELS[TEAM_INFO_TAB_KEYS.OVERVIEW],
+      label: teamInfoTabLabel(TEAM_INFO_TAB_KEYS.OVERVIEW, t),
       children: (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <Card className="block p-6">
@@ -1334,7 +1338,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                 if (models.length === 0) return null;
                 return (
                   <div className="mt-3">
-                    <p className="text-muted-foreground">Per-model limits:</p>
+                    <p className="text-muted-foreground">{t("teamSettings.overview.perModelLimits")}</p>
                     {models.map((m) => (
                       <p key={m} className="text-xs">
                         {m}: TPM {modelTpm[m] ?? "—"}, RPM {modelRpm[m] ?? "—"}
@@ -1343,20 +1347,23 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                   </div>
                 );
               })()}
-              <p>Estimated Output Tokens: {info.metadata?.default_estimated_output_tokens ?? "Default"}</p>
               <p>
-                Estimated Output Tokens Per Model:{" "}
+                {t("keyEdit.estimatedOutputTokens")}:{" "}
+                {info.metadata?.default_estimated_output_tokens ?? t("teamSettings.overview.default")}
+              </p>
+              <p>
+                {t("keyEdit.estimatedOutputTokensPerModel")}:{" "}
                 {info.metadata?.default_estimated_output_tokens_per_model
                   ? JSON.stringify(info.metadata.default_estimated_output_tokens_per_model)
-                  : "Default"}
+                  : t("teamSettings.overview.default")}
               </p>
             </div>
           </Card>
 
           <Card className="block p-6">
-            <p>Models</p>
+            <p>{t("teamSettings.virtualKeys.colModels")}</p>
             <div className="mt-2 flex flex-wrap gap-2">
-              {computeTeamModelBadges(info.models, info.access_group_models || [], info.access_group_details).map(
+              {computeTeamModelBadges(info.models, info.access_group_models || [], info.access_group_details, t).map(
                 (badge, index) => (
                   <SimpleTooltip key={`${badge.kind}-${badge.label}-${index}`} content={badge.tooltip}>
                     <span>
@@ -1373,11 +1380,17 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
           </Card>
 
           <Card className="block p-6">
-            <p className="font-semibold text-foreground">Virtual Keys</p>
+            <p className="font-semibold text-foreground">{t("teamSettings.tab.virtualKeys")}</p>
             <div className="mt-2">
-              <p>User Keys: {teamData.keys.filter((key) => key.user_id).length}</p>
-              <p>Service Account Keys: {teamData.keys.filter((key) => !key.user_id).length}</p>
-              <p className="text-muted-foreground">Total: {teamData.keys.length}</p>
+              <p>
+                {t("teamSettings.overview.userKeys")}: {teamData.keys.filter((key) => key.user_id).length}
+              </p>
+              <p>
+                {t("teamSettings.overview.serviceAccountKeys")}: {teamData.keys.filter((key) => !key.user_id).length}
+              </p>
+              <p className="text-muted-foreground">
+                {t("teamSettings.overview.total")}: {teamData.keys.length}
+              </p>
             </div>
           </Card>
 
@@ -1439,17 +1452,17 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
     },
     {
       key: TEAM_INFO_TAB_KEYS.MY_USER,
-      label: TEAM_INFO_TAB_LABELS[TEAM_INFO_TAB_KEYS.MY_USER],
+      label: teamInfoTabLabel(TEAM_INFO_TAB_KEYS.MY_USER, t),
       children: <MyUserTab teamId={teamId} />,
     },
     {
       key: TEAM_INFO_TAB_KEYS.VIRTUAL_KEYS,
-      label: TEAM_INFO_TAB_LABELS[TEAM_INFO_TAB_KEYS.VIRTUAL_KEYS],
+      label: teamInfoTabLabel(TEAM_INFO_TAB_KEYS.VIRTUAL_KEYS, t),
       children: <TeamVirtualKeysTable teamId={teamId} teamAlias={info.team_alias} organization={organization} />,
     },
     {
       key: TEAM_INFO_TAB_KEYS.MEMBERS,
-      label: TEAM_INFO_TAB_LABELS[TEAM_INFO_TAB_KEYS.MEMBERS],
+      label: teamInfoTabLabel(TEAM_INFO_TAB_KEYS.MEMBERS, t),
       children: (
         <TeamMembersComponent
           teamData={teamData}
@@ -1465,12 +1478,12 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
     },
     {
       key: TEAM_INFO_TAB_KEYS.MEMBER_PERMISSIONS,
-      label: TEAM_INFO_TAB_LABELS[TEAM_INFO_TAB_KEYS.MEMBER_PERMISSIONS],
+      label: teamInfoTabLabel(TEAM_INFO_TAB_KEYS.MEMBER_PERMISSIONS, t),
       children: <MemberPermissions teamId={teamId} accessToken={accessToken} canEditTeam={canEditTeam} />,
     },
     {
       key: TEAM_INFO_TAB_KEYS.SETTINGS,
-      label: TEAM_INFO_TAB_LABELS[TEAM_INFO_TAB_KEYS.SETTINGS],
+      label: teamInfoTabLabel(TEAM_INFO_TAB_KEYS.SETTINGS, t),
       children: (
         <Card className="block p-6 overflow-y-auto max-h-[65vh]">
           <div className="flex justify-between items-center mb-4">
@@ -1873,7 +1886,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                   <FormField
                     control={form.control}
                     name="default_estimated_output_tokens"
-                    label={labelWithHint("Estimated Output Tokens", teamEstimateTooltip.estimate)}
+                    label={labelWithHint(t("keyEdit.estimatedOutputTokens"), teamEstimateTooltip.estimate)}
                   >
                     {({ ref, value, ...field }) => (
                       <NumericalInput
@@ -1890,7 +1903,7 @@ const TeamInfoView: React.FC<TeamInfoProps> = ({
                   <FormField
                     control={form.control}
                     name="default_estimated_output_tokens_per_model"
-                    label={labelWithHint("Estimated Output Tokens Per Model", teamEstimateTooltip.perModel)}
+                    label={labelWithHint(t("keyEdit.estimatedOutputTokensPerModel"), teamEstimateTooltip.perModel)}
                   >
                     {({ ref, value, ...field }) => (
                       <Textarea

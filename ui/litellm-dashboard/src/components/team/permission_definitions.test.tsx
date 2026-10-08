@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getMethodForEndpoint, getPermissionInfo, PERMISSION_DESCRIPTIONS } from "./permission_definitions";
+import { getMethodForEndpoint, getPermissionInfo, permissionDescription } from "./permission_definitions";
 
 describe("permission_definitions", () => {
   describe("getMethodForEndpoint", () => {
@@ -27,7 +27,7 @@ describe("permission_definitions", () => {
       const result = getPermissionInfo("/key/generate");
       expect(result.method).toBe("POST");
       expect(result.endpoint).toBe("/key/generate");
-      expect(result.description).toBe(PERMISSION_DESCRIPTIONS["/key/generate"]);
+      expect(result.description).toBe(permissionDescription("/key/generate"));
       expect(result.route).toBe("/key/generate");
     });
 
@@ -35,28 +35,28 @@ describe("permission_definitions", () => {
       const result = getPermissionInfo("/key/info");
       expect(result.method).toBe("GET");
       expect(result.endpoint).toBe("/key/info");
-      expect(result.description).toBe(PERMISSION_DESCRIPTIONS["/key/info"]);
+      expect(result.description).toBe(permissionDescription("/key/info"));
     });
 
     it("should return GET method for list endpoint", () => {
       const result = getPermissionInfo("/key/list");
       expect(result.method).toBe("GET");
       expect(result.endpoint).toBe("/key/list");
-      expect(result.description).toBe(PERMISSION_DESCRIPTIONS["/key/list"]);
+      expect(result.description).toBe(permissionDescription("/key/list"));
     });
 
     it("should find partial match for permission with pattern", () => {
       const result = getPermissionInfo("/key/service-account/generate");
       expect(result.method).toBe("POST");
       expect(result.endpoint).toBe("/key/service-account/generate");
-      expect(result.description).toBe(PERMISSION_DESCRIPTIONS["/key/service-account/generate"]);
+      expect(result.description).toBe(permissionDescription("/key/service-account/generate"));
     });
 
     it("should return correct info for team daily activity permission", () => {
       const result = getPermissionInfo("/team/daily/activity");
       expect(result.method).toBe("GET");
       expect(result.endpoint).toBe("/team/daily/activity");
-      expect(result.description).toBe(PERMISSION_DESCRIPTIONS["/team/daily/activity"]);
+      expect(result.description).toBe(permissionDescription("/team/daily/activity"));
       expect(result.route).toBe("/team/daily/activity");
     });
 
@@ -69,15 +69,15 @@ describe("permission_definitions", () => {
     });
   });
 
-  describe("PERMISSION_DESCRIPTIONS", () => {
+  describe("permissionDescription", () => {
     it("should include team daily activity permission", () => {
-      expect(PERMISSION_DESCRIPTIONS["/team/daily/activity"]).toBeDefined();
-      expect(PERMISSION_DESCRIPTIONS["/team/daily/activity"]).toContain("team usage");
+      expect(permissionDescription("/team/daily/activity")).toBeDefined();
+      expect(permissionDescription("/team/daily/activity")).toContain("team usage");
     });
 
     it("should include spend logs permission", () => {
-      expect(PERMISSION_DESCRIPTIONS["/spend/logs"]).toBeDefined();
-      expect(PERMISSION_DESCRIPTIONS["/spend/logs"]).toContain("spend logs");
+      expect(permissionDescription("/spend/logs")).toBeDefined();
+      expect(permissionDescription("/spend/logs")).toContain("spend logs");
     });
   });
 
@@ -90,7 +90,7 @@ describe("permission_definitions", () => {
       const result = getPermissionInfo("/spend/logs");
       expect(result.method).toBe("GET");
       expect(result.endpoint).toBe("/spend/logs");
-      expect(result.description).toBe(PERMISSION_DESCRIPTIONS["/spend/logs"]);
+      expect(result.description).toBe(permissionDescription("/spend/logs"));
       expect(result.route).toBe("/spend/logs");
     });
   });

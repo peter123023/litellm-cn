@@ -32,6 +32,7 @@ import { zh as cachingZh } from "./extra/caching";
 import { zh as vectorStoresZh } from "./extra/vectorStores";
 import { zh as logsZh } from "./extra/logs";
 import { zh as policiesZh } from "./extra/policies";
+import { zh as teamSettingsZh } from "./extra/teamSettings";
 
 export const zh: Record<string, string> = {
   ...toolPoliciesZh,
@@ -39,6 +40,7 @@ export const zh: Record<string, string> = {
   ...vectorStoresZh,
   ...logsZh,
   ...policiesZh,
+  ...teamSettingsZh,
   // ---------------------------------------------------------------- language switcher
   "language.switchTo": "切换到{language}",
   "language.current": "当前语言：{language}",

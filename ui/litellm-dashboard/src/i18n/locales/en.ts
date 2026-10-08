@@ -38,6 +38,7 @@ import { en as cachingEn } from "./extra/caching";
 import { en as vectorStoresEn } from "./extra/vectorStores";
 import { en as logsEn } from "./extra/logs";
 import { en as policiesEn } from "./extra/policies";
+import { en as teamSettingsEn } from "./extra/teamSettings";
 
 export const en: Record<string, string> = {
   ...toolPoliciesEn,
@@ -45,6 +46,7 @@ export const en: Record<string, string> = {
   ...vectorStoresEn,
   ...logsEn,
   ...policiesEn,
+  ...teamSettingsEn,
   // ---------------------------------------------------------------- language switcher
   "language.switchTo": "Switch to {language}",
   "language.current": "Current language: {language}",

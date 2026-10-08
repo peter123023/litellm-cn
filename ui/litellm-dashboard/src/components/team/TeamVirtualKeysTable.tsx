@@ -31,6 +31,7 @@ import { deriveKeyModelScope } from "../key_scope";
 import { KeyResponse, Team } from "../key_team_helpers/key_list";
 import { Organization } from "../networking";
 import KeyInfoView from "../templates/key_info_view";
+import { useTranslation } from "@/i18n";
 
 interface TeamVirtualKeysTableProps {
   teamId: string;
@@ -45,6 +46,7 @@ interface TeamVirtualKeysTableProps {
 const DEFAULT_SORTING: SortingState = [{ id: "created_at", desc: true }];
 
 export function TeamVirtualKeysTable({ teamId, teamAlias, organization }: TeamVirtualKeysTableProps) {
+  const { t } = useTranslation();
   const [selectedKey, setSelectedKey] = useState<KeyResponse | null>(null);
   const [sorting, setSorting] = useState<SortingState>(DEFAULT_SORTING);
   const [tablePagination, setTablePagination] = useState<PaginationState>({
@@ -137,8 +139,10 @@ export function TeamVirtualKeysTable({ teamId, teamAlias, organization }: TeamVi
       {
         id: "token",
         accessorKey: "token",
-        meta: { title: "Key ID" },
-        header: ({ column }) => <DataTableSortHeader column={column} title="Key ID" variant="header-cycle" />,
+        meta: { title: t("teamSettings.virtualKeys.colKeyId") },
+        header: ({ column }) => (
+          <DataTableSortHeader column={column} title={t("teamSettings.virtualKeys.colKeyId")} variant="header-cycle" />
+        ),
         size: 120,
         enableSorting: true,
         cell: (info) => (
@@ -148,8 +152,14 @@ export function TeamVirtualKeysTable({ teamId, teamAlias, organization }: TeamVi
       {
         id: "key_alias",
         accessorKey: "key_alias",
-        meta: { title: "Key Alias" },
-        header: ({ column }) => <DataTableSortHeader column={column} title="Key Alias" variant="header-cycle" />,
+        meta: { title: t("teamSettings.virtualKeys.colKeyAlias") },
+        header: ({ column }) => (
+          <DataTableSortHeader
+            column={column}
+            title={t("teamSettings.virtualKeys.colKeyAlias")}
+            variant="header-cycle"
+          />
+        ),
         size: 150,
         enableSorting: true,
         cell: (info) => {
@@ -164,7 +174,7 @@ export function TeamVirtualKeysTable({ teamId, teamAlias, organization }: TeamVi
       {
         id: "key_name",
         accessorKey: "key_name",
-        header: "Secret Key",
+        header: t("teamSettings.virtualKeys.colSecretKey"),
         size: 120,
         enableSorting: false,
         cell: (info) => <span className="font-mono text-xs">{info.getValue() as string}</span>,
@@ -172,7 +182,7 @@ export function TeamVirtualKeysTable({ teamId, teamAlias, organization }: TeamVi
       {
         id: "organization_id",
         accessorKey: "organization_id",
-        header: "Organization ID",
+        header: t("teamSettings.virtualKeys.colOrganizationId"),
         size: 140,
         enableSorting: false,
         cell: (info) => {
@@ -188,7 +198,7 @@ export function TeamVirtualKeysTable({ teamId, teamAlias, organization }: TeamVi
       {
         id: "user_email",
         accessorKey: "user",
-        header: "User Email",
+        header: t("teamSettings.virtualKeys.colUserEmail"),
         size: 160,
         enableSorting: false,
         cell: (info) => {
@@ -209,7 +219,7 @@ export function TeamVirtualKeysTable({ teamId, teamAlias, organization }: TeamVi
       {
         id: "user_id",
         accessorKey: "user_id",
-        header: "User ID",
+        header: t("teamSettings.virtualKeys.colUserId"),
         size: 70,
         enableSorting: false,
         cell: (info) => {
@@ -231,8 +241,14 @@ export function TeamVirtualKeysTable({ teamId, teamAlias, organization }: TeamVi
       {
         id: "created_at",
         accessorKey: "created_at",
-        meta: { title: "Created At" },
-        header: ({ column }) => <DataTableSortHeader column={column} title="Created At" variant="header-cycle" />,
+        meta: { title: t("teamSettings.virtualKeys.colCreatedAt") },
+        header: ({ column }) => (
+          <DataTableSortHeader
+            column={column}
+            title={t("teamSettings.virtualKeys.colCreatedAt")}
+            variant="header-cycle"
+          />
+        ),
         size: 120,
         enableSorting: true,
         cell: (info) => <DateCell value={info.getValue() as string | null} precision="date" />,
@@ -240,7 +256,7 @@ export function TeamVirtualKeysTable({ teamId, teamAlias, organization }: TeamVi
       {
         id: "created_by",
         accessorKey: "created_by",
-        header: "Created By",
+        header: t("teamSettings.virtualKeys.colCreatedBy"),
         size: 130,
         enableSorting: false,
         cell: (info) => {
@@ -260,8 +276,14 @@ export function TeamVirtualKeysTable({ teamId, teamAlias, organization }: TeamVi
       {
         id: "updated_at",
         accessorKey: "updated_at",
-        meta: { title: "Updated At" },
-        header: ({ column }) => <DataTableSortHeader column={column} title="Updated At" variant="header-cycle" />,
+        meta: { title: t("teamSettings.virtualKeys.colUpdatedAt") },
+        header: ({ column }) => (
+          <DataTableSortHeader
+            column={column}
+            title={t("teamSettings.virtualKeys.colUpdatedAt")}
+            variant="header-cycle"
+          />
+        ),
         size: 120,
         enableSorting: true,
         cell: (info) => <DateCell value={info.getValue() as string | null} precision="date" fallback="Never" />,
@@ -269,24 +291,38 @@ export function TeamVirtualKeysTable({ teamId, teamAlias, organization }: TeamVi
       {
         id: "last_active",
         accessorKey: "last_active",
-        header: "Last Active",
+        header: t("teamSettings.virtualKeys.colLastActive"),
         size: 130,
         enableSorting: false,
-        cell: (info) => <DateCell value={info.getValue() as string | null} precision="date" fallback="Unknown" />,
+        cell: (info) => (
+          <DateCell
+            value={info.getValue() as string | null}
+            precision="date"
+            fallback={t("teamSettings.virtualKeys.unknown")}
+          />
+        ),
       },
       {
         id: "expires",
         accessorKey: "expires",
-        header: "Expires",
+        header: t("teamSettings.virtualKeys.colExpires"),
         size: 120,
         enableSorting: false,
-        cell: (info) => <DateCell value={info.getValue() as string | null} precision="date" fallback="Never" />,
+        cell: (info) => (
+          <DateCell
+            value={info.getValue() as string | null}
+            precision="date"
+            fallback={t("teamSettings.virtualKeys.never")}
+          />
+        ),
       },
       {
         id: "spend",
         accessorKey: "spend",
-        meta: { title: "Spend (USD)", numeric: true },
-        header: ({ column }) => <DataTableSortHeader column={column} title="Spend (USD)" variant="header-cycle" />,
+        meta: { title: t("teamSettings.virtualKeys.colSpend"), numeric: true },
+        header: ({ column }) => (
+          <DataTableSortHeader column={column} title={t("teamSettings.virtualKeys.colSpend")} variant="header-cycle" />
+        ),
         size: 100,
         enableSorting: true,
         cell: (info) => <MoneyCell value={info.getValue() as number | null} decimals={4} />,
@@ -294,40 +330,52 @@ export function TeamVirtualKeysTable({ teamId, teamAlias, organization }: TeamVi
       {
         id: "max_budget",
         accessorKey: "max_budget",
-        meta: { title: "Budget (USD)", numeric: true },
-        header: ({ column }) => <DataTableSortHeader column={column} title="Budget (USD)" variant="header-cycle" />,
+        meta: { title: t("teamSettings.virtualKeys.colBudget"), numeric: true },
+        header: ({ column }) => (
+          <DataTableSortHeader column={column} title={t("teamSettings.virtualKeys.colBudget")} variant="header-cycle" />
+        ),
         size: 110,
         enableSorting: true,
         cell: (info) => (
-          <MoneyCell value={info.getValue() as number | null} decimals={0} emptyText="Unlimited" showZero />
+          <MoneyCell
+            value={info.getValue() as number | null}
+            decimals={0}
+            emptyText={t("teamSettings.virtualKeys.unlimited")}
+            showZero
+          />
         ),
       },
       {
         id: "budget_reset_at",
         accessorKey: "budget_reset_at",
-        header: "Budget Reset",
+        header: t("teamSettings.virtualKeys.colBudgetReset"),
         size: 130,
         enableSorting: false,
-        cell: (info) => <DateCell value={info.getValue() as string | null} fallback="Never" />,
+        cell: (info) => (
+          <DateCell
+            value={info.getValue() as string | null}
+            fallback={t("teamSettings.virtualKeys.never")}
+          />
+        ),
       },
       {
         id: "models",
         accessorKey: "models",
-        header: "Models",
+        header: t("teamSettings.virtualKeys.colModels"),
         size: 200,
         enableSorting: false,
         cell: (info) => {
           const models = info.getValue() as string[];
           const scope = deriveKeyModelScope(info.row.original.allowed_routes, info.row.original.key_type);
           const emptyModelsBadge = !scope.hasModelAccess ? (
-            <SimpleTooltip content={`Scoped to ${scope.label} routes; this key cannot call any models`}>
+            <SimpleTooltip content={t("teamSettings.virtualKeys.noModelAccessTooltip", { scope: scope.label })}>
               <Badge variant="secondary" className="mb-1">
-                No model access
+                {t("teamSettings.virtualKeys.noModelAccess")}
               </Badge>
             </SimpleTooltip>
           ) : (
             <Badge variant="destructive" className="mb-1">
-              All Proxy Models
+              {t("teamSettings.virtualKeys.allProxyModels")}
             </Badge>
           );
           return (
@@ -342,7 +390,11 @@ export function TeamVirtualKeysTable({ teamId, teamAlias, organization }: TeamVi
                         {models.length > 3 && (
                           <button
                             type="button"
-                            aria-label={expandedAccordions[info.row.id] ? "Collapse models" : "Expand models"}
+                            aria-label={
+                              expandedAccordions[info.row.id]
+                                ? t("teamSettings.virtualKeys.collapseModels")
+                                : t("teamSettings.virtualKeys.expandModels")
+                            }
                             className="rounded-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                             onClick={() =>
                               setExpandedAccordions((prev) => ({
@@ -362,7 +414,7 @@ export function TeamVirtualKeysTable({ teamId, teamAlias, organization }: TeamVi
                           {models.slice(0, 3).map((model, index) =>
                             model === "all-proxy-models" ? (
                               <Badge key={index} variant="destructive">
-                                All Proxy Models
+                                {t("teamSettings.virtualKeys.allProxyModels")}
                               </Badge>
                             ) : (
                               <Badge key={index}>
@@ -374,7 +426,10 @@ export function TeamVirtualKeysTable({ teamId, teamAlias, organization }: TeamVi
                           )}
                           {models.length > 3 && !expandedAccordions[info.row.id] && (
                             <Badge variant="secondary">
-                              +{models.length - 3} {models.length - 3 === 1 ? "more model" : "more models"}
+                              {`+${models.length - 3} `}
+                              {models.length - 3 === 1
+                                ? t("teamSettings.virtualKeys.moreModel")
+                                : t("teamSettings.virtualKeys.moreModels")}
                             </Badge>
                           )}
                           {expandedAccordions[info.row.id] && (
@@ -382,7 +437,7 @@ export function TeamVirtualKeysTable({ teamId, teamAlias, organization }: TeamVi
                               {models.slice(3).map((model, index) =>
                                 model === "all-proxy-models" ? (
                                   <Badge key={index + 3} variant="destructive">
-                                    All Proxy Models
+                                    {t("teamSettings.virtualKeys.allProxyModels")}
                                   </Badge>
                                 ) : (
                                   <Badge key={index + 3}>
@@ -406,21 +461,21 @@ export function TeamVirtualKeysTable({ teamId, teamAlias, organization }: TeamVi
       },
       {
         id: "rate_limits",
-        header: "Rate Limits",
+        header: t("teamSettings.virtualKeys.colRateLimits"),
         size: 140,
         enableSorting: false,
         cell: ({ row }) => {
           const key = row.original;
           return (
             <div>
-              <div>TPM: {key.tpm_limit !== null ? key.tpm_limit : "Unlimited"}</div>
-              <div>RPM: {key.rpm_limit !== null ? key.rpm_limit : "Unlimited"}</div>
+              <div>TPM: {key.tpm_limit !== null ? key.tpm_limit : t("teamSettings.virtualKeys.unlimited")}</div>
+              <div>RPM: {key.rpm_limit !== null ? key.rpm_limit : t("teamSettings.virtualKeys.unlimited")}</div>
             </div>
           );
         },
       },
     ],
-    [expandedAccordions],
+    [expandedAccordions, t],
   );
 
   const handleSortingChange = useCallback((updaterOrValue: React.SetStateAction<SortingState>) => {
@@ -456,7 +511,7 @@ export function TeamVirtualKeysTable({ teamId, teamAlias, organization }: TeamVi
             enableColumnResizing
             columnResizeMode="onChange"
             isLoading={isLoading || isFetching}
-            loadingMessage="Loading keys..."
+            loadingMessage={t("teamSettings.virtualKeys.loading")}
             size="compact"
             toolbar={(table) => (
               <>
@@ -464,33 +519,38 @@ export function TeamVirtualKeysTable({ teamId, teamAlias, organization }: TeamVi
                   table={table}
                   searchValue={searchInput}
                   onSearchChange={handleSearchChange}
-                  searchPlaceholder="Search by key alias or ID…"
+                  searchPlaceholder={t("teamSettings.virtualKeys.searchPlaceholder")}
                   onRefresh={() => refetch?.()}
                   isRefreshing={isFetching}
                   onOpenFilters={() => setFiltersOpen(true)}
-                  filterLabels={{ user_id: "User ID", key_hash: "Key ID" }}
+                  filterLabels={{
+                    user_id: t("teamSettings.virtualKeys.colUserId"),
+                    key_hash: t("teamSettings.virtualKeys.colKeyId"),
+                  }}
                 />
                 <DataTableFilterDrawer
                   table={table}
                   open={filtersOpen}
                   onOpenChange={setFiltersOpen}
-                  title="Filters"
-                  description={`Narrow down keys for ${teamAlias ?? "this team"}`}
+                  title={t("teamSettings.virtualKeys.filters")}
+                  description={t("teamSettings.virtualKeys.filterDescription", {
+                    team: teamAlias ?? t("teamSettings.virtualKeys.thisTeam"),
+                  })}
                 >
                   {({ get, set }) => (
                     <>
-                      <DataTableFilterField label="User ID">
+                      <DataTableFilterField label={t("teamSettings.virtualKeys.colUserId")}>
                         <Input
                           value={(get("user_id") as string) ?? ""}
                           onChange={(event) => set("user_id", event.target.value)}
-                          placeholder="Filter by user ID…"
+                          placeholder={t("teamSettings.virtualKeys.filterByUserId")}
                         />
                       </DataTableFilterField>
-                      <DataTableFilterField label="Key ID">
+                      <DataTableFilterField label={t("teamSettings.virtualKeys.colKeyId")}>
                         <Input
                           value={(get("key_hash") as string) ?? ""}
                           onChange={(event) => set("key_hash", event.target.value)}
-                          placeholder="Enter Key ID…"
+                          placeholder={t("teamSettings.virtualKeys.enterKeyId")}
                         />
                       </DataTableFilterField>
                     </>
