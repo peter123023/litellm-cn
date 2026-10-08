@@ -1,3 +1,6 @@
+import { translate, type Translate } from "../../i18n/I18nProvider";
+import { DEFAULT_LANGUAGE } from "../../i18n/config";
+
 export const TEAM_MEMBER_MAX_BUDGET_ALERT_EMAILS_KEY = "team_member_max_budget_alert_emails" as const;
 
 export interface TeamMemberBudgetAlertRow {
@@ -51,7 +54,12 @@ export const teamMemberBudgetAlertEmailsFromRows = (
       .map((row) => [String(row.threshold), splitEmails(row.emails)]),
   );
 
-export const teamMemberBudgetAlertSummary = (metadata: unknown): readonly string[] =>
+export const teamMemberBudgetAlertSummary = (
+  metadata: unknown,
+  t: Translate = (key, params) => translate(DEFAULT_LANGUAGE, key, params),
+): readonly string[] =>
   teamMemberBudgetAlertRowsFromMetadata(metadata).map((row) =>
-    row.emails.length > 0 ? `${row.threshold}%: member, ${row.emails}` : `${row.threshold}%: member`,
+    row.emails.length > 0
+      ? t("teamSettings.form.budgetAlertThresholdSummary", { threshold: row.threshold, emails: row.emails })
+      : t("teamSettings.form.budgetAlertThresholdSummaryMemberOnly", { threshold: row.threshold }),
   );
