@@ -40,6 +40,7 @@ import { en as logsEn } from "./extra/logs";
 import { en as policiesEn } from "./extra/policies";
 import { en as teamSettingsEn } from "./extra/teamSettings";
 import { en as permissionsEn } from "./extra/permissions";
+import { en as keyLifecycleEn } from "./extra/keyLifecycle";
 
 export const en: Record<string, string> = {
   ...toolPoliciesEn,
@@ -49,6 +50,7 @@ export const en: Record<string, string> = {
   ...policiesEn,
   ...teamSettingsEn,
   ...permissionsEn,
+  ...keyLifecycleEn,
   // ---------------------------------------------------------------- language switcher
   "language.switchTo": "Switch to {language}",
   "language.current": "Current language: {language}",
