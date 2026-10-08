@@ -131,7 +131,7 @@ function TeamAdminEditableFieldsForm({
                       )
                     }
                   />
-                  <span className="text-sm text-foreground">{teamAdminFieldLabel(name)}</span>
+                  <span className="text-sm text-foreground">{teamAdminFieldLabel(name, t)}</span>
                 </label>
               );
             })}
