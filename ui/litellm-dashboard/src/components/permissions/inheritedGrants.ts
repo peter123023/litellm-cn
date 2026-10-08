@@ -1,4 +1,6 @@
 import { describeGroups, TeamAccessGroupModelGrant } from "../team/teamModelAccess";
+import { translate, type Translate } from "@/i18n";
+import { DEFAULT_LANGUAGE } from "@/i18n/config";
 
 export interface InheritedGrant {
   id: string;
@@ -20,7 +22,10 @@ export function computeInheritedGrants(
   }));
 }
 
-export const inheritedGrantTooltip = (grant: InheritedGrant): string => {
-  const source = grant.accessGroupNames.length > 0 ? describeGroups(grant.accessGroupNames) : "an access group";
-  return `Granted via ${source}. Full ID: ${grant.id}`;
+export const inheritedGrantTooltip = (
+  grant: InheritedGrant,
+  t: Translate = (key, params) => translate(DEFAULT_LANGUAGE, key, params),
+): string => {
+  const source = grant.accessGroupNames.length > 0 ? describeGroups(grant.accessGroupNames, t) : t("permissions.anAccessGroup");
+  return t("permissions.inheritedGrantTooltip", { source, id: grant.id });
 };

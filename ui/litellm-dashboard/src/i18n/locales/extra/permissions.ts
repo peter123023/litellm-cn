@@ -1,0 +1,56 @@
+// i18n keys owned by the "permissions" domain translation batch (parallel i18n effort).
+// Object/agent/MCP/vector-store permission views used across team, key and organization screens.
+
+export const en: Record<string, string> = {
+  "permissions.objectPermissions": "Object Permissions",
+  "permissions.objectPermissionsDesc": "Access control for Vector Stores and MCP Servers",
+  "permissions.searchTools": "Search tools",
+  "permissions.searchToolsAllAllowed":
+    "No restriction — all configured search tools are allowed for this team.",
+  "permissions.skills": "Skills",
+  "permissions.skillsNone": "No private skills granted. Only enabled (public) Claude Code plugins are visible.",
+  "permissions.vectorStores": "Vector Stores",
+  "permissions.noVectorStores": "No vector stores configured",
+  "permissions.mcpServers": "MCP Servers",
+  "permissions.mcpBlocked": "Blocked",
+  "permissions.mcpAll": "All",
+  "permissions.noMcpServersBlocked":
+    "No MCP servers — this key is blocked from all MCP servers, including its team's servers",
+  "permissions.allProxyMcpServers": "All Proxy MCP Servers",
+  "permissions.group": "Group",
+  "permissions.anAccessGroup": "an access group",
+  "permissions.toolOne": "tool",
+  "permissions.toolOther": "tools",
+  "permissions.toolset": "Toolset",
+  "permissions.noMcpConfigured": "No MCP servers, access groups, or toolsets configured",
+  "permissions.allowedAgentsToCall": "Allowed agents to call",
+  "permissions.noAgentsConfigured": "No agents or access groups configured",
+  "permissions.fullId": "Full ID: {id}",
+  "permissions.inheritedGrantTooltip": "Granted via {source}. Full ID: {id}",
+};
+
+export const zh: Record<string, string> = {
+  "permissions.objectPermissions": "对象权限",
+  "permissions.objectPermissionsDesc": "向量存储与 MCP 服务的访问控制",
+  "permissions.searchTools": "搜索工具",
+  "permissions.searchToolsAllAllowed": "无限制——该团队可使用所有已配置的搜索工具。",
+  "permissions.skills": "技能",
+  "permissions.skillsNone": "未授予私有技能。仅可见已启用的（公开）Claude Code 插件。",
+  "permissions.vectorStores": "向量存储",
+  "permissions.noVectorStores": "未配置向量存储",
+  "permissions.mcpServers": "MCP 服务",
+  "permissions.mcpBlocked": "已封禁",
+  "permissions.mcpAll": "全部",
+  "permissions.noMcpServersBlocked": "无 MCP 服务——该密钥被禁止访问所有 MCP 服务，包括其所属团队的服务",
+  "permissions.allProxyMcpServers": "所有代理 MCP 服务",
+  "permissions.group": "组",
+  "permissions.anAccessGroup": "一个访问组",
+  "permissions.toolOne": "个工具",
+  "permissions.toolOther": "个工具",
+  "permissions.toolset": "工具集",
+  "permissions.noMcpConfigured": "未配置 MCP 服务、访问组或工具集",
+  "permissions.allowedAgentsToCall": "允许调用的智能体",
+  "permissions.noAgentsConfigured": "未配置智能体或访问组",
+  "permissions.fullId": "完整 ID：{id}",
+  "permissions.inheritedGrantTooltip": "通过 {source} 授予。完整 ID：{id}",
+};
