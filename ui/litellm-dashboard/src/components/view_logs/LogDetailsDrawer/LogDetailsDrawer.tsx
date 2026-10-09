@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "@/i18n";
 import { Bot, Check, Copy, Sparkles, Wrench } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -120,6 +121,7 @@ export function LogDetailsDrawer({
   onSelectLog,
   startTime,
 }: LogDetailsDrawerProps) {
+  const { t } = useTranslation();
   const isSessionMode = Boolean(sessionId);
   const [selectedSessionRequestId, setSelectedSessionRequestId] = useState<string | null>(null);
   const [sessionSortMode, setSessionSortMode] = useState<SessionLogSortMode>("duration");
@@ -264,9 +266,9 @@ export function LogDetailsDrawer({
   const metadata = currentLog?.metadata || {};
 
   // Status display values
-  const statusLabel = metadata.status === "failure" ? "Failure" : "Success";
+  const statusLabel = metadata.status === "failure" ? t("logs.request.statusFailure") : t("logs.request.statusSuccess");
   const statusColor = metadata.status === "failure" ? ("error" as const) : ("success" as const);
-  const environment = metadata?.user_api_key_team_alias || "default";
+  const environment = metadata?.user_api_key_team_alias || t("logs.drawer.envDefault");
 
   const totalSessionCost = sessionLogs.reduce((sum, row) => sum + (row.spend || 0), 0);
   const sessionStart =
@@ -312,7 +314,9 @@ export function LogDetailsDrawer({
         style={{ width: DRAWER_WIDTH }}
       >
         <SheetTitle className="sr-only">
-          {logEntry?.request_id ? `Request ${logEntry.request_id} details` : "Request details"}
+          {logEntry?.request_id
+            ? t("logs.drawer.requestDetailsTitleWithId", { id: logEntry.request_id })
+            : t("logs.drawer.requestDetailsTitle")}
         </SheetTitle>
         <div style={{ height: "100%" }} className="flex relative">
           {!isSidebarCollapsed && (
@@ -328,7 +332,7 @@ export function LogDetailsDrawer({
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                      {isSessionMode ? "Session" : "Trace"}
+                      {isSessionMode ? t("logs.drawer.session") : t("logs.drawer.trace")}
                     </div>
                     <div className="font-mono text-[12px] text-foreground leading-tight flex items-center gap-1">
                       <span className="truncate">{leftPanelDisplayId}</span>
@@ -336,7 +340,7 @@ export function LogDetailsDrawer({
                         type="button"
                         onClick={handleCopyLeftPanelId}
                         className="text-muted-foreground hover:text-foreground"
-                        aria-label="Copy trace id"
+                        aria-label={t("logs.drawer.copyTraceAria")}
                       >
                         {copiedLeftPanelId ? <Check className="size-3" /> : <Copy className="size-3" />}
                       </button>
@@ -344,7 +348,7 @@ export function LogDetailsDrawer({
                   </div>
                 </div>
                 <div className="mt-1 text-[11px] text-muted-foreground font-mono">
-                  {logsForList.length} req
+                  {t("logs.drawer.reqCount", { count: logsForList.length })}
                   {[
                     isSessionMode
                       ? llmCount
@@ -358,7 +362,7 @@ export function LogDetailsDrawer({
                       ? mcpCount
                       : logsForList.filter((row) => MCP_CALL_TYPES.includes(row.call_type)).length,
                   ].map((count, i) => {
-                    const label = [" LLM", " Agent", " MCP"][i];
+                    const label = [t("logs.drawer.llm"), t("logs.drawer.agent"), t("logs.drawer.mcp")][i];
                     return count > 0 ? (
                       <span key={label}>
                         <span className="mx-1.5">·</span>
@@ -378,12 +382,12 @@ export function LogDetailsDrawer({
                 </div>
                 {isSessionMode && (
                   <div className="text-[11px] text-muted-foreground font-mono whitespace-nowrap">
-                    {cacheHitCount}/{logsForList.length} cached
+                    {t("logs.drawer.cached", { hit: cacheHitCount, total: logsForList.length })}
                   </div>
                 )}
                 {isSessionMode && sessionTruncated && (
                   <div className="mt-1 text-[11px] text-warning font-mono">
-                    Showing most recent {logsForList.length} of {sessionTotalCount}
+                    {t("logs.drawer.showingMostRecent", { shown: logsForList.length, total: sessionTotalCount })}
                   </div>
                 )}
                 {isSessionMode && (
@@ -394,10 +398,10 @@ export function LogDetailsDrawer({
                   >
                     <TabsList className="w-full">
                       <TabsTrigger value="duration" className="text-[11px]">
-                        Duration
+                        {t("logs.drawer.sortDuration")}
                       </TabsTrigger>
                       <TabsTrigger value="start_time" className="text-[11px]">
-                        Start time
+                        {t("logs.drawer.sortStartTime")}
                       </TabsTrigger>
                     </TabsList>
                   </Tabs>

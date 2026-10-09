@@ -9,6 +9,8 @@ import { AutoRouterTag } from "@/components/shared/table_cells";
 import { ClassifyTag } from "./ClassifyTag";
 import { SidebarToggle } from "./SidebarToggle";
 import { getProviderLogoAndName } from "../../provider_info_helpers";
+import { useTranslation } from "@/i18n";
+import type { Translate } from "@/i18n";
 import {
   DRAWER_HEADER_PADDING,
   COLOR_BORDER,
@@ -46,6 +48,7 @@ export function DrawerHeader({
   isSidebarCollapsed,
   onToggleSidebar,
 }: DrawerHeaderProps) {
+  const { t } = useTranslation();
   const provider = log.custom_llm_provider || "";
   const providerInfo = provider ? getProviderLogoAndName(provider) : null;
   const showToggleWithProvider = isSidebarCollapsed && Boolean(providerInfo || log.model);
@@ -88,7 +91,7 @@ export function DrawerHeader({
       >
         {showToggleWithRequestId && <SidebarToggle isCollapsed onToggle={onToggleSidebar} />}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <CopyableId value={log.request_id} label="Request ID" fontSize={FONT_SIZE_HEADER} />
+          <CopyableId value={log.request_id} label={t("logs.drawer.requestId")} t={t} fontSize={FONT_SIZE_HEADER} />
           {callId && (
             <div className="flex items-center gap-1">
               <span
@@ -97,15 +100,15 @@ export function DrawerHeader({
               >
                 x-litellm-call-id:
               </span>
-              <CopyableId value={callId} label="x-litellm-call-id" fontSize={FONT_SIZE_MEDIUM} muted />
+              <CopyableId value={callId} label="x-litellm-call-id" t={t} fontSize={FONT_SIZE_MEDIUM} muted />
             </div>
           )}
         </div>
-        <NavigationSection onPrevious={onPrevious} onNext={onNext} onClose={onClose} />
+        <NavigationSection t={t} onPrevious={onPrevious} onNext={onNext} onClose={onClose} />
       </div>
 
       {/* Row 2: Status + Env + Timestamp */}
-      <StatusBar log={log} statusLabel={statusLabel} statusColor={statusColor} environment={environment} />
+      <StatusBar t={t} log={log} statusLabel={statusLabel} statusColor={statusColor} environment={environment} />
     </div>
   );
 }
@@ -160,11 +163,13 @@ function CopyableId({
   label,
   fontSize,
   muted,
+  t,
 }: {
   value: string;
   label: string;
   fontSize: number;
   muted?: boolean;
+  t: Translate;
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -199,7 +204,7 @@ function CopyableId({
           {value}
           <button
             type="button"
-            aria-label={copied ? "Copied!" : `Copy ${label}`}
+            aria-label={copied ? t("logs.drawer.copied") : t("logs.drawer.copyAria", { label })}
             onClick={handleCopy}
             className="ml-1 align-middle text-muted-foreground hover:text-foreground"
           >
@@ -220,10 +225,12 @@ function NavigationSection({
   onPrevious,
   onNext,
   onClose,
+  t,
 }: {
   onPrevious: () => void;
   onNext: () => void;
   onClose: () => void;
+  t: Translate;
 }) {
   const keyboardShortcutStyle = {
     border: "1px solid var(--color-border)",
@@ -253,7 +260,7 @@ function NavigationSection({
           <TooltipTrigger render={<Button variant="ghost" size="icon-sm" onClick={onClose} />}>
             <X className="size-4" />
           </TooltipTrigger>
-          <TooltipContent>ESC to close</TooltipContent>
+          <TooltipContent>{t("logs.drawer.escToClose")}</TooltipContent>
         </Tooltip>
       </TooltipProvider>
     </div>
@@ -268,16 +275,18 @@ function StatusBar({
   statusLabel,
   statusColor,
   environment,
+  t,
 }: {
   log: LogEntry;
   statusLabel: string;
   statusColor: "error" | "success";
   environment: string;
+  t: Translate;
 }) {
   return (
     <div className="flex items-center gap-3">
       <Badge variant={statusColor === "error" ? "destructive" : "secondary"}>{statusLabel}</Badge>
-      <Badge variant="outline">Env: {environment}</Badge>
+      <Badge variant="outline">{t("logs.drawer.env")} {environment}</Badge>
       <div className="flex items-center gap-2">
         <span className="text-muted-foreground" style={{ fontSize: FONT_SIZE_MEDIUM }}>
           {moment(log.startTime).format("MMM D, YYYY h:mm:ss A")}
